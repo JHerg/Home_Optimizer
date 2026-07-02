@@ -202,10 +202,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .batt-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .now-line{position:absolute;top:0;bottom:0;width:2px;background:var(--nacht);opacity:.28;transform:translateX(-1px)}
 .blocks-layer{position:absolute;inset:0}
-.p-block{position:absolute;height:28px;display:flex;align-items:center;gap:5px;padding:0 8px;background:var(--nacht);color:#fff;border-radius:9px;cursor:grab;overflow:hidden;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(20,31,44,.5);touch-action:none;user-select:none;-webkit-user-select:none;transition:transform var(--schnell),box-shadow var(--schnell)}
-.p-block .blk-ic{font-size:14px}
-.p-block .blk-zeit{font-family:var(--mono);font-size:11px;font-weight:600;opacity:.9}
-.p-block.zieht{cursor:grabbing;transform:scale(1.05);box-shadow:0 10px 22px -6px rgba(20,31,44,.6);z-index:5}
+.p-block{position:absolute;height:28px;min-width:26px;display:flex;align-items:center;justify-content:center;background:var(--nacht);color:#fff;border-radius:9px;cursor:grab;overflow:hidden;box-shadow:0 4px 12px -4px rgba(20,31,44,.5);touch-action:none;user-select:none;-webkit-user-select:none;transition:transform var(--schnell),box-shadow var(--schnell)}
+.p-block .blk-ic{font-size:16px}
+.p-block.zieht{cursor:grabbing;transform:scale(1.12);box-shadow:0 10px 22px -6px rgba(20,31,44,.6);z-index:5}
 .std-achse{position:relative;height:16px;margin-top:3px}
 .std-achse span{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--grau)}
 .planer-deckung{display:flex;gap:2px;height:30px;margin-top:8px}
@@ -222,6 +221,19 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .v-haupt.warn{background:var(--gelb-hell);color:#9A6A00}
 .v-zeile{display:flex;justify-content:space-between;font-size:13px;padding:3px 2px;color:var(--tinte)}
 .v-zeile b{font-family:var(--mono)}
+/* Geräte-Liste unter der Zeitleiste */
+.planer-liste{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.pl-zeile{display:flex;align-items:center;gap:11px;background:var(--papier);border-radius:12px;padding:9px 12px}
+.pl-ic{font-size:20px;flex-shrink:0}
+.pl-info{display:flex;flex-direction:column;min-width:0;flex:1}
+.pl-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-zeit{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tinte)}
+.pl-deck{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;width:104px}
+.pl-meter{display:flex;width:100%;height:6px;border-radius:99px;overflow:hidden;background:rgba(20,31,44,.08)}
+.pl-meter span{display:block;height:100%}
+.pl-proz{font-size:10.5px;font-weight:600;color:var(--grau)}
+.pl-proz.gut{color:var(--gruen)}
+.deckung-titel{font-size:11.5px;font-weight:600;color:var(--grau);margin:16px 0 6px}
 
 /* Meine Geräte */
 .merken-knopf{width:100%;padding:12px;border:1.5px solid var(--sonne);border-radius:15px;background:var(--sonne-hell);color:#8A6100;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:transform var(--schnell)}
@@ -267,6 +279,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .planer-deckung .deckung-col{background:rgba(255,255,255,.06)}
   .v-haupt.warn{color:#FFCF6B}
   .mc-add:hover{background:var(--sonne-hell)}
+  .pl-meter{background:rgba(255,255,255,.1)}
 }
 </style>
 </head>
@@ -363,9 +376,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt">
     <div class="frage">4 · Dein Stromspeicher</div>
-    <div class="hilfe">Für die Tagesplanung: wie groß dein Speicher ist und wie voll er gerade ist. Die App lädt ihn mit Sonnenüberschuss und entlädt ihn, wenn die Geräte mehr brauchen.</div>
+    <div class="hilfe">Für die Tagesplanung reichen zwei Werte: die Größe des Speichers und wie voll er <b>morgens vor Sonnenaufgang</b> ist. Über den Tag lädt ihn der Sonnenüberschuss (nach Abzug der Grundlast), und die Grundlast entlädt ihn, wenn keine Sonne da ist.</div>
     <div class="zahl-feld" style="margin-bottom:9px"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
-    <div class="zahl-feld"><input id="f-akku-stand" value="5" inputmode="decimal"><span class="einheit">kWh aktuell geladen</span></div>
+    <div class="zahl-feld"><input id="f-akku-stand" value="5" inputmode="decimal"><span class="einheit">kWh morgens geladen</span></div>
   </div>
   <details class="experte">
     <summary>Für Experten</summary>
@@ -379,9 +392,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="zahl-feld"><input id="f-verguetung" value="7.9" inputmode="decimal"><span class="einheit">ct/kWh</span></div>
     </div>
     <div class="abschnitt">
-      <div class="frage">Ab wann gilt eine Stunde als „Sonnenstunde"?</div>
-      <div class="hilfe">Dieser Wert ist eine simple Regel für die App: „Ignoriere den Sonnenstrom, solange die Leistung unter diesem Wert liegt." Denn diese Leistung ist bereits für die Grundlast (Kühlschrank, Standby, Wärmepumpe) reserviert. Erst wenn das Dach MEHR liefert, ist genug Überschuss für die manuelle Planung da.</div>
-      <div class="zahl-feld"><input id="f-schwelle" value="1500" inputmode="decimal"><span class="einheit">Watt</span></div>
+      <div class="frage">Durchschnittliche Grundlast</div>
+      <div class="hilfe">Der ständige Verbrauch im Hintergrund (Kühlschrank, Standby, Wärmepumpe …). Er wird zuerst aus der Sonne gedeckt – erst darüber gibt es Überschuss für Geräte und zum Laden des Speichers. Ohne Sonne entlädt diese Grundlast den Speicher. Realistisch sind je nach Haushalt oft 200–600 W; mit laufender Wärmepumpe mehr.</div>
+      <div class="zahl-feld"><input id="f-schwelle" value="1500" inputmode="decimal"><span class="einheit">Watt Grundlast</span></div>
     </div>
     <div class="abschnitt">
       <div class="frage">Prognose-Kalibrierung</div>
@@ -619,30 +632,38 @@ function autoPlatzierung(arr){
   });
   return bloecke;
 }
-// Chronologische Simulation: Grundlast reserviert (Schwelle), Ueberschuss deckt Geraete
-// bzw. laedt den Speicher; Defizit zuerst aus Speicher, Rest aus dem Netz zum Preis der Stunde.
+// Voll-Haus-Simulation ueber den Tag:
+// Reihenfolge je Stunde: PV deckt zuerst die Grundlast, dann die Geraete; PV-Rest laedt
+// den Speicher. Defizite werden aus dem Speicher (erst Grundlast, dann Geraete) und zuletzt
+// aus dem Netz gedeckt. So laedt die Grundlast den Speicher langsamer und entlaedt ihn nachts.
 function simuliere(arr,bloecke){
   const cap=Math.max(0,cfg.akku_kwh||0);
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
+  const base=Math.max(0,(cfg.schwelle||0)/1000); // Grundlast kW (durchgehend)
   let akku=start;
-  const lastKW=new Array(24).fill(0);
-  bloecke.forEach(b=>{for(let i=0;i<b.dauer;i++){const h=b.start+i;if(h>=0&&h<24)lastKW[h]+=b.devKW;}});
-  const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0;
+  const aktiv=Array.from({length:24},()=>[]);
+  bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;for(let i=0;i<b.dauer;i++){const h=b.start+i;if(h>=0&&h<24)aktiv[h].push(b);}});
+  const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
     const s=arr[h];
-    const surplus=Math.max(0,(s.pv-cfg.schwelle)/1000);
-    const load=lastKW[h];
-    const sun=Math.min(surplus,load);
-    const defizit=load-sun;
-    const batt=Math.min(akku,defizit); akku-=batt;
-    const netz=defizit-batt;
-    akku=Math.min(cap,akku+(surplus-sun)); // Ueberschuss laedt Speicher
-    const preis=(s.eff!=null?(s.voll!=null?s.voll:s.eff):null);
-    const ct=(preis!=null?netz*preis:0);
-    sonneKwh+=sun; akkuKwh+=batt; netzKwh+=netz; netzCt+=ct;
-    per.push({h,sun,batt,netz,load,akku,surplus,preis,spot:s.spot});
+    let pv=Math.max(0,s.pv/1000);
+    const dev=aktiv[h].reduce((a,b)=>a+b.devKW,0);
+    // PV: erst Grundlast, dann Geraete
+    const pvBase=Math.min(pv,base); pv-=pvBase; const baseDef=base-pvBase;
+    const pvDev=Math.min(pv,dev); pv-=pvDev; const devDef=dev-pvDev;
+    // PV-Rest laedt den Speicher
+    akku=Math.min(cap,akku+pv);
+    // Defizite: Grundlast zuerst, dann Geraete – jeweils Speicher, dann Netz
+    const battBase=Math.min(akku,baseDef); akku-=battBase; const netzBase=baseDef-battBase;
+    const battDev=Math.min(akku,devDef); akku-=battDev; const netzDev=devDef-battDev;
+    // Geraete-Fluesse anteilig auf die aktiven Bloecke verteilen
+    if(dev>0)aktiv[h].forEach(b=>{const sh=b.devKW/dev;b._sun+=pvDev*sh;b._batt+=battDev*sh;b._grid+=netzDev*sh;});
+    const preis=(s.voll!=null?s.voll:(s.eff!=null?s.eff:null));
+    sonneKwh+=pvDev; akkuKwh+=battDev; netzKwh+=netzDev; netzCt+=(preis!=null?netzDev*preis:0);
+    hausNetzKwh+=netzBase+netzDev;
+    per.push({h,sun:pvDev,batt:battDev,netz:netzDev,load:dev,akku,base,netzBase});
   }
-  return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt};
+  return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt,hausNetzKwh};
 }
 
 /* ---------- Darstellung ---------- */
@@ -699,8 +720,10 @@ function renderPlaner(arr){
       nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
     '</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
+    '<div class="planer-liste" id="planer-liste"></div>'+
+    '<div class="deckung-titel">Deckung je Stunde</div>'+
     '<div class="planer-deckung" id="planer-deckung"></div>'+
-    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span><span><i style="background:var(--netz)"></i>Speicher</span><span><i style="background:var(--rot)"></i>Netz</span><span><i class="batt-key"></i>Füllstand</span></div>'+
+    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span><span><i style="background:var(--netz)"></i>Speicher</span><span><i style="background:var(--rot)"></i>Netz</span><span><i class="batt-key"></i>Speicher-Füllstand</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>';
   let ax="";for(let h=0;h<=24;h+=3)ax+='<span style="left:'+(h/24*100)+'%">'+h+'</span>';$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
@@ -708,8 +731,8 @@ function renderPlaner(arr){
     const el=document.createElement("div");
     el.className="p-block";
     el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*34+4)+"px";
-    el.innerHTML='<span class="blk-ic">'+b.icon+'</span><span class="blk-zeit">'+b.start+'–'+(b.start+b.dauer)+'</span>';
-    el.title=b.name+" ziehen zum Verschieben";
+    el.innerHTML='<span class="blk-ic">'+b.icon+'</span>';
+    el.title=b.name+" ("+b.start+"–"+(b.start+b.dauer)+" Uhr) – ziehen zum Verschieben";
     el.addEventListener("pointerdown",e=>starteDrag(e,b,el));
     bl.appendChild(el);
   });
@@ -722,16 +745,31 @@ function renderPlaner(arr){
     const move=ev=>{
       const dh=Math.round((ev.clientX-x0)/hw);
       const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dh));
-      if(ns!==blk.start){blk.start=ns;el.style.left=(ns/24*100)+"%";const z=el.querySelector(".blk-zeit");if(z)z.textContent=ns+"–"+(ns+blk.dauer);updateSim();}
+      if(ns!==blk.start){blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+ns+"–"+(ns+blk.dauer)+" Uhr)";updateSim();}
     };
     const up=()=>{el.classList.remove("zieht");window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
   }
   function updateSim(){
     const sim=simuliere(arr,platzierungen);
+    // Batterie-Füllstandslinie
     let pts="0,"+(100-(sim.cap>0?sim.akkuStart/sim.cap*100:0)).toFixed(1);
     sim.per.forEach(p=>{pts+=" "+(p.h+1)+","+(100-(sim.cap>0?p.akku/sim.cap*100:0)).toFixed(1);});
     $("batt-svg").innerHTML='<polyline points="'+pts+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-dasharray="3 2"/>';
+    // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
+    let li="";
+    platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
+      const selbst=b._sun+b._batt, gruen=b.kwh>0?Math.round(selbst/b.kwh*100):0;
+      const netz=Math.max(0,100-gruen);
+      li+='<div class="pl-zeile">'+
+        '<span class="pl-ic">'+b.icon+'</span>'+
+        '<span class="pl-info"><span class="pl-name">'+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
+        '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
+        '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% Sonne/Speicher</span></span>'+
+        '</div>';
+    });
+    $("planer-liste").innerHTML=li;
+    // Deckungs-Streifen je Stunde
     let dv="";
     sim.per.forEach(p=>{
       let inner="";
@@ -741,11 +779,11 @@ function renderPlaner(arr){
     $("planer-deckung").innerHTML=dv;
     const ok=sim.netzKwh<0.05;
     $("planer-verdikt").innerHTML=
-      '<div class="v-haupt '+(ok?"gut":"warn")+'">'+(ok?"✅ Alles aus Sonne &amp; Speicher gedeckt":"⚠️ "+sim.netzKwh.toFixed(1)+" kWh aus dem Netz (~"+euro(sim.netzCt/100)+")")+'</div>'+
-      '<div class="v-zeile"><span>☀️ Sonne direkt</span><b>'+sim.sonneKwh.toFixed(1)+' kWh</b></div>'+
-      '<div class="v-zeile"><span>🔋 aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>'+
-      '<div class="v-zeile"><span>🔌 aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
-      '<div class="v-zeile"><span>Speicher-Füllstand</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>';
+      '<div class="v-haupt '+(ok?"gut":"warn")+'">'+(ok?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"⚠️ "+sim.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(sim.netzCt/100)+")")+'</div>'+
+      '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+sim.sonneKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>';
   }
   updateSim();
 }
