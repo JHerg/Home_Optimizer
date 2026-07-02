@@ -73,6 +73,7 @@ h2{font-size:15px;font-weight:700;margin-bottom:4px}
 .plan-summe b{font-family:var(--mono)}
 .plan-leer{font-size:13.5px;color:var(--grau);padding:6px 0}
 
+.notify-box{font-size:13px;color:var(--grau);padding:14px;margin-top:10px;background:var(--papier);border-radius:12px;text-align:center}
 /* Tagesband */
 .band-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .band{display:flex;gap:2px;min-width:700px;padding-bottom:4px}
@@ -173,6 +174,12 @@ footer{font-size:11px;color:var(--grau);text-align:center}
   <div id="plan"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
 </section>
 
+<section class="notify-box" id="notify-box" hidden>
+  <div id="notify-frage">Möchtest du eine Benachrichtigung erhalten, wenn es Zeit ist, ein Gerät zu starten?</div>
+  <button id="btn-notify" style="margin-top:8px;padding:8px 14px;border-radius:10px;border:none;background:var(--tinte);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Benachrichtigungen aktivieren</button>
+  <div id="notify-status" hidden></div>
+</section>
+
 <section class="karte">
   <h2>Tagesüberblick</h2>
   <div class="untertitel">Oben: wie viel Sonne dein Dach liefert. Unten: die Preis-Ampel.</div>
@@ -215,7 +222,7 @@ footer{font-size:11px;color:var(--grau);text-align:center}
   </div>
   <div class="abschnitt">
     <div class="frage">3 · Dein Stromtarif</div>
-    <div class="hilfe">Beim dynamischen Tarif (z.&nbsp;B. Ostrom) zahlst du den Börsenpreis plus einen festen Aufschlag für Netz, Steuern und Abgaben. Der steht in deinem Vertrag – falls unbekannt, passt der Startwert für Köln gut.</div>
+    <div class="hilfe">Stell es dir vor wie beim Einkaufen: Der Börsenpreis ist der reine Einkaufspreis für Strom. Dein Anbieter packt darauf noch alle weiteren Kosten (Netz, Steuern, Service). Dieser feste 'Aufschlag' steht in deinem Vertrag. Die Summe aus beidem ist dein tatsächlicher Preis für Strom aus dem Netz.</div>
     <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
   </div>
   <details class="experte">
@@ -231,7 +238,7 @@ footer{font-size:11px;color:var(--grau);text-align:center}
     </div>
     <div class="abschnitt">
       <div class="frage">Ab wann gilt eine Stunde als „Sonnenstunde"?</div>
-      <div class="hilfe">Erst wenn das Dach mehr liefert als der Haushalt nebenbei verbraucht, ist wirklich etwas für die Waschmaschine übrig.</div>
+      <div class="hilfe">Erst wenn das Dach mehr liefert als der Haushalt nebenbei verbraucht (Grundlast + ggf. automatisch gesteuerte Geräte wie Wärmepumpe), ist wirklich etwas für die manuelle Planung übrig.</div>
       <div class="zahl-feld"><input id="f-schwelle" value="1500" inputmode="decimal"><span class="einheit">Watt</span></div>
     </div>
     <div class="abschnitt">
@@ -401,8 +408,8 @@ function stunden(tagStr){
   const q=p=>mitPreis.length?mitPreis[Math.min(mitPreis.length-1,Math.floor(p*mitPreis.length))]:null;
   const q30=q(0.30),q70=q(0.70);
   arr.forEach(s=>{
-    s.voll=s.spot==null?null:s.spot+cfg.aufschlag;
-    if(s.pv>=cfg.schwelle){s.klasse="pv";s.eff=cfg.verguetung;s.warum="Sonnenstrom vom eigenen Dach";}
+    s.voll=s.spot==null?null:s.spot+cfg.aufschlag; // Die vollen Netzbezugskosten
+    if(s.pv>=cfg.schwelle){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
     else if(s.voll!=null&&s.voll<=q30){s.klasse="guenstig";s.eff=s.voll;s.warum="Netzstrom besonders günstig";}
     else if(s.voll!=null&&s.voll>=q70){s.klasse="teuer";s.eff=s.voll;s.warum="teure Netzstunde";}
     else{s.klasse="mittel";s.eff=s.voll;s.warum="normaler Preis";}
@@ -426,7 +433,7 @@ function schlechtestesFenster(arr,dauer,von,bis){
   let worst=null;
   for(let start=von;start<=bis-dauer;start++){
     let sum=0,ok=true;
-    for(let i=0;i<dauer;i++){const s=arr[start+i];if(s.eff==null){ok=false;break;}sum+=s.eff;}
+    for(let i=0;i<dauer;i++){const s=arr[start+i];if(s.eff==null){ok=false;break;}sum+=s.eff; }
     if(ok&&(worst==null||sum>worst))worst=sum;
   }
   return worst;
@@ -441,11 +448,13 @@ function planErstellen(arr){
       if(!f)continue;
       for(let i=0;i<dauer;i++)belegt.add(f.start+i);
       const kosten=g.kwh*(f.sum/dauer)/100;
-      const worst=schlechtestesFenster(arr,dauer,g.von,g.bis);
+      const wFenster=schlechtestesFenster(arr,dauer,g.von,g.bis);
+      const wKosten = wFenster ? g.kwh*(wFenster/dauer)/100 : 0;
       eintraege.push({start:f.start,ende:f.start+dauer,
         name:g.name+(g.anzahl>1?" ("+n+".)":""),icon:g.icon,
         klasse:arr[f.start].klasse,warum:arr[f.start].warum,kosten,
-        ersparnis:worst!=null?g.kwh*(worst-f.sum)/dauer/100:0});
+        ersparnis:wFenster!=null?g.kwh*(wFenster.sum-f.sum)/dauer/100:0,
+        worstText:wFenster?`Gespart im Vergleich zur teuersten Zeit (${wFenster.start}–${wFenster.start+dauer} Uhr), wo es ${euro(wKosten)} gekostet hätte.` : ""});
     }
   });
   eintraege.sort((a,b)=>a.start-b.start);
@@ -483,11 +492,20 @@ function renderPlan(arr){
   let html="",summe=0,sparsumme=0;
   plan.forEach(p=>{
     html+='<div class="plan-eintrag k-'+p.klasse+'">'+
-      '<span class="p-zeit">'+p.start+'–'+p.ende+' Uhr</span>'+
+      '<div class="p-zeit">'+p.start+'–'+p.ende+' Uhr</div>'+
       '<span class="p-was"><span class="n">'+p.icon+' '+p.name+'</span><br><span class="warum">'+p.warum+'</span></span>'+
+      '<div class="p-kosten">'+euro(p.kosten)+
+      (p.ersparnis>0.01?'<span class="sparen" title="'+p.worstText+'">+'+euro(p.ersparnis)+' gespart</span>':'')+'</div>'+
       '</div>';
+    summe+=p.kosten;
+    sparsumme+=p.ersparnis;
   });
+  html+='<div class="plan-summe">'+
+    '<span>Summe Geräte</span><b>'+euro(summe)+'</b>'+
+    '</div>';
+  if(sparsumme>0.01)html+='<div class="plan-summe" style="padding-top:4px;color:var(--gruen)"><span>Gesamtersparnis heute</span><b>'+euro(sparsumme)+'</b></div>';
   box.innerHTML=html;
+  $("notify-box").hidden = !plan.length || tag !== "heute";
 }
 function renderBand(arr,tagStr){
   const band=$("band");band.innerHTML="";
@@ -674,8 +692,45 @@ $("btn-b-loeschen").onclick=()=>{
 $("btn-heute").onclick=()=>{tag="heute";$("btn-heute").classList.add("aktiv");$("btn-morgen").classList.remove("aktiv");aktualisieren();};
 $("btn-morgen").onclick=()=>{tag="morgen";$("btn-morgen").classList.add("aktiv");$("btn-heute").classList.remove("aktiv");aktualisieren();};
 
+/* Benachrichtigungen */
+let notifyErlaubt = false;
+const benachrichtigungsTimer = { timer: null, gemeldet: new Set() };
+
+function checkNotifyPermission() {
+  if (!("Notification" in window)) {
+    $("notify-status").textContent = "Dein Browser unterstützt leider keine Benachrichtigungen.";
+    $("notify-status").hidden = false;
+    $("btn-notify").hidden = true;
+    $("notify-frage").hidden = true;
+    return;
+  }
+  if (Notification.permission === "granted") {
+    notifyErlaubt = true;
+    $("notify-status").textContent = "✅ Benachrichtigungen sind aktiv.";
+    $("notify-status").hidden = false;
+    $("btn-notify").hidden = true;
+    $("notify-frage").hidden = true;
+    starteNotifyTimer();
+  } else {
+    $("btn-notify").onclick = async () => {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") checkNotifyPermission();
+    };
+  }
+}
+function starteNotifyTimer() {
+  if (benachrichtigungsTimer.timer) clearInterval(benachrichtigungsTimer.timer);
+  benachrichtigungsTimer.gemeldet.clear();
+  benachrichtigungsTimer.timer = setInterval(() => {
+    const h = new Date().getHours();
+    const plan = planErstellen(stunden(heuteStr()));
+    plan.forEach(p => { if (p.start === h && !benachrichtigungsTimer.gemeldet.has(p.name)) { new Notification(`✨ Energie-Optimierer: Jetzt ${p.name} starten!`); benachrichtigungsTimer.gemeldet.add(p.name); } });
+  }, 60 * 1000); // Jede Minute prüfen
+}
+
 renderChips();
 laden();
+checkNotifyPermission();
 })();
 </script>
 </body>
