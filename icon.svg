@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1B2E42"/>
+      <stop offset="1" stop-color="#101B27"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFC94D"/>
+      <stop offset="1" stop-color="#F5A80C"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Strahlen -->
+  <g fill="url(#sun)">
+    <g id="ray"><rect x="245" y="60" width="22" height="52" rx="11"/></g>
+    <use href="#ray" transform="rotate(45 256 256)"/>
+    <use href="#ray" transform="rotate(90 256 256)"/>
+    <use href="#ray" transform="rotate(135 256 256)"/>
+    <use href="#ray" transform="rotate(180 256 256)"/>
+    <use href="#ray" transform="rotate(225 256 256)"/>
+    <use href="#ray" transform="rotate(270 256 256)"/>
+    <use href="#ray" transform="rotate(315 256 256)"/>
+  </g>
+  <!-- Sonne -->
+  <circle cx="256" cy="256" r="112" fill="url(#sun)"/>
+  <!-- Blitz -->
+  <path d="M283 158 L196 274 L248 274 L229 354 L322 234 L266 234 Z"
+        fill="#152230"/>
+</svg>
