@@ -36,7 +36,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-o
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--grau)}
 h1{font-size:27px;font-weight:700;letter-spacing:-.02em;margin:2px 0}
 .unterzeile{font-size:13px;color:var(--grau)}
+.kopf-aktionen{display:flex;gap:8px;flex-shrink:0}
 .knopf-einrichten{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.knopf-aktualisieren{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:12px;width:42px;font-size:18px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;opacity:.65}
+@keyframes dreh{to{transform:rotate(360deg)}}
 .sonnen-summe{display:inline-flex;align-items:center;gap:7px;background:var(--sonne-hell);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;margin:10px 0 4px}
 
 .segment{display:flex;background:rgba(21,34,48,.06);border-radius:12px;padding:4px;margin:12px 0 6px}
@@ -156,7 +160,10 @@ footer{font-size:11px;color:var(--grau);text-align:center}
     <h1 id="titel">Heute</h1>
     <div class="unterzeile" id="standort-zeile">Altbaumburgweg, Köln</div>
   </div>
-  <button class="knopf-einrichten" id="btn-einrichten">⚙️ Einrichten</button>
+  <div class="kopf-aktionen">
+    <button class="knopf-aktualisieren" id="btn-aktualisieren" aria-label="Daten aktualisieren" title="Preise & Sonnenprognose neu laden">↻</button>
+    <button class="knopf-einrichten" id="btn-einrichten">⚙️ Einrichten</button>
+  </div>
 </div>
 <div class="sonnen-summe" id="sonnen-summe" hidden>☀️ Dein Dach liefert voraussichtlich <b>&nbsp;– kWh</b></div>
 
@@ -578,10 +585,12 @@ function aktualisieren(){
   if(tag==="morgen"&&arr.every(s=>s.spot==null))
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
 }
+let letzterLoad=0;
 async function laden(){
   $("status").textContent="Lade Sonnen- und Preisdaten…";
   try{
     const [, pvQuelle] = await Promise.all([ladePreise(), ladePV()]);
+    letzterLoad=Date.now();
     $("status").textContent="Stand: " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     aktualisieren();
     $("quelle-preis").textContent = "aWATTar";
@@ -783,6 +792,20 @@ function starteNotifyTimer() {
     }
   }, 60 * 1000); // Jede Minute prüfen
 }
+
+/* Aktualisieren */
+function starteAktualisierung(){
+  const b=$("btn-aktualisieren");
+  if(b.classList.contains("laedt"))return;
+  b.classList.add("laedt");
+  laden().finally(()=>b.classList.remove("laedt"));
+}
+$("btn-aktualisieren").onclick=starteAktualisierung;
+// Installierte Web-App bleibt im Hintergrund "eingefroren" – beim Zurueckkehren
+// aktualisieren, wenn die Daten aelter als 10 Minuten sind.
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="visible" && Date.now()-letzterLoad>10*60*1000) starteAktualisierung();
+});
 
 ladeGespeichert();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
