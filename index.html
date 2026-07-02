@@ -48,6 +48,8 @@ h1{font-size:27px;font-weight:700;letter-spacing:-.02em;margin:2px 0}
 .segment button.aktiv{background:var(--karte);color:var(--nacht);box-shadow:0 1px 4px rgba(21,34,48,.12)}
 .status{font-family:var(--mono);font-size:12px;color:var(--grau);padding:4px 2px 12px;min-height:20px}
 .status .fehler{color:var(--rot)}
+.quellen-info{font-size:11px;color:var(--grau);padding:0 2px 12px;line-height:1.55}
+.quellen-info b{color:var(--tinte);font-weight:600}
 
 .karte{background:var(--karte);border-radius:var(--radius);padding:18px;box-shadow:var(--schatten);margin-bottom:14px}
 h2{font-size:15px;font-weight:700;margin-bottom:4px}
@@ -79,16 +81,18 @@ h2{font-size:15px;font-weight:700;margin-bottom:4px}
 .p-was{flex:1}
 .p-was .n{font-size:14px;font-weight:600}
 .p-was .warum{font-size:12px;color:var(--grau)}
-.p-kosten{font-family:var(--mono);font-size:14px;font-weight:600;text-align:right}
+.p-kosten{font-family:var(--mono);text-align:right;min-width:74px}
+.p-sonne{display:block;font-size:15px;font-weight:700;color:var(--grau)}
+.p-sonne.hoch{color:var(--gruen)}
+.p-euro{display:block;font-size:12px;font-weight:600;color:var(--grau);margin-top:2px}
+.plan-eintrag.naechste{box-shadow:0 0 0 2px var(--nacht) inset}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.03em;padding:2px 7px;border-radius:6px;margin-bottom:4px}
+.badge.jetzt{background:var(--nacht);color:#fff}
+.badge.next{background:var(--gelb-hell);color:var(--gelb)}
 .plan-summe{display:flex;justify-content:space-between;padding-top:12px;margin-top:4px;border-top:1.5px solid var(--linie);font-size:14px}
 .plan-summe b{font-family:var(--mono)}
 .plan-leer{font-size:13.5px;color:var(--grau);padding:6px 0}
 
-.notify-box{font-size:13px;color:var(--grau);padding:14px;margin-top:10px;background:var(--papier);border-radius:12px;text-align:center}
-.notify-optionen{margin-top:14px;text-align:left;border-top:1px solid var(--linie);padding-top:12px}
-.notify-titel{font-size:13px;font-weight:600;color:var(--nacht);margin-bottom:6px}
-.notify-optionen label{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--tinte);padding:7px 0;cursor:pointer;line-height:1.35}
-.notify-optionen input{margin-top:1px;width:18px;height:18px;flex-shrink:0;accent-color:var(--netz)}
 /* Tagesband */
 .band-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .band{display:flex;gap:2px;padding-bottom:4px}
@@ -150,6 +154,24 @@ details.experte summary{font-size:12.5px;font-weight:600;color:var(--grau);curso
 .such-ergebnis.fehl{background:var(--rot-hell)}
 .such-ergebnis b{font-family:var(--mono)}
 footer{font-size:11px;color:var(--grau);text-align:center}
+
+/* Dark Mode – folgt der Systemeinstellung */
+@media (prefers-color-scheme: dark){
+  :root{
+    --nacht:#E8EEF3; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182735;
+    --grau:#8A99A6; --linie:#26384A;
+    --sonne-hell:#3A2D12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
+    --schatten:0 2px 12px rgba(0,0,0,.4);
+  }
+  body{background:linear-gradient(180deg,#122232 0%,var(--papier) 220px)}
+  .segment{background:rgba(255,255,255,.07)}
+  .chip.an{background:#20303F}
+  .wahl button.aktiv,.g-typen button.aktiv{background:#22323F}
+  input{background:var(--karte);color:var(--nacht)}
+  .zelle.k-mittel .kachel{background:#5A6A78}
+  .plan-eintrag.k-mittel{border-left-color:#5A6A78}
+  .badge.next{color:var(--sonne)}
+}
 </style>
 </head>
 <body>
@@ -190,19 +212,6 @@ footer{font-size:11px;color:var(--grau);text-align:center}
   <h2>Dein Tagesplan</h2>
   <div class="untertitel">Beste Startzeiten – sortiert über den Tag.</div>
   <div id="plan"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
-</section>
-
-<section class="notify-box" id="notify-box" hidden>
-  <div id="notify-frage">Möchtest du eine Benachrichtigung erhalten, wenn es Zeit ist, ein Gerät zu starten?</div>
-  <button id="btn-notify" style="margin-top:8px;padding:8px 14px;border-radius:10px;border:none;background:var(--tinte);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Benachrichtigungen aktivieren</button>
-  <div id="notify-status" hidden></div>
-  <div id="notify-optionen" class="notify-optionen" hidden>
-    <div class="notify-titel">Wobei möchtest du benachrichtigt werden?</div>
-    <label><input type="checkbox" data-nk="start"> <span><b>Gerät starten</b> – wenn die beste Zeit für ein geplantes Gerät beginnt</span></label>
-    <label><input type="checkbox" data-nk="sonne"> <span><b>Sonnenstunde</b> – wenn dein Dach gerade viel liefert</span></label>
-    <label><input type="checkbox" data-nk="guenstig"> <span><b>Günstige Netzstunde</b> – wenn Strom besonders billig ist</span></label>
-    <label><input type="checkbox" data-nk="morgen"> <span><b>Preise für morgen</b> – sobald sie verfügbar sind (ab ca. 14 Uhr)</span></label>
-  </div>
 </section>
 
 <section class="karte">
@@ -247,6 +256,9 @@ footer{font-size:11px;color:var(--grau);text-align:center}
   </div>
   <div class="abschnitt">
     <div class="frage">3 · Dein Stromtarif</div>
+    <div class="frage" style="font-size:13px;margin-top:2px">Dein dynamischer Stromanbieter</div>
+    <div class="hilfe">Alle dynamischen Tarife rechnen mit demselben Börsenpreis (EPEX-Spot). Die Auswahl dient der Anzeige – die Börsendaten kommen über die aWATTar-Schnittstelle.</div>
+    <div class="wahl" id="w-anbieter" style="margin-bottom:16px"></div>
     <div class="hilfe">Stell es dir vor wie beim Einkaufen: Der Börsenpreis ist der reine Einkaufspreis für Strom. Dein Anbieter packt darauf noch alle weiteren Kosten (Netz, Steuern, Service). Dieser feste 'Aufschlag' steht in deinem Vertrag. Die Summe aus beidem ist dein tatsächlicher Preis für Strom aus dem Netz.</div>
     <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
   </div>
@@ -331,7 +343,7 @@ footer{font-size:11px;color:var(--grau);text-align:center}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
-  faktor:1.0,adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,anbieter:"Ostrom",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -357,12 +369,11 @@ let geraete=[
 let daten={preise:{},pv:{}};
 let tag="heute";
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
-let notifyWahl={start:true,sonne:false,guenstig:false,morgen:false};
 
 /* ---------- Speichern / Laden (localStorage) ---------- */
 const SPEICHER_KEY="energie-optimierer-v1";
 function speichern(){
-  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,notifyWahl}));}catch(e){}
+  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete}));}catch(e){}
 }
 function ladeGespeichert(){
   try{
@@ -370,13 +381,16 @@ function ladeGespeichert(){
     if(!s)return;
     if(s.cfg)Object.assign(cfg,s.cfg);
     if(Array.isArray(s.geraete))geraete=s.geraete;
-    if(s.notifyWahl)Object.assign(notifyWahl,s.notifyWahl);
   }catch(e){}
 }
 
-function datumKey(d){const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
-function heuteStr(){return datumKey(new Date());}
-function morgenStr(){const d=new Date();d.setDate(d.getDate()+1);return datumKey(d);}
+/* Alles konsequent in Anlagen-Zeitzone Europe/Berlin, unabhaengig von der Geraete-Einstellung */
+const TZ="Europe/Berlin";
+const _tzFmt=new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hour12:false});
+function berlinTeile(d){const o={};_tzFmt.formatToParts(d).forEach(p=>{if(p.type!=="literal")o[p.type]=p.value;});let h=parseInt(o.hour,10);if(h===24)h=0;return{key:o.year+"-"+o.month+"-"+o.day,stunde:h};}
+function datumKey(d){return berlinTeile(d).key;}
+function heuteStr(){return berlinTeile(new Date()).key;}
+function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
 function euro(v){return v.toFixed(2).replace(".",",")+" €";}
 function dz(v){return String(v).replace(".",",");}
 function planStunden(g){return Math.max(1,Math.ceil(g.dauer));}
@@ -390,8 +404,8 @@ async function ladePreise(){
   const j=await r.json();
   daten.preise={};
   (j.data||[]).forEach(e=>{
-    const d=new Date(e.start_timestamp);
-    daten.preise[datumKey(d)+"-"+d.getHours()]=e.marketprice/10;
+    const t=berlinTeile(new Date(e.start_timestamp));
+    daten.preise[t.key+"-"+t.stunde]=e.marketprice/10;
   });
 }
 async function ladePV(){
@@ -457,14 +471,19 @@ function stunden(tagStr){
   });
   return arr;
 }
-function bestesFenster(arr,dauer,von,bis,belegt){
+// Bestes Fenster fuer EIN Geraet unter Beruecksichtigung des noch freien
+// Sonnenueberschusses (restKW je Stunde). Geraete duerfen sich Stunden teilen,
+// solange der Ueberschuss reicht; der ungedeckte Anteil zahlt Netzpreis.
+function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
   let best=null;
   for(let start=von;start<=bis-dauer;start++){
     let sum=0,ok=true;
     for(let i=0;i<dauer;i++){
-      const s=arr[start+i];
-      if(s.eff==null||belegt.has(start+i)){ok=false;break;}
-      sum+=s.eff;
+      const h=start+i,s=arr[h];
+      if(s.eff==null){ok=false;break;}
+      const gedeckt=Math.min(devKW,restKW[h]);
+      const preis=(s.voll!=null?s.voll:s.eff);
+      sum+=(devKW-gedeckt)*preis;
     }
     if(ok&&(best==null||sum<best.sum))best={start,sum};
   }
@@ -472,17 +491,29 @@ function bestesFenster(arr,dauer,von,bis,belegt){
 }
 function planErstellen(arr){
   const eintraege=[];
+  // Freier Sonnenueberschuss je Stunde (kW) = PV minus reservierte Grundlast (Schwelle).
+  // Wird von jedem eingeplanten Geraet aufgezehrt – reicht er fuer mehrere, laufen sie parallel.
+  const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   geraete.forEach(g=>{
     const dauer=planStunden(g);
-    const belegt=new Set();
+    const devKW=g.kwh/dauer; // mittlere Geraeteleistung
     for(let n=1;n<=g.anzahl;n++){
-      const f=bestesFenster(arr,dauer,g.von,g.bis,belegt);
+      const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
-      for(let i=0;i<dauer;i++)belegt.add(f.start+i);
-      const kosten=g.kwh*(f.sum/dauer)/100;
-      eintraege.push({start:f.start,ende:f.start+dauer,
-        name:g.name+(g.anzahl>1?" ("+n+".)":""),icon:g.icon,
-        klasse:arr[f.start].klasse,warum:arr[f.start].warum,kosten});
+      let sonneKwh=0,netzCt=0;
+      for(let i=0;i<dauer;i++){
+        const h=f.start+i,s=arr[h];
+        const gedeckt=Math.min(devKW,restKW[h]);
+        sonneKwh+=gedeckt;
+        netzCt+=(devKW-gedeckt)*(s.voll!=null?s.voll:(s.eff!=null?s.eff:0));
+        restKW[h]=Math.max(0,restKW[h]-gedeckt); // Ueberschuss ist nun vergeben
+      }
+      const sonnenAnteil=g.kwh>0?Math.min(1,sonneKwh/g.kwh):0;
+      let klasse=arr[f.start].klasse,warum=arr[f.start].warum;
+      if(sonnenAnteil>=0.5){klasse="pv";warum="Überwiegend Sonnenstrom vom Dach";}
+      else if(klasse==="pv"){klasse="mittel";warum="Sonne reicht nicht für alle – teils Netz";}
+      eintraege.push({start:f.start,ende:f.start+dauer,kwh:g.kwh,sonneKwh,sonnenAnteil,
+        name:g.name+(g.anzahl>1?" ("+n+".)":""),icon:g.icon,klasse,warum,kosten:netzCt/100});
     }
   });
   eintraege.sort((a,b)=>a.start-b.start);
@@ -517,29 +548,37 @@ function renderPlan(arr){
   if(arr.every(s=>s.eff==null)){box.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';return;}
   const plan=planErstellen(arr);
   if(!plan.length){box.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';return;}
-  let html="",summe=0;
-  plan.forEach(p=>{
-    html+='<div class="plan-eintrag k-'+p.klasse+'">'+
+  const jetztH=berlinTeile(new Date()).stunde;
+  const naechsteIdx = tag==="heute" ? plan.findIndex(p=>p.start>=jetztH) : -1;
+  let html="",summe=0,sonneKwhGes=0,kwhGes=0;
+  plan.forEach((p,i)=>{
+    let badge="";
+    if(tag==="heute"){
+      if(p.start<=jetztH&&jetztH<p.ende) badge='<span class="badge jetzt">Läuft jetzt</span>';
+      else if(i===naechsteIdx){const inH=p.start-jetztH;badge='<span class="badge next">Als Nächstes'+(inH>0?" · in "+inH+" Std":"")+'</span>';}
+    }
+    const proz=Math.round(p.sonnenAnteil*100);
+    html+='<div class="plan-eintrag k-'+p.klasse+((tag==="heute"&&i===naechsteIdx)?" naechste":"")+'">'+
       '<div class="p-zeit">'+p.start+'–'+p.ende+' Uhr</div>'+
-      '<span class="p-was"><span class="n">'+p.icon+' '+p.name+'</span><br><span class="warum">'+p.warum+'</span></span>'+
-      '<div class="p-kosten">'+euro(p.kosten)+'</div>'+
+      '<span class="p-was">'+badge+'<span class="n">'+p.icon+' '+p.name+'</span><br><span class="warum">'+p.warum+'</span></span>'+
+      '<div class="p-kosten"><span class="p-sonne'+(proz>=50?" hoch":"")+'">☀️ '+proz+'%</span><span class="p-euro">'+euro(p.kosten)+'</span></div>'+
       '</div>';
-    summe+=p.kosten;
+    summe+=p.kosten;sonneKwhGes+=p.sonneKwh;kwhGes+=p.kwh;
   });
-  html+='<div class="plan-summe">'+
-    '<span>Summe Geräte</span><b>'+euro(summe)+'</b>'+
-    '</div>';
+  const gesProz=kwhGes>0?Math.round(sonneKwhGes/kwhGes*100):0;
+  html+='<div class="plan-summe"><span>∅ aus Sonne</span><b>'+gesProz+' %</b></div>'+
+    '<div class="plan-summe" style="padding-top:4px"><span>Summe Geräte (Orientierung)</span><b>'+euro(summe)+'</b></div>';
   box.innerHTML=html;
-  $("notify-box").hidden = !plan.length || tag !== "heute";
 }
 function renderBand(arr,tagStr){
   const band=$("band");band.innerHTML="";
   const maxPV=Math.max(1,...arr.map(s=>s.pv));
-  const jetztH=new Date().getHours(),istHeute=tagStr===heuteStr();
+  const jetztH=berlinTeile(new Date()).stunde,istHeute=tagStr===heuteStr();
+  const klasseText={pv:"Sonnenstrom",guenstig:"günstig",mittel:"normal",teuer:"teuer"};
   arr.forEach(s=>{
     const b=document.createElement("button");
     b.className="zelle k-"+s.klasse+((istHeute&&s.h===jetztH)?" jetzt":"");
-    b.setAttribute("aria-label",s.h+" Uhr");
+    b.setAttribute("aria-label",s.h+" Uhr – "+(klasseText[s.klasse]||s.klasse));
     b.innerHTML='<span class="pv-balken"><span class="pv-fill" style="height:'+Math.round(s.pv/maxPV*100)+'%"></span></span>'+
       '<span class="kachel"></span><span class="std">'+(s.h%3===0?s.h:'')+'</span>';
     b.onclick=()=>{$("detail").textContent=s.h+"–"+(s.h+1)+" Uhr · Sonne ≈ "+(s.pv/1000).toFixed(1)+" kW · Netz "+
@@ -593,7 +632,7 @@ async function laden(){
     letzterLoad=Date.now();
     $("status").textContent="Stand: " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     aktualisieren();
-    $("quelle-preis").textContent = "aWATTar";
+    $("quelle-preis").textContent = cfg.anbieter;
     $("quelle-sonne").textContent = pvQuelle;
   }catch(e){
     $("status").innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
@@ -610,6 +649,7 @@ document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
 /* Einrichtung */
 const richtungen=[["Süd",0],["Südwest",45],["West",90],["Südost",-45],["Ost",-90],["Nord",180]];
 const neigungen=[["Flach (~10°)",10],["Leicht geneigt (~25°)",25],["Normal steil (~35°)",35],["Steil (~45°)",45]];
+const anbieterListe=[["Ostrom","Ostrom"],["Tibber","Tibber"],["aWATTar","aWATTar"],["Rabot","Rabot"],["Octopus","Octopus"],["Anderer","Anderer"]];
 function renderWahl(boxId,liste,aktiv,setzen){
   const box=$(boxId);box.innerHTML="";
   liste.forEach(([label,wert])=>{
@@ -631,6 +671,7 @@ $("btn-einrichten").onclick=()=>{
   $("f-faktor").value=dz(cfg.faktor);
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
+  renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
   const info=$("adresse-info");info.className="adresse-ok";
   info.textContent="✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",");
   sheetAuf("sheet-einrichten");
@@ -734,65 +775,6 @@ $("btn-b-loeschen").onclick=()=>{
 $("btn-heute").onclick=()=>{tag="heute";$("btn-heute").classList.add("aktiv");$("btn-morgen").classList.remove("aktiv");aktualisieren();};
 $("btn-morgen").onclick=()=>{tag="morgen";$("btn-morgen").classList.add("aktiv");$("btn-heute").classList.remove("aktiv");aktualisieren();};
 
-/* Benachrichtigungen */
-const benachrichtigungsTimer = { timer: null, gemeldet: new Set() };
-
-function initNotifyOptionen() {
-  document.querySelectorAll("#notify-optionen input[data-nk]").forEach(cb => {
-    cb.checked = !!notifyWahl[cb.dataset.nk];
-    cb.onchange = () => { notifyWahl[cb.dataset.nk] = cb.checked; speichern(); };
-  });
-}
-function checkNotifyPermission() {
-  if (!("Notification" in window)) {
-    $("notify-status").textContent = "Dein Browser unterstützt leider keine Benachrichtigungen.";
-    $("notify-status").hidden = false;
-    $("btn-notify").hidden = true;
-    $("notify-frage").hidden = true;
-    return;
-  }
-  if (Notification.permission === "granted") {
-    $("notify-status").textContent = "✅ Benachrichtigungen sind aktiv.";
-    $("notify-status").hidden = false;
-    $("btn-notify").hidden = true;
-    $("notify-frage").hidden = true;
-    $("notify-optionen").hidden = false;
-    initNotifyOptionen();
-    starteNotifyTimer();
-  } else {
-    $("btn-notify").onclick = async () => {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") checkNotifyPermission();
-    };
-  }
-}
-function melde(key, text) {
-  if (benachrichtigungsTimer.gemeldet.has(key)) return;
-  new Notification("✨ Energie-Optimierer", { body: text });
-  benachrichtigungsTimer.gemeldet.add(key);
-}
-function starteNotifyTimer() {
-  if (benachrichtigungsTimer.timer) clearInterval(benachrichtigungsTimer.timer);
-  benachrichtigungsTimer.gemeldet.clear();
-  benachrichtigungsTimer.timer = setInterval(() => {
-    const heute = heuteStr(), h = new Date().getHours();
-    const arr = stunden(heute), s = arr[h];
-    if (notifyWahl.start) {
-      planErstellen(arr).forEach(p => {
-        if (p.start === h) melde(heute + "-start-" + p.name, "Jetzt " + p.name + " starten – beste Zeit erreicht.");
-      });
-    }
-    if (notifyWahl.sonne && s && s.klasse === "pv")
-      melde(heute + "-sonne-" + h, "☀️ Viel Sonnenstrom vom Dach – guter Moment für flexible Geräte.");
-    if (notifyWahl.guenstig && s && s.klasse === "guenstig")
-      melde(heute + "-guenstig-" + h, "💡 Günstige Netzstunde – Strom ist gerade besonders billig.");
-    if (notifyWahl.morgen && h >= 14) {
-      const m = stunden(morgenStr());
-      if (!m.every(x => x.spot == null)) melde(heute + "-morgen", "📅 Die Strompreise für morgen sind da.");
-    }
-  }, 60 * 1000); // Jede Minute prüfen
-}
-
 /* Aktualisieren */
 function starteAktualisierung(){
   const b=$("btn-aktualisieren");
@@ -807,11 +789,21 @@ document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="visible" && Date.now()-letzterLoad>10*60*1000) starteAktualisierung();
 });
 
+/* Service Worker: Offline-Betrieb + frische Version beim Neustart */
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+/* Statusleisten-/Theme-Farbe an Hell/Dunkel anpassen */
+(function(){
+  const mm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)");
+  const setTC=()=>{const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",(mm&&mm.matches)?"#0F1A24":"#E4EEF4");};
+  setTC(); if(mm&&mm.addEventListener)mm.addEventListener("change",setTC);
+})();
+
 ladeGespeichert();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
-checkNotifyPermission();
 })();
 </script>
 </body>
