@@ -68,16 +68,19 @@ h2{font-size:15px;font-weight:700;margin-bottom:4px}
 .p-was .n{font-size:14px;font-weight:600}
 .p-was .warum{font-size:12px;color:var(--grau)}
 .p-kosten{font-family:var(--mono);font-size:14px;font-weight:600;text-align:right}
-.p-kosten .sparen{display:block;font-size:11px;font-weight:500;color:var(--gruen)}
 .plan-summe{display:flex;justify-content:space-between;padding-top:12px;margin-top:4px;border-top:1.5px solid var(--linie);font-size:14px}
 .plan-summe b{font-family:var(--mono)}
 .plan-leer{font-size:13.5px;color:var(--grau);padding:6px 0}
 
 .notify-box{font-size:13px;color:var(--grau);padding:14px;margin-top:10px;background:var(--papier);border-radius:12px;text-align:center}
+.notify-optionen{margin-top:14px;text-align:left;border-top:1px solid var(--linie);padding-top:12px}
+.notify-titel{font-size:13px;font-weight:600;color:var(--nacht);margin-bottom:6px}
+.notify-optionen label{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--tinte);padding:7px 0;cursor:pointer;line-height:1.35}
+.notify-optionen input{margin-top:1px;width:18px;height:18px;flex-shrink:0;accent-color:var(--netz)}
 /* Tagesband */
 .band-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.band{display:flex;gap:2px;min-width:700px;padding-bottom:4px}
-.zelle{flex:1;min-width:27px;border-radius:5px;cursor:pointer;border:none;padding:0;font-family:var(--mono);background:transparent;-webkit-tap-highlight-color:transparent}
+.band{display:flex;gap:2px;padding-bottom:4px}
+.zelle{flex:1 1 0;min-width:0;border-radius:5px;cursor:pointer;border:none;padding:0;font-family:var(--mono);background:transparent;-webkit-tap-highlight-color:transparent}
 .zelle .pv-balken{display:block;height:32px;position:relative}
 .zelle .pv-fill{position:absolute;bottom:0;left:0;right:0;background:var(--sonne);border-radius:3px 3px 0 0;opacity:.9}
 .zelle .kachel{display:block;height:24px;border-radius:4px;margin-top:2px}
@@ -178,6 +181,13 @@ footer{font-size:11px;color:var(--grau);text-align:center}
   <div id="notify-frage">Möchtest du eine Benachrichtigung erhalten, wenn es Zeit ist, ein Gerät zu starten?</div>
   <button id="btn-notify" style="margin-top:8px;padding:8px 14px;border-radius:10px;border:none;background:var(--tinte);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Benachrichtigungen aktivieren</button>
   <div id="notify-status" hidden></div>
+  <div id="notify-optionen" class="notify-optionen" hidden>
+    <div class="notify-titel">Wobei möchtest du benachrichtigt werden?</div>
+    <label><input type="checkbox" data-nk="start"> <span><b>Gerät starten</b> – wenn die beste Zeit für ein geplantes Gerät beginnt</span></label>
+    <label><input type="checkbox" data-nk="sonne"> <span><b>Sonnenstunde</b> – wenn dein Dach gerade viel liefert</span></label>
+    <label><input type="checkbox" data-nk="guenstig"> <span><b>Günstige Netzstunde</b> – wenn Strom besonders billig ist</span></label>
+    <label><input type="checkbox" data-nk="morgen"> <span><b>Preise für morgen</b> – sobald sie verfügbar sind (ab ca. 14 Uhr)</span></label>
+  </div>
 </section>
 
 <section class="karte">
@@ -332,6 +342,22 @@ let geraete=[
 let daten={preise:{},pv:{}};
 let tag="heute";
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
+let notifyWahl={start:true,sonne:false,guenstig:false,morgen:false};
+
+/* ---------- Speichern / Laden (localStorage) ---------- */
+const SPEICHER_KEY="energie-optimierer-v1";
+function speichern(){
+  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,notifyWahl}));}catch(e){}
+}
+function ladeGespeichert(){
+  try{
+    const s=JSON.parse(localStorage.getItem(SPEICHER_KEY));
+    if(!s)return;
+    if(s.cfg)Object.assign(cfg,s.cfg);
+    if(Array.isArray(s.geraete))geraete=s.geraete;
+    if(s.notifyWahl)Object.assign(notifyWahl,s.notifyWahl);
+  }catch(e){}
+}
 
 function datumKey(d){const p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
 function heuteStr(){return datumKey(new Date());}
@@ -366,7 +392,7 @@ async function ladePV(){
       const key=k.slice(0,10)+"-"+parseInt(k.slice(11,13),10);
       summe[key]=(summe[key]||0)+watts[k];anzahl[key]=(anzahl[key]||0)+1;
     });
-    Object.keys(summe).forEach(k=>daten.pv[k]=summe[k]/anzahl[k]);
+    Object.keys(summe).forEach(k=>daten.pv[k]=summe[k]/anzahl[k]*cfg.faktor);
     return"Forecast.Solar";
   }catch(e){
     const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
@@ -378,7 +404,7 @@ async function ladePV(){
     const t=j.hourly.time,g=j.hourly.global_tilted_irradiance;
     for(let i=0;i<t.length;i++){
       const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10);
-      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85;
+      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor;
     }
     return"Open-Meteo";
   }
@@ -429,15 +455,6 @@ function bestesFenster(arr,dauer,von,bis,belegt){
   }
   return best;
 }
-function schlechtestesFenster(arr,dauer,von,bis){
-  let worst=null;
-  for(let start=von;start<=bis-dauer;start++){
-    let sum=0,ok=true;
-    for(let i=0;i<dauer;i++){const s=arr[start+i];if(s.eff==null){ok=false;break;}sum+=s.eff; }
-    if(ok&&(worst==null||sum>worst))worst=sum;
-  }
-  return worst;
-}
 function planErstellen(arr){
   const eintraege=[];
   geraete.forEach(g=>{
@@ -448,13 +465,9 @@ function planErstellen(arr){
       if(!f)continue;
       for(let i=0;i<dauer;i++)belegt.add(f.start+i);
       const kosten=g.kwh*(f.sum/dauer)/100;
-      const wFenster=schlechtestesFenster(arr,dauer,g.von,g.bis);
-      const wKosten = wFenster ? g.kwh*(wFenster/dauer)/100 : 0;
       eintraege.push({start:f.start,ende:f.start+dauer,
         name:g.name+(g.anzahl>1?" ("+n+".)":""),icon:g.icon,
-        klasse:arr[f.start].klasse,warum:arr[f.start].warum,kosten,
-        ersparnis:wFenster!=null?g.kwh*(wFenster.sum-f.sum)/dauer/100:0,
-        worstText:wFenster?`Gespart im Vergleich zur teuersten Zeit (${wFenster.start}–${wFenster.start+dauer} Uhr), wo es ${euro(wKosten)} gekostet hätte.` : ""});
+        klasse:arr[f.start].klasse,warum:arr[f.start].warum,kosten});
     }
   });
   eintraege.sort((a,b)=>a.start-b.start);
@@ -477,11 +490,11 @@ function renderChips(){
     box.appendChild(c);
   });
   box.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
-    const g=geraete[+b.dataset.p];if(g.anzahl<5)g.anzahl++;renderChips();aktualisieren();});
+    const g=geraete[+b.dataset.p];if(g.anzahl<5)g.anzahl++;speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
-    const g=geraete[+b.dataset.m];if(g.anzahl>0)g.anzahl--;renderChips();aktualisieren();});
+    const g=geraete[+b.dataset.m];if(g.anzahl>0)g.anzahl--;speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{
-    geraete.splice(+b.dataset.w,1);renderChips();aktualisieren();});
+    geraete.splice(+b.dataset.w,1);speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
 function renderPlan(arr){
@@ -489,21 +502,18 @@ function renderPlan(arr){
   if(arr.every(s=>s.eff==null)){box.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';return;}
   const plan=planErstellen(arr);
   if(!plan.length){box.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';return;}
-  let html="",summe=0,sparsumme=0;
+  let html="",summe=0;
   plan.forEach(p=>{
     html+='<div class="plan-eintrag k-'+p.klasse+'">'+
       '<div class="p-zeit">'+p.start+'–'+p.ende+' Uhr</div>'+
       '<span class="p-was"><span class="n">'+p.icon+' '+p.name+'</span><br><span class="warum">'+p.warum+'</span></span>'+
-      '<div class="p-kosten">'+euro(p.kosten)+
-      (p.ersparnis>0.01?'<span class="sparen" title="'+p.worstText+'">+'+euro(p.ersparnis)+' gespart</span>':'')+'</div>'+
+      '<div class="p-kosten">'+euro(p.kosten)+'</div>'+
       '</div>';
     summe+=p.kosten;
-    sparsumme+=p.ersparnis;
   });
   html+='<div class="plan-summe">'+
     '<span>Summe Geräte</span><b>'+euro(summe)+'</b>'+
     '</div>';
-  if(sparsumme>0.01)html+='<div class="plan-summe" style="padding-top:4px;color:var(--gruen)"><span>Gesamtersparnis heute</span><b>'+euro(sparsumme)+'</b></div>';
   box.innerHTML=html;
   $("notify-box").hidden = !plan.length || tag !== "heute";
 }
@@ -516,7 +526,7 @@ function renderBand(arr,tagStr){
     b.className="zelle k-"+s.klasse+((istHeute&&s.h===jetztH)?" jetzt":"");
     b.setAttribute("aria-label",s.h+" Uhr");
     b.innerHTML='<span class="pv-balken"><span class="pv-fill" style="height:'+Math.round(s.pv/maxPV*100)+'%"></span></span>'+
-      '<span class="kachel"></span><span class="std">'+s.h+'</span>';
+      '<span class="kachel"></span><span class="std">'+(s.h%3===0?s.h:'')+'</span>';
     b.onclick=()=>{$("detail").textContent=s.h+"–"+(s.h+1)+" Uhr · Sonne ≈ "+(s.pv/1000).toFixed(1)+" kW · Netz "+
       (s.voll==null?"–":s.voll.toFixed(1)+" ct")+" · effektiv "+(s.eff==null?"–":s.eff.toFixed(1)+" ct/kWh");};
     band.appendChild(b);
@@ -595,7 +605,19 @@ function renderWahl(boxId,liste,aktiv,setzen){
 }
 renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
 renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
-$("btn-einrichten").onclick=()=>sheetAuf("sheet-einrichten");
+$("btn-einrichten").onclick=()=>{
+  $("f-adresse").value=cfg.adresse;
+  $("f-aufschlag").value=dz(cfg.aufschlag);
+  $("f-kwp").value=dz(cfg.kwp);
+  $("f-verguetung").value=dz(cfg.verguetung);
+  $("f-schwelle").value=dz(cfg.schwelle);
+  $("f-faktor").value=dz(cfg.faktor);
+  renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
+  renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
+  const info=$("adresse-info");info.className="adresse-ok";
+  info.textContent="✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",");
+  sheetAuf("sheet-einrichten");
+};
 $("btn-adresse").onclick=async()=>{
   const info=$("adresse-info");
   info.className="adresse-ok";info.textContent="Suche…";
@@ -616,11 +638,14 @@ $("btn-fertig").onclick=()=>{
   const a=parseFloat($("f-aufschlag").value.replace(",","."));if(!isNaN(a))cfg.aufschlag=a;
   const k=parseFloat($("f-kwp").value.replace(",","."));if(!isNaN(k)&&k>0)cfg.kwp=k;
   const v=parseFloat($("f-verguetung").value.replace(",","."));if(!isNaN(v))cfg.verguetung=v;
+  const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
+  const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
+  speichern();
   sheetZu();laden();
 };
 
 /* Alle löschen */
-$("btn-alle-loeschen").onclick=()=>{geraete=[];renderChips();aktualisieren();};
+$("btn-alle-loeschen").onclick=()=>{geraete=[];speichern();renderChips();aktualisieren();};
 
 /* Gerät hinzufügen */
 function renderTypen(){
@@ -654,7 +679,7 @@ $("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();
 $("btn-g-fertig").onclick=()=>{
   geraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,
     kwh:wahlTyp.klassen[wahlKlasse],dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis,anzahl:1});
-  sheetZu();renderChips();aktualisieren();
+  speichern();sheetZu();renderChips();aktualisieren();
 };
 
 /* Gerät bearbeiten */
@@ -681,11 +706,11 @@ $("btn-b-speichern").onclick=()=>{
   const d=parseFloat($("b-dauer").value.replace(",","."));
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
-  sheetZu();renderChips();aktualisieren();
+  speichern();sheetZu();renderChips();aktualisieren();
 };
 $("btn-b-loeschen").onclick=()=>{
   geraete.splice(bearbIndex,1);
-  sheetZu();renderChips();aktualisieren();
+  speichern();sheetZu();renderChips();aktualisieren();
 };
 
 /* Tag-Umschalter */
@@ -693,9 +718,14 @@ $("btn-heute").onclick=()=>{tag="heute";$("btn-heute").classList.add("aktiv");$(
 $("btn-morgen").onclick=()=>{tag="morgen";$("btn-morgen").classList.add("aktiv");$("btn-heute").classList.remove("aktiv");aktualisieren();};
 
 /* Benachrichtigungen */
-let notifyErlaubt = false;
 const benachrichtigungsTimer = { timer: null, gemeldet: new Set() };
 
+function initNotifyOptionen() {
+  document.querySelectorAll("#notify-optionen input[data-nk]").forEach(cb => {
+    cb.checked = !!notifyWahl[cb.dataset.nk];
+    cb.onchange = () => { notifyWahl[cb.dataset.nk] = cb.checked; speichern(); };
+  });
+}
 function checkNotifyPermission() {
   if (!("Notification" in window)) {
     $("notify-status").textContent = "Dein Browser unterstützt leider keine Benachrichtigungen.";
@@ -705,11 +735,12 @@ function checkNotifyPermission() {
     return;
   }
   if (Notification.permission === "granted") {
-    notifyErlaubt = true;
     $("notify-status").textContent = "✅ Benachrichtigungen sind aktiv.";
     $("notify-status").hidden = false;
     $("btn-notify").hidden = true;
     $("notify-frage").hidden = true;
+    $("notify-optionen").hidden = false;
+    initNotifyOptionen();
     starteNotifyTimer();
   } else {
     $("btn-notify").onclick = async () => {
@@ -718,16 +749,35 @@ function checkNotifyPermission() {
     };
   }
 }
+function melde(key, text) {
+  if (benachrichtigungsTimer.gemeldet.has(key)) return;
+  new Notification("✨ Energie-Optimierer", { body: text });
+  benachrichtigungsTimer.gemeldet.add(key);
+}
 function starteNotifyTimer() {
   if (benachrichtigungsTimer.timer) clearInterval(benachrichtigungsTimer.timer);
   benachrichtigungsTimer.gemeldet.clear();
   benachrichtigungsTimer.timer = setInterval(() => {
-    const h = new Date().getHours();
-    const plan = planErstellen(stunden(heuteStr()));
-    plan.forEach(p => { if (p.start === h && !benachrichtigungsTimer.gemeldet.has(p.name)) { new Notification(`✨ Energie-Optimierer: Jetzt ${p.name} starten!`); benachrichtigungsTimer.gemeldet.add(p.name); } });
+    const heute = heuteStr(), h = new Date().getHours();
+    const arr = stunden(heute), s = arr[h];
+    if (notifyWahl.start) {
+      planErstellen(arr).forEach(p => {
+        if (p.start === h) melde(heute + "-start-" + p.name, "Jetzt " + p.name + " starten – beste Zeit erreicht.");
+      });
+    }
+    if (notifyWahl.sonne && s && s.klasse === "pv")
+      melde(heute + "-sonne-" + h, "☀️ Viel Sonnenstrom vom Dach – guter Moment für flexible Geräte.");
+    if (notifyWahl.guenstig && s && s.klasse === "guenstig")
+      melde(heute + "-guenstig-" + h, "💡 Günstige Netzstunde – Strom ist gerade besonders billig.");
+    if (notifyWahl.morgen && h >= 14) {
+      const m = stunden(morgenStr());
+      if (!m.every(x => x.spot == null)) melde(heute + "-morgen", "📅 Die Strompreise für morgen sind da.");
+    }
   }, 60 * 1000); // Jede Minute prüfen
 }
 
+ladeGespeichert();
+$("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
 checkNotifyPermission();
