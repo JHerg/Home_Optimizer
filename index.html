@@ -195,6 +195,48 @@ details.experte[open] summary::after{transform:rotate(180deg)}
 .such-ergebnis b{font-family:var(--mono)}
 footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
+/* Interaktiver Tagesplaner */
+.planer-leiste{position:relative;width:100%;background:linear-gradient(180deg,rgba(59,111,212,.05),rgba(59,111,212,.02));border:1px solid var(--linie);border-radius:14px;overflow:hidden;touch-action:pan-y}
+.surplus-layer{position:absolute;inset:0}
+.surplus-bar{position:absolute;bottom:0;background:linear-gradient(180deg,rgba(245,168,12,.5),rgba(245,168,12,.16));border-radius:3px 3px 0 0}
+.batt-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.now-line{position:absolute;top:0;bottom:0;width:2px;background:var(--nacht);opacity:.28;transform:translateX(-1px)}
+.blocks-layer{position:absolute;inset:0}
+.p-block{position:absolute;height:28px;display:flex;align-items:center;gap:5px;padding:0 8px;background:var(--nacht);color:#fff;border-radius:9px;cursor:grab;overflow:hidden;white-space:nowrap;box-shadow:0 4px 12px -4px rgba(20,31,44,.5);touch-action:none;user-select:none;-webkit-user-select:none;transition:transform var(--schnell),box-shadow var(--schnell)}
+.p-block .blk-ic{font-size:14px}
+.p-block .blk-zeit{font-family:var(--mono);font-size:11px;font-weight:600;opacity:.9}
+.p-block.zieht{cursor:grabbing;transform:scale(1.05);box-shadow:0 10px 22px -6px rgba(20,31,44,.6);z-index:5}
+.std-achse{position:relative;height:16px;margin-top:3px}
+.std-achse span{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--grau)}
+.planer-deckung{display:flex;gap:2px;height:30px;margin-top:8px}
+.planer-deckung .deckung-col{flex:1 1 0;display:flex;flex-direction:column-reverse;background:rgba(20,31,44,.05);border-radius:3px;overflow:hidden}
+.planer-deckung .deckung-col.jetzt{box-shadow:0 0 0 1.5px var(--nacht)}
+.planer-deckung .deckung-col span{display:block;width:100%}
+.deckung-legende{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:9px;font-size:11px;color:var(--grau)}
+.deckung-legende span{display:flex;align-items:center;gap:5px}
+.deckung-legende i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.deckung-legende i.batt-key{width:14px;height:0;border-top:2px dashed var(--netz);border-radius:0}
+.verdikt{margin-top:14px;border-top:1px solid var(--linie);padding-top:12px}
+.v-haupt{font-size:14px;font-weight:700;margin-bottom:9px;padding:9px 12px;border-radius:11px}
+.v-haupt.gut{background:var(--gruen-hell);color:var(--gruen)}
+.v-haupt.warn{background:var(--gelb-hell);color:#9A6A00}
+.v-zeile{display:flex;justify-content:space-between;font-size:13px;padding:3px 2px;color:var(--tinte)}
+.v-zeile b{font-family:var(--mono)}
+
+/* Meine Geräte */
+.merken-knopf{width:100%;padding:12px;border:1.5px solid var(--sonne);border-radius:15px;background:var(--sonne-hell);color:#8A6100;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:transform var(--schnell)}
+.merken-knopf:active{transform:scale(.98)}
+.meine-chips{display:flex;flex-direction:column;gap:8px}
+.meine-chip{position:relative;display:flex;align-items:stretch}
+.mc-add{flex:1;display:flex;align-items:center;gap:11px;text-align:left;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);padding:11px 13px;cursor:pointer;transition:border-color var(--schnell),background var(--schnell)}
+.mc-add:hover{border-color:var(--sonne);background:var(--sonne-hell)}
+.mc-ic{font-size:22px}
+.mc-t{display:flex;flex-direction:column}
+.mc-n{font-size:14px;font-weight:600;color:var(--nacht)}
+.mc-k{font-size:11.5px;color:var(--grau);font-family:var(--mono)}
+.mc-weg{margin-left:8px;width:38px;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);color:var(--grau);font-size:14px;cursor:pointer;flex-shrink:0}
+.mc-weg:active{background:var(--rot-hell);color:var(--rot)}
+
 /* Dark Mode – folgt der Systemeinstellung */
 @media (prefers-color-scheme: dark){
   :root{
@@ -220,6 +262,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .sonnen-summe{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
   .sonnen-summe b{color:#FFE9B8}
   .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
+  .planer-leiste{background:rgba(255,255,255,.03)}
+  .p-block{background:linear-gradient(135deg,#2E4560,#22344A);box-shadow:0 4px 12px -4px rgba(0,0,0,.7)}
+  .planer-deckung .deckung-col{background:rgba(255,255,255,.06)}
+  .v-haupt.warn{color:#FFCF6B}
+  .mc-add:hover{background:var(--sonne-hell)}
 }
 </style>
 </head>
@@ -258,9 +305,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </section>
 
 <section class="karte">
-  <h2>Dein Tagesplan</h2>
-  <div class="untertitel">Beste Startzeiten – sortiert über den Tag.</div>
-  <div id="plan"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
+  <div class="karten-kopf">
+    <h2>Dein Tagesplan</h2>
+    <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
+  </div>
+  <div class="untertitel">Ziehe die Geräte auf die Zeitleiste. Unten siehst du, was aus <b>Sonne</b>, <b>Speicher</b> oder <b>Netz</b> gedeckt wird.</div>
+  <div id="planer"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
 </section>
 
 <section class="karte">
@@ -311,6 +361,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe">Stell es dir vor wie beim Einkaufen: Der Börsenpreis ist der reine Einkaufspreis für Strom. Dein Anbieter packt darauf noch alle weiteren Kosten (Netz, Steuern, Service). Dieser feste 'Aufschlag' steht in deinem Vertrag. Die Summe aus beidem ist dein tatsächlicher Preis für Strom aus dem Netz.</div>
     <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
   </div>
+  <div class="abschnitt">
+    <div class="frage">4 · Dein Stromspeicher</div>
+    <div class="hilfe">Für die Tagesplanung: wie groß dein Speicher ist und wie voll er gerade ist. Die App lädt ihn mit Sonnenüberschuss und entlädt ihn, wenn die Geräte mehr brauchen.</div>
+    <div class="zahl-feld" style="margin-bottom:9px"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
+    <div class="zahl-feld"><input id="f-akku-stand" value="5" inputmode="decimal"><span class="einheit">kWh aktuell geladen</span></div>
+  </div>
   <details class="experte">
     <summary>Für Experten</summary>
     <div class="abschnitt" style="margin-top:12px">
@@ -341,6 +397,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Gerät hinzufügen</h3>
   <div class="sub">Zwei Antworten reichen – oder such gleich dein Modell.</div>
+  <div class="abschnitt" id="meine-abschnitt" hidden>
+    <div class="frage">★ Meine Geräte</div>
+    <div class="hilfe">Deine gespeicherten Geräte – antippen zum Hinzufügen.</div>
+    <div class="meine-chips" id="meine-chips"></div>
+  </div>
   <div class="abschnitt">
     <div class="frage">Welches Gerät?</div>
     <div class="g-typen" id="g-typen"></div>
@@ -383,6 +444,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="zahl-feld"><input id="b-dauer" inputmode="decimal"><span class="einheit">Stunden</span></div>
   </div>
   <button class="fertig" id="btn-b-speichern">Speichern</button>
+  <button class="merken-knopf" id="btn-b-merken">★ Unter „Meine Geräte" speichern</button>
   <button class="loeschen-knopf" id="btn-b-loeschen">🗑 Gerät aus der Liste löschen</button>
 </div>
 
@@ -392,7 +454,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
-  faktor:1.0,anbieter:"Ostrom",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,anbieter:"Ostrom",akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -415,14 +477,17 @@ let geraete=[
   {typ:"sp",icon:"🍽️",name:"Spülmaschine",kwh:0.95,dauer:3,von:6,bis:23,anzahl:1}
 ];
 
+let meineGeraete=[]; // selbst gespeicherte Geraete ("Meine Geräte")
 let daten={preise:{},pv:{}};
 let tag="heute";
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
+let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
+let platzSig=""; // Signatur (Tag+Geraete), um Vorschlag nur bei Bedarf neu zu erzeugen
 
 /* ---------- Speichern / Laden (localStorage) ---------- */
 const SPEICHER_KEY="energie-optimierer-v1";
 function speichern(){
-  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete}));}catch(e){}
+  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,meineGeraete}));}catch(e){}
 }
 function ladeGespeichert(){
   try{
@@ -430,6 +495,7 @@ function ladeGespeichert(){
     if(!s)return;
     if(s.cfg)Object.assign(cfg,s.cfg);
     if(Array.isArray(s.geraete))geraete=s.geraete;
+    if(Array.isArray(s.meineGeraete))meineGeraete=s.meineGeraete;
   }catch(e){}
 }
 
@@ -538,35 +604,45 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
   }
   return best;
 }
-function planErstellen(arr){
-  const eintraege=[];
-  // Freier Sonnenueberschuss je Stunde (kW) = PV minus reservierte Grundlast (Schwelle).
-  // Wird von jedem eingeplanten Geraet aufgezehrt – reicht er fuer mehrere, laufen sie parallel.
+// Auto-Vorschlag: platziert alle Geraete-Durchgaenge ueberschussbewusst als Startpunkt.
+function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
-  geraete.forEach(g=>{
-    const dauer=planStunden(g);
-    const devKW=g.kwh/dauer; // mittlere Geraeteleistung
-    for(let n=1;n<=g.anzahl;n++){
+  const bloecke=[];
+  geraete.forEach((g,gi)=>{
+    const dauer=planStunden(g), devKW=g.kwh/dauer;
+    for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
-      let sonneKwh=0,netzCt=0;
-      for(let i=0;i<dauer;i++){
-        const h=f.start+i,s=arr[h];
-        const gedeckt=Math.min(devKW,restKW[h]);
-        sonneKwh+=gedeckt;
-        netzCt+=(devKW-gedeckt)*(s.voll!=null?s.voll:(s.eff!=null?s.eff:0));
-        restKW[h]=Math.max(0,restKW[h]-gedeckt); // Ueberschuss ist nun vergeben
-      }
-      const sonnenAnteil=g.kwh>0?Math.min(1,sonneKwh/g.kwh):0;
-      let klasse=arr[f.start].klasse,warum=arr[f.start].warum;
-      if(sonnenAnteil>=0.5){klasse="pv";warum="Überwiegend Sonnenstrom vom Dach";}
-      else if(klasse==="pv"){klasse="mittel";warum="Sonne reicht nicht für alle – teils Netz";}
-      eintraege.push({start:f.start,ende:f.start+dauer,kwh:g.kwh,sonneKwh,sonnenAnteil,
-        name:g.name+(g.anzahl>1?" ("+n+".)":""),icon:g.icon,klasse,warum,kosten:netzCt/100});
+      for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-Math.min(devKW,restKW[h]));}
+      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis)});
     }
   });
-  eintraege.sort((a,b)=>a.start-b.start);
-  return eintraege;
+  return bloecke;
+}
+// Chronologische Simulation: Grundlast reserviert (Schwelle), Ueberschuss deckt Geraete
+// bzw. laedt den Speicher; Defizit zuerst aus Speicher, Rest aus dem Netz zum Preis der Stunde.
+function simuliere(arr,bloecke){
+  const cap=Math.max(0,cfg.akku_kwh||0);
+  const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
+  let akku=start;
+  const lastKW=new Array(24).fill(0);
+  bloecke.forEach(b=>{for(let i=0;i<b.dauer;i++){const h=b.start+i;if(h>=0&&h<24)lastKW[h]+=b.devKW;}});
+  const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0;
+  for(let h=0;h<24;h++){
+    const s=arr[h];
+    const surplus=Math.max(0,(s.pv-cfg.schwelle)/1000);
+    const load=lastKW[h];
+    const sun=Math.min(surplus,load);
+    const defizit=load-sun;
+    const batt=Math.min(akku,defizit); akku-=batt;
+    const netz=defizit-batt;
+    akku=Math.min(cap,akku+(surplus-sun)); // Ueberschuss laedt Speicher
+    const preis=(s.eff!=null?(s.voll!=null?s.voll:s.eff):null);
+    const ct=(preis!=null?netz*preis:0);
+    sonneKwh+=sun; akkuKwh+=batt; netzKwh+=netz; netzCt+=ct;
+    per.push({h,sun,batt,netz,load,akku,surplus,preis,spot:s.spot});
+  }
+  return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt};
 }
 
 /* ---------- Darstellung ---------- */
@@ -592,32 +668,86 @@ function renderChips(){
     geraete.splice(+b.dataset.w,1);speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
-function renderPlan(arr){
-  const box=$("plan");
+function planSignatur(){
+  return tag+"|"+geraete.map(g=>g.typ+":"+g.name+":"+g.kwh+":"+g.dauer+":"+g.anzahl+":"+g.von+":"+g.bis).join(",");
+}
+function sichereVorschlag(arr){
+  const sig=planSignatur();
+  if(sig!==platzSig){platzierungen=autoPlatzierung(arr);platzSig=sig;}
+}
+function renderPlaner(arr){
+  const box=$("planer");
   if(arr.every(s=>s.eff==null)){box.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';return;}
-  const plan=planErstellen(arr);
-  if(!plan.length){box.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';return;}
-  const jetztH=berlinTeile(new Date()).stunde;
-  const naechsteIdx = tag==="heute" ? plan.findIndex(p=>p.start>=jetztH) : -1;
-  let html="",summe=0,sonneKwhGes=0,kwhGes=0;
-  plan.forEach((p,i)=>{
-    let badge="";
-    if(tag==="heute"){
-      if(p.start<=jetztH&&jetztH<p.ende) badge='<span class="badge jetzt">Läuft jetzt</span>';
-      else if(i===naechsteIdx){const inH=p.start-jetztH;badge='<span class="badge next">Als Nächstes'+(inH>0?" · in "+inH+" Std":"")+'</span>';}
-    }
-    const proz=Math.round(p.sonnenAnteil*100);
-    html+='<div class="plan-eintrag k-'+p.klasse+((tag==="heute"&&i===naechsteIdx)?" naechste":"")+'">'+
-      '<div class="p-zeit">'+p.start+'–'+p.ende+' Uhr</div>'+
-      '<span class="p-was">'+badge+'<span class="n">'+p.icon+' '+p.name+'</span><br><span class="warum">'+p.warum+'</span></span>'+
-      '<div class="p-kosten"><span class="p-sonne'+(proz>=50?" hoch":"")+'">☀️ '+proz+'%</span><div class="sonne-meter"><span style="width:'+proz+'%"></span></div><span class="p-euro">'+euro(p.kosten)+'</span></div>'+
-      '</div>';
-    summe+=p.kosten;sonneKwhGes+=p.sonneKwh;kwhGes+=p.kwh;
+  if(!platzierungen.length){box.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';return;}
+  const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
+  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
+  // Lane-Zuweisung, damit parallele Bloecke nicht uebereinander liegen
+  const laneEnde=[];
+  platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
+    let lane=0; while(laneEnde[lane]!=null && laneEnde[lane]>b.start) lane++;
+    b._lane=lane; laneEnde[lane]=b.start+b.dauer;
   });
-  const gesProz=kwhGes>0?Math.round(sonneKwhGes/kwhGes*100):0;
-  html+='<div class="plan-summe"><span>∅ aus Sonne</span><b>'+gesProz+' %</b></div>'+
-    '<div class="plan-summe" style="padding-top:4px"><span>Summe Geräte (Orientierung)</span><b>'+euro(summe)+'</b></div>';
-  box.innerHTML=html;
+  const lanes=Math.max(1,laneEnde.length);
+  const leisteH=Math.max(112,lanes*34+58);
+  let sb="";
+  for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;height:'+Math.round(su/maxSurplus*100)+'%"></div>';}
+  const nowLine=jetztH>=0?'<div class="now-line" style="left:'+((jetztH+0.5)/24*100)+'%"></div>':'';
+  box.innerHTML=
+    '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
+      '<div class="surplus-layer">'+sb+'</div>'+
+      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
+      nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
+    '</div>'+
+    '<div class="std-achse" id="std-achse"></div>'+
+    '<div class="planer-deckung" id="planer-deckung"></div>'+
+    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span><span><i style="background:var(--netz)"></i>Speicher</span><span><i style="background:var(--rot)"></i>Netz</span><span><i class="batt-key"></i>Füllstand</span></div>'+
+    '<div class="verdikt" id="planer-verdikt"></div>';
+  let ax="";for(let h=0;h<=24;h+=3)ax+='<span style="left:'+(h/24*100)+'%">'+h+'</span>';$("std-achse").innerHTML=ax;
+  const bl=$("blocks-layer");
+  platzierungen.forEach(b=>{
+    const el=document.createElement("div");
+    el.className="p-block";
+    el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*34+4)+"px";
+    el.innerHTML='<span class="blk-ic">'+b.icon+'</span><span class="blk-zeit">'+b.start+'–'+(b.start+b.dauer)+'</span>';
+    el.title=b.name+" ziehen zum Verschieben";
+    el.addEventListener("pointerdown",e=>starteDrag(e,b,el));
+    bl.appendChild(el);
+  });
+  function starteDrag(e,blk,el){
+    if(e.button!=null&&e.button!==0)return;
+    e.preventDefault();
+    const rect=$("planer-leiste").getBoundingClientRect(),hw=rect.width/24,x0=e.clientX,s0=blk.start;
+    try{el.setPointerCapture(e.pointerId);}catch(_){}
+    el.classList.add("zieht");
+    const move=ev=>{
+      const dh=Math.round((ev.clientX-x0)/hw);
+      const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dh));
+      if(ns!==blk.start){blk.start=ns;el.style.left=(ns/24*100)+"%";const z=el.querySelector(".blk-zeit");if(z)z.textContent=ns+"–"+(ns+blk.dauer);updateSim();}
+    };
+    const up=()=>{el.classList.remove("zieht");window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
+    window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
+  }
+  function updateSim(){
+    const sim=simuliere(arr,platzierungen);
+    let pts="0,"+(100-(sim.cap>0?sim.akkuStart/sim.cap*100:0)).toFixed(1);
+    sim.per.forEach(p=>{pts+=" "+(p.h+1)+","+(100-(sim.cap>0?p.akku/sim.cap*100:0)).toFixed(1);});
+    $("batt-svg").innerHTML='<polyline points="'+pts+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-dasharray="3 2"/>';
+    let dv="";
+    sim.per.forEach(p=>{
+      let inner="";
+      if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';}
+      dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>';
+    });
+    $("planer-deckung").innerHTML=dv;
+    const ok=sim.netzKwh<0.05;
+    $("planer-verdikt").innerHTML=
+      '<div class="v-haupt '+(ok?"gut":"warn")+'">'+(ok?"✅ Alles aus Sonne &amp; Speicher gedeckt":"⚠️ "+sim.netzKwh.toFixed(1)+" kWh aus dem Netz (~"+euro(sim.netzCt/100)+")")+'</div>'+
+      '<div class="v-zeile"><span>☀️ Sonne direkt</span><b>'+sim.sonneKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>🔋 aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>🔌 aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
+      '<div class="v-zeile"><span>Speicher-Füllstand</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>';
+  }
+  updateSim();
 }
 function renderBand(arr,tagStr){
   const band=$("band");band.innerHTML="";
@@ -665,7 +795,7 @@ function renderChart(arr){
 function aktualisieren(){
   const tagStr=tag==="heute"?heuteStr():morgenStr();
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
-  renderPlan(arr);renderBand(arr,tagStr);renderChart(arr);
+  sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);renderChart(arr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+kwhTag.toFixed(0)+" kWh</b>";}
@@ -718,6 +848,8 @@ $("btn-einrichten").onclick=()=>{
   $("f-verguetung").value=dz(cfg.verguetung);
   $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
+  $("f-akku-kwh").value=dz(cfg.akku_kwh);
+  $("f-akku-stand").value=dz(cfg.akku_stand);
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
@@ -747,12 +879,16 @@ $("btn-fertig").onclick=()=>{
   const v=parseFloat($("f-verguetung").value.replace(",","."));if(!isNaN(v))cfg.verguetung=v;
   const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
+  const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
+  const as=parseFloat($("f-akku-stand").value.replace(",","."));if(!isNaN(as)&&as>=0)cfg.akku_stand=as;
   speichern();
   sheetZu();laden();
 };
 
 /* Alle löschen */
 $("btn-alle-loeschen").onclick=()=>{geraete=[];speichern();renderChips();aktualisieren();};
+/* Neuer Auto-Vorschlag (setzt manuelle Platzierungen zurück) */
+$("btn-vorschlag").onclick=()=>{platzSig="";aktualisieren();};
 
 /* Gerät hinzufügen */
 function renderTypen(){
@@ -780,7 +916,27 @@ function renderKlassen(){
     box.appendChild(b);
   });
 }
-$("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();
+function renderMeine(){
+  const box=$("meine-chips"),sec=$("meine-abschnitt");
+  if(!meineGeraete.length){sec.hidden=true;box.innerHTML="";return;}
+  sec.hidden=false;box.innerHTML="";
+  meineGeraete.forEach((m,i)=>{
+    const c=document.createElement("div");
+    c.className="meine-chip";
+    c.innerHTML='<button class="mc-add" data-add="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+m.name+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>'+
+      '<button class="mc-weg" data-del="'+i+'" aria-label="'+m.name+' aus Meine Geräte löschen">✕</button>';
+    box.appendChild(c);
+  });
+  box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
+    const m=meineGeraete[+b.dataset.add];
+    geraete.push({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis,anzahl:1});
+    speichern();sheetZu();renderChips();aktualisieren();
+  });
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    meineGeraete.splice(+b.dataset.del,1);speichern();renderMeine();
+  });
+}
+$("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();renderMeine();
   $("klasse-abschnitt").hidden=true;$("schaetzung-box").hidden=true;$("btn-g-fertig").hidden=true;
   sheetAuf("sheet-geraet");};
 $("btn-g-fertig").onclick=()=>{
@@ -814,6 +970,18 @@ $("btn-b-speichern").onclick=()=>{
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
   speichern();sheetZu();renderChips();aktualisieren();
+};
+$("btn-b-merken").onclick=()=>{
+  const g=geraete[bearbIndex];
+  const k=parseFloat($("b-kwh").value.replace(",","."));
+  const d=parseFloat($("b-dauer").value.replace(",","."));
+  if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
+  if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
+  const name=((typeof prompt==="function"?prompt("Name für dein gespeichertes Gerät:",g.name):g.name)||"").trim();
+  if(!name)return;
+  meineGeraete.push({typ:g.typ,icon:g.icon,name,kwh:g.kwh,dauer:g.dauer,von:g.von,bis:g.bis});
+  speichern();renderChips();aktualisieren();
+  $("modell-ergebnis").innerHTML='<div class="such-ergebnis">★ „'+name+'" ist jetzt unter „Meine Geräte" gespeichert – beim nächsten „＋ Gerät hinzufügen" direkt wählbar.</div>';
 };
 $("btn-b-loeschen").onclick=()=>{
   geraete.splice(bearbIndex,1);
