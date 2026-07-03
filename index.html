@@ -936,13 +936,13 @@ function renderBand(arr,tagStr){
 let aktuelleStunden=null;
 function aktualisieren(){
   const tagStr=tag==="heute"?heuteStr():morgenStr();
-  const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000/1000;
+  const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
   sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
-  if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+kwhTag.toFixed(0)+" kWh</b>";}
+  if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>";}
   else ss.hidden=true;
   if(tag==="morgen"&&arr.every(s=>s.spot==null))
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
