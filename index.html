@@ -51,6 +51,7 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 .unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
 .kopf-aktionen{display:flex;gap:8px;flex-shrink:0}
+.claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
 .knopf-einrichten{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:14px;padding:10px 15px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform var(--schnell),box-shadow var(--schnell)}
 .knopf-einrichten:hover{box-shadow:var(--schatten-lg)}
 .knopf-einrichten:active{transform:scale(.96)}
@@ -165,6 +166,10 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .zahl-feld input{width:100px;padding:12px;border:1.5px solid var(--linie);border-radius:12px;font-family:var(--mono);font-size:16px;text-align:right;transition:border-color var(--schnell),box-shadow var(--schnell)}
 .zahl-feld input:focus{outline:none;border-color:var(--netz);box-shadow:0 0 0 3px rgba(59,111,212,.15)}
 .zahl-feld .einheit{font-size:13px;color:var(--grau)}
+.kopier-knopf{width:100%;padding:12px;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);color:var(--tinte);font-size:13.5px;font-weight:600;cursor:pointer;margin-top:12px;transition:border-color var(--schnell),transform var(--schnell)}
+.kopier-knopf:hover{border-color:var(--netz)}
+.kopier-knopf:active{transform:scale(.98)}
+.kopier-knopf.ok{border-color:var(--gruen);color:var(--gruen)}
 .fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(20,31,44,.5)}
 .fertig:active{transform:scale(.98)}
 .loeschen-knopf{width:100%;padding:13px;border:1.5px solid var(--rot);border-radius:15px;background:transparent;color:var(--rot);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:background var(--schnell)}
@@ -265,6 +270,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .pl-info{display:flex;flex-direction:column;min-width:0;flex:1}
 .pl-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-zeit{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--tinte)}
+.pl-nudge{display:flex;gap:3px;flex-shrink:0}
+.pl-nudge button{width:28px;height:28px;border:none;border-radius:8px;background:rgba(20,31,44,.07);font-size:15px;font-weight:700;color:var(--nacht);cursor:pointer;line-height:1;transition:background var(--schnell),transform var(--schnell)}
+.pl-nudge button:active{transform:scale(.9)}
+.pl-nudge button:disabled{opacity:.32;cursor:default}
 .pl-deck{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;width:104px}
 .pl-meter{display:flex;width:100%;height:6px;border-radius:99px;overflow:hidden;background:rgba(20,31,44,.08)}
 .pl-meter span{display:block;height:100%}
@@ -324,6 +333,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .v-haupt.warn{color:#FFCF6B}
   .mc-add:hover{background:var(--sonne-hell)}
   .pl-meter{background:rgba(255,255,255,.1)}
+  .pl-nudge button{background:rgba(255,255,255,.1);color:#fff}
   .gridline{background:rgba(255,255,255,.06)}
   .gridline.null{background:rgba(255,255,255,.32)}
   .regler input[type=range]{background:rgba(255,255,255,.14)}
@@ -344,6 +354,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <button class="knopf-einrichten" id="btn-einrichten">⚙️ Einrichten</button>
   </div>
 </div>
+<div class="claim">Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
 <div class="sonnen-summe" id="sonnen-summe" hidden>☀️ Dein Dach liefert voraussichtlich <b>&nbsp;– kWh</b></div>
 
 <div class="segment" role="group" aria-label="Tag wählen">
@@ -385,8 +396,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
         <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
       </div>
       <div class="regler-zeile">
-        <div class="regler-kopf"><span>🏠 Grundlast (Ø&nbsp;Verbrauch)</span><b id="rg-last-val">1500 W</b></div>
-        <input type="range" id="rg-last" min="0" max="3000" step="50" value="1500" aria-label="Grundlast in Watt">
+        <div class="regler-kopf"><span>🏠 Grundlast (Ø&nbsp;Verbrauch)</span><b id="rg-last-val">400 W</b></div>
+        <input type="range" id="rg-last" min="0" max="3000" step="50" value="400" aria-label="Grundlast in Watt">
         <div class="regler-hinweis">Bestimmt, wie viel Sonne für die Geräte übrig bleibt (PV − Grundlast). Saisonal: Winter mit Wärmepumpe höher, Sommer oft nahe null.</div>
       </div>
     </div>
@@ -412,7 +423,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="sheet" id="sheet-einrichten" role="dialog" aria-label="Einrichtung">
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Einrichten</h3>
-  <div class="sub">Drei kurze Fragen – mehr braucht die App nicht.</div>
+  <div class="sub">Ein paar kurze Angaben – mehr braucht die App nicht.</div>
   <div class="abschnitt">
     <div class="frage">1 · Wo wohnst du?</div>
     <div class="hilfe">Die Adresse bestimmt, wie viel Sonne bei dir ankommt.</div>
@@ -466,11 +477,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="frage">Forecast.Solar API-Key (optional)</div>
       <div class="hilfe">Ohne Key teilen sich alle Nutzer im selben Mobilfunknetz ein niedriges Limit – das führt öfter zum Ausweichen auf die ungenauere Wetter-Rückfalllösung. Der kostenlose Public-Tarif von Forecast.Solar hat keinen Key. Ab dem kostenpflichtigen <a href="https://forecast.solar/" target="_blank" rel="noopener">Personal-Tarif</a> (aktuell ca. 16 €/Jahr) bekommst du ein eigenes, höheres Limit. Key hier eintragen, leer lassen = wie bisher (Public, kostenlos).</div>
       <div class="adresse-zeile"><input id="f-fs-key" placeholder="z. B. AbCdEf123..." aria-label="Forecast.Solar API-Key"></div>
-    </div>
-    <div class="abschnitt">
-      <div class="frage">Einspeisevergütung</div>
-      <div class="hilfe">Was du pro kWh bekommst, wenn Sonnenstrom ins Netz fließt statt in deine Geräte. So viel „kostet" dich Eigenverbrauch in Sonnenstunden.</div>
-      <div class="zahl-feld"><input id="f-verguetung" value="7.9" inputmode="decimal"><span class="einheit">ct/kWh</span></div>
     </div>
     <div class="abschnitt">
       <div class="frage">Durchschnittliche Grundlast</div>
@@ -542,12 +548,22 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="loeschen-knopf" id="btn-b-loeschen">🗑 Gerät aus der Liste löschen</button>
 </div>
 
+<!-- Texteingabe (Name) – ersetzt das in installierten Apps unzuverlässige prompt() -->
+<div class="sheet" id="sheet-eingabe" role="dialog" aria-label="Eingabe" style="z-index:13">
+  <button class="sheet-schliessen" id="eingabe-x">✕</button>
+  <h3 id="eingabe-titel">Name</h3>
+  <div class="abschnitt" style="margin-top:8px">
+    <div class="adresse-zeile"><input id="eingabe-feld" type="text" autocomplete="off" aria-label="Eingabe"></div>
+  </div>
+  <button class="fertig" id="eingabe-ok">Übernehmen</button>
+</div>
+
 <script>
 (function(){
 "use strict";
 const $=id=>document.getElementById(id);
 
-let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
+let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
   faktor:1.0,anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
@@ -560,8 +576,8 @@ const typen=[
    klassen:{"A+++ (Wärmepumpe)":1.30,"A++ (Wärmepumpe)":1.60,"Weiß nicht":1.80,"Kondens (älter)":3.30},text:"pro Trocknung"},
   {id:"bo",icon:"🍞",name:"Backofen",dauer:1,von:6,bis:21,
    klassen:{"Umluft":1.00,"Ober-/Unterhitze":1.30,"Weiß nicht":1.20},text:"pro Stunde Backen"},
-  {id:"ba",icon:"🔋",name:"Batterie laden",dauer:3,von:0,bis:24,
-   klassen:{"Halb voll (≈5 kWh)":5.0,"Fast leer (≈9 kWh)":9.0,"Weiß nicht":5.0},text:"Nachladung aus dem Netz"},
+  {id:"ba",icon:"🚗",name:"E-Auto / externer Akku",dauer:3,von:0,bis:24,
+   klassen:{"Halb voll (≈5 kWh)":5.0,"Fast leer (≈9 kWh)":9.0,"Weiß nicht":5.0},text:"Ladung (nicht der Hausspeicher)"},
   {id:"so",icon:"🔌",name:"Anderes Gerät",dauer:2,von:6,bis:22,
    klassen:{"Klein (≈0,5 kWh)":0.5,"Mittel (≈1,5 kWh)":1.5,"Groß (≈3 kWh)":3.0},text:"pro Durchgang"}
 ];
@@ -577,6 +593,8 @@ let tag="heute";
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
 let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
 let platzSig=""; // Signatur (Tag+Geraete), um Vorschlag nur bei Bedarf neu zu erzeugen
+let ungeplant=[]; // Geraete, die zeitlich nicht mehr in den (heutigen) Plan passen
+let eingabeResolve=null; // offener Promise-Resolver des Texteingabe-Sheets
 
 /* ---------- Speichern / Laden (localStorage) ---------- */
 const SPEICHER_KEY="energie-optimierer-v1";
@@ -717,6 +735,7 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
 function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
+  ungeplant=[];
   geraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer));
     const devKW=g.kwh/g.dauer;
@@ -729,6 +748,7 @@ function autoPlatzierung(arr){
       bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer});
       n++;
     }
+    if(n<g.anzahl)ungeplant.push({icon:g.icon,name:g.name,fehlend:g.anzahl-n});
   });
   return bloecke;
 }
@@ -812,7 +832,12 @@ function renderPlaner(arr){
   const akkuAn=cfg.akku_an;
   $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
   if(arr.every(s=>s.eff==null)){chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML="";return;}
-  if(!platzierungen.length){chart.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';rest.innerHTML="";return;}
+  if(!platzierungen.length){
+    const leerText=ungeplant.length
+      ? '⚠️ '+ungeplant.map(u=>u.icon+' '+u.name).join(', ')+' passt heute zeitlich nicht mehr rein. Wechsle auf „Morgen" oder erweitere das Zeitfenster im Gerät.'
+      : 'Wähle oben mindestens ein Gerät (＋ drücken).';
+    chart.innerHTML='<div class="plan-leer">'+leerText+'</div>';rest.innerHTML="";return;
+  }
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
   const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
   // Lane-Zuweisung, damit parallele Bloecke nicht uebereinander liegen
@@ -854,11 +879,13 @@ function renderPlaner(arr){
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
     '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+preisLeg+'</div>';
   rest.innerHTML=
+    (ungeplant.length?'<div class="v-haupt warn" style="margin-bottom:12px">⚠️ '+ungeplant.map(u=>u.icon+' '+u.name+(u.fehlend>1?' ('+u.fehlend+'×)':'')).join(', ')+' passt heute zeitlich nicht mehr rein – auf „Morgen" wechseln oder das Zeitfenster im Gerät erweitern.</div>':'')+
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
     '<div class="planer-deckung" id="planer-deckung"></div>'+
     '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
-    '<div class="verdikt" id="planer-verdikt"></div>';
+    '<div class="verdikt" id="planer-verdikt"></div>'+
+    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten kopieren</button>';
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
   platzierungen.forEach(b=>{
@@ -901,14 +928,23 @@ function renderPlaner(arr){
     platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
       const selbst=b._sun+b._batt, gruen=b.kwh>0?Math.round(selbst/b.kwh*100):0;
       const netz=Math.max(0,100-gruen);
+      const idx=platzierungen.indexOf(b);
+      const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
       li+='<div class="pl-zeile">'+
         '<span class="pl-ic">'+b.icon+'</span>'+
         '<span class="pl-info"><span class="pl-name">'+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
+        '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
+        '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
         '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
         '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% '+(akkuAn?"Sonne/Speicher":"Sonne")+'</span></span>'+
         '</div>';
     });
     $("planer-liste").innerHTML=li;
+    $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
+      const b=platzierungen[+btn.dataset.nudge];if(!b)return;
+      const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
+      if(ns!==b.start){b.start=ns;renderPlaner(arr);}
+    });
     // Deckungs-Streifen je Stunde
     let dv="";
     sim.per.forEach(p=>{
@@ -941,7 +977,27 @@ function renderPlaner(arr){
       '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
       (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>':'');
   }
+  const kopf=$("btn-kopieren");
+  if(kopf)kopf.onclick=()=>{
+    const zeilen=platzierungen.slice().sort((a,b)=>a.start-b.start)
+      .map(b=>b.name+": "+b.start+"–"+(b.start+b.dauer)+" Uhr");
+    const kopf2=(tag==="heute"?"Heute":"Morgen")+" – empfohlene Startzeiten:\n";
+    const text=kopf2+zeilen.join("\n");
+    const fertig=()=>{kopf.textContent="✓ Kopiert";kopf.classList.add("ok");setTimeout(()=>{kopf.textContent="📋 Startzeiten kopieren";kopf.classList.remove("ok");},1800);};
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(fertig).catch(()=>fallbackKopie(text,fertig));
+    }else fallbackKopie(text,fertig);
+  };
   updateSim();
+}
+function fallbackKopie(text,fertig){
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.focus();ta.select();
+    document.execCommand("copy");document.body.removeChild(ta);
+    fertig();
+  }catch(e){/* Kopieren nicht möglich – still ignorieren */}
 }
 function renderBand(arr,tagStr){
   const band=$("band");band.innerHTML="";
@@ -970,7 +1026,7 @@ function aktualisieren(){
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>";}
   else ss.hidden=true;
-  if(tag==="morgen"&&arr.every(s=>s.spot==null))
+  if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null))
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
 }
 let letzterLoad=0;
@@ -994,10 +1050,34 @@ async function laden(){
 
 /* ---------- Sheets ---------- */
 function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");}
-function sheetZu(){$("schleier").classList.remove("offen");
+function sheetZu(){
+  if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
+  $("schleier").classList.remove("offen");
   document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));}
 $("schleier").onclick=sheetZu;
 document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
+
+/* Eigenes Texteingabe-Sheet (statt prompt(), das in installierten iOS-Apps oft blockiert ist).
+   Öffnet sich auch ÜBER einem anderen Sheet (z.B. Einrichten) und schließt beim Bestätigen
+   nur sich selbst – das darunterliegende Sheet bleibt offen. */
+function frageText(titel,vorgabe){
+  return new Promise(resolve=>{
+    eingabeResolve=resolve;
+    $("eingabe-titel").textContent=titel;
+    const f=$("eingabe-feld");f.value=vorgabe||"";
+    $("schleier").classList.add("offen");$("sheet-eingabe").classList.add("offen");
+    setTimeout(()=>{try{f.focus();f.select();}catch(_){}} ,60);
+  });
+}
+function eingabeFertig(wert){
+  const r=eingabeResolve;eingabeResolve=null;
+  $("sheet-eingabe").classList.remove("offen");
+  if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  if(r)r(wert);
+}
+$("eingabe-ok").onclick=()=>eingabeFertig($("eingabe-feld").value.trim());
+$("eingabe-x").onclick=()=>eingabeFertig(null);
+$("eingabe-feld").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();eingabeFertig($("eingabe-feld").value.trim());}});
 
 /* Einrichtung */
 const richtungen=[["Süd",0],["Südwest",45],["West",90],["Südost",-45],["Ost",-90],["Nord",180]];
@@ -1025,7 +1105,6 @@ $("btn-einrichten").onclick=()=>{
   $("f-adresse").value=cfg.adresse;
   $("f-aufschlag").value=dz(cfg.aufschlag);
   $("f-kwp").value=dz(cfg.kwp);
-  $("f-verguetung").value=dz(cfg.verguetung);
   $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
@@ -1060,7 +1139,6 @@ $("btn-fertig").onclick=()=>{
   if (cfg.lat === null || cfg.lon === null) { alert("Bitte zuerst eine gültige Adresse suchen und finden."); return; }
   const a=parseFloat($("f-aufschlag").value.replace(",","."));if(!isNaN(a))cfg.aufschlag=a;
   const k=parseFloat($("f-kwp").value.replace(",","."));if(!isNaN(k)&&k>0)cfg.kwp=k;
-  const v=parseFloat($("f-verguetung").value.replace(",","."));if(!isNaN(v))cfg.verguetung=v;
   const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
@@ -1071,7 +1149,11 @@ $("btn-fertig").onclick=()=>{
 };
 
 /* Alle löschen */
-$("btn-alle-loeschen").onclick=()=>{geraete=[];speichern();renderChips();aktualisieren();};
+$("btn-alle-loeschen").onclick=()=>{
+  if(!geraete.length)return;
+  if(typeof confirm==="function" && !confirm("Wirklich alle Geräte aus der Liste entfernen?"))return;
+  geraete=[];speichern();renderChips();aktualisieren();
+};
 /* Neuer Auto-Vorschlag (setzt manuelle Platzierungen zurück) */
 $("btn-vorschlag").onclick=()=>{platzSig="";aktualisieren();};
 
@@ -1149,10 +1231,10 @@ function renderMeineVerwaltung(){
       '<button class="mv-btn" data-del="'+i+'" aria-label="'+m.name+' löschen">🗑</button>';
     box.appendChild(row);
   });
-  box.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{
+  box.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.ren;
-    const neu=((typeof prompt==="function"?prompt("Neuer Name:",meineGeraete[i].name):meineGeraete[i].name)||"").trim();
-    if(neu){meineGeraete[i].name=neu;speichern();renderMeineVerwaltung();}
+    const neu=((await frageText("Gerät umbenennen",meineGeraete[i].name))||"").trim();
+    if(neu){meineGeraete[i].name=neu;speichern();renderMeineVerwaltung();renderChips();}
   });
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeineVerwaltung();
@@ -1193,13 +1275,13 @@ $("btn-b-speichern").onclick=()=>{
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
   speichern();sheetZu();renderChips();aktualisieren();
 };
-$("btn-b-merken").onclick=()=>{
+$("btn-b-merken").onclick=async()=>{
   const g=geraete[bearbIndex];
   const k=parseFloat($("b-kwh").value.replace(",","."));
   const d=parseFloat($("b-dauer").value.replace(",","."));
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
-  const name=((typeof prompt==="function"?prompt("Name für dein gespeichertes Gerät:",g.name):g.name)||"").trim();
+  const name=((await frageText("Unter Meine Geräte speichern",g.name))||"").trim();
   if(!name)return;
   meineGeraete.push({typ:g.typ,icon:g.icon,name,kwh:g.kwh,dauer:g.dauer,von:g.von,bis:g.bis});
   speichern();renderChips();aktualisieren();
