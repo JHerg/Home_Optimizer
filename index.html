@@ -207,7 +207,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .p-block .blk-ic{font-size:16px}
 .p-block.zieht{cursor:grabbing;transform:scale(1.12);box-shadow:0 10px 22px -6px rgba(20,31,44,.6);z-index:5}
 .gridline{position:absolute;left:0;right:0;height:1px;background:rgba(20,31,44,.07);pointer-events:none}
-.gridline.null{height:1.5px;background:rgba(20,31,44,.16)}
+.gridline.null{height:2px;background:rgba(20,31,44,.3)}
 .y-achse{position:absolute;inset:0;pointer-events:none;z-index:2}
 .y-achse span{position:absolute;left:4px;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--grau);background:var(--karte);padding:0 3px;border-radius:4px;opacity:.9;white-space:nowrap}
 .std-achse{position:relative;height:22px;margin-top:0}
@@ -312,7 +312,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .mc-add:hover{background:var(--sonne-hell)}
   .pl-meter{background:rgba(255,255,255,.1)}
   .gridline{background:rgba(255,255,255,.06)}
-  .gridline.null{background:rgba(255,255,255,.18)}
+  .gridline.null{background:rgba(255,255,255,.32)}
   .regler input[type=range]{background:rgba(255,255,255,.14)}
 }
 </style>
@@ -760,16 +760,19 @@ function renderPlaner(arr){
   const lanes=Math.max(1,laneEnde.length);
   const leisteH=Math.max(120,lanes*34+66);
   const cap=Math.max(1,cfg.akku_kwh||0);
+  // Plot-Bereich vertikal: oben=voll (TOPY%), unten=0 kWh (BASE%) – darunter etwas Luft,
+  // damit die Speicherlinie sichtbar auf der Null ruht.
+  const TOPY=8,BASE=88,RANGE=BASE-TOPY;
   let sb="";
-  for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;height:'+Math.round(su/maxSurplus*100)+'%"></div>';}
+  for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;bottom:'+(100-BASE)+'%;height:'+(su/maxSurplus*RANGE).toFixed(1)+'%"></div>';}
   const nowLine=jetztH>=0?'<div class="now-line" style="left:'+((jetztH+0.5)/24*100)+'%"></div>':'';
   // Preis-Leiste (dynamischer Strompreis je Stunde, gleiche Ampel wie Tagesüberblick)
   let ps="";for(let h=0;h<24;h++)ps+='<div class="preis-col k-'+arr[h].klasse+'"'+(h===jetztH?' data-jetzt':'')+'></div>';
   const kwhL=v=>(cap>=10?Math.round(v):v.toFixed(1));
   chart.innerHTML=
     '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
-      '<div class="gridline" style="top:0"></div><div class="gridline" style="top:50%"></div><div class="gridline null" style="bottom:0"></div>'+
-      '<div class="y-achse"><span style="top:1px">🔋 '+kwhL(cap)+'</span><span style="top:50%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="bottom:1px">0 kWh</span></div>'+
+      '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+((TOPY+BASE)/2)+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
+      '<div class="y-achse"><span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+((TOPY+BASE)/2)+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span></div>'+
       '<div class="surplus-layer">'+sb+'</div>'+
       '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
       nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
@@ -813,11 +816,11 @@ function renderPlaner(arr){
   }
   function updateSim(){
     const sim=simuliere(arr,platzierungen);
-    // Batterie-Füllstand als gefüllte Fläche (0 = leer unten, voll = oben)
-    const yv=v=>(100-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap*100:0));
+    // Batterie-Füllstand als gefüllte Fläche (0 = leer auf der Baseline, voll = oben)
+    const yv=v=>(TOPY+(1-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap:0))*RANGE);
     let line="0,"+yv(sim.akkuStart).toFixed(1);
     sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
-    $("batt-svg").innerHTML='<polygon points="'+line+' 24,100 0,100" fill="var(--netz)" fill-opacity="0.15"/>'+
+    $("batt-svg").innerHTML='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.15"/>'+
       '<polyline points="'+line+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
     // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
     let li="";
