@@ -1551,17 +1551,24 @@ if("serviceWorker" in navigator){
   setTC(); if(mm&&mm.addEventListener)mm.addEventListener("change",setTC);
 })();
 
-/* Einmalige Voreinstellung: Miele WSG363 Waschprogramme als "Meine Geräte".
-   Läuft nur einmal (Flag in cfg), fügt nur fehlende hinzu, überschreibt nichts. */
+/* Einmalige Voreinstellungen als "Meine Geräte". Jeder Block läuft nur einmal
+   (Flag in cfg), fügt nur fehlende hinzu und überschreibt nichts Bestehendes. */
 function seedPresets(){
-  if(cfg.seedMieleWSG363)return;
-  [
-    {typ:"wm",icon:"🌀",name:"Waschmaschine: Eco 40–60",kwh:0.49,dauer:3,von:6,bis:22},
-    {typ:"wm",icon:"🌀",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
-    {typ:"wm",icon:"🌀",name:"Waschmaschine: Handtücher 60°",kwh:1.1,dauer:3,von:6,bis:22}
-  ].forEach(p=>{ if(!meineGeraete.some(m=>m.name===p.name)) meineGeraete.push(p); });
-  cfg.seedMieleWSG363=true;
-  speichern();
+  let geaendert=false;
+  const hinzu=p=>{ if(!meineGeraete.some(m=>m.name===p.name)){meineGeraete.push(p);} };
+  if(!cfg.seedMieleWSG363){
+    [
+      {typ:"wm",icon:"🌀",name:"Waschmaschine: Eco 40–60",kwh:0.49,dauer:3,von:6,bis:22},
+      {typ:"wm",icon:"🌀",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
+      {typ:"wm",icon:"🌀",name:"Waschmaschine: Handtücher 60°",kwh:1.1,dauer:3,von:6,bis:22}
+    ].forEach(hinzu);
+    cfg.seedMieleWSG363=true;geaendert=true;
+  }
+  if(!cfg.seedSpuel1){
+    hinzu({typ:"sp",icon:"🍽️",name:"Spülmaschine",kwh:0.9,dauer:2.5,von:6,bis:23});
+    cfg.seedSpuel1=true;geaendert=true;
+  }
+  if(geaendert)speichern();
 }
 
 ladeGespeichert();
