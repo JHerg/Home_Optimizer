@@ -785,25 +785,27 @@ function renderPlaner(arr){
   let sb="";
   for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;bottom:'+(100-BASE)+'%;height:'+(su/maxSurplus*RANGE).toFixed(1)+'%"></div>';}
   const nowLine=jetztH>=0?'<div class="now-line" style="left:'+((jetztH+0.5)/24*100)+'%"></div>':'';
-  let ps="";for(let h=0;h<24;h++)ps+='<div class="preis-col k-'+arr[h].klasse+'"'+(h===jetztH?' data-jetzt':'')+'></div>';
   const kwhL=v=>(cap>=10?Math.round(v):v.toFixed(1));
   const mid=(TOPY+BASE)/2;
   const linksL = akkuAn
     ? '<span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span>'
     : '<span style="top:'+TOPY+'%;transform:translateY(-50%)">☀️ '+maxSurplus.toFixed(1)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+(maxSurplus/2).toFixed(1)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kW</span>';
+  // Strompreis-Kurve (in beiden Modi) mit rechter ct/kWh-Achse
+  const preise=arr.map(s=>s.voll).filter(v=>v!=null);
+  const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
+  const rechtsL='<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>';
+  let preisPfad="";{let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
   chart.innerHTML=
     '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
       '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+mid+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
-      '<div class="y-achse">'+linksL+'</div>'+
+      '<div class="y-achse">'+linksL+'</div>'+rechtsL+
       '<div class="surplus-layer">'+sb+'</div>'+
       '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
       nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
     '</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+'</div>'+
-    '<div class="preis-titel">Dynamischer Strompreis</div><div class="planer-preis">'+ps+'</div>'+
-    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>';
+    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+'<span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>';
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
@@ -837,14 +839,16 @@ function renderPlaner(arr){
   }
   function updateSim(){
     const sim=simuliere(arr,platzierungen);
-    // Speicher-Füllstand als gefüllte Fläche – nur wenn Speicher aktiv (sonst Preis-Kurve)
+    // SVG neu aufbauen: bei aktivem Speicher die Füllstand-Fläche, immer die Preis-Kurve obenauf
+    let svg="";
     if(akkuAn){
       const yv=v=>(TOPY+(1-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap:0))*RANGE);
       let line="0,"+yv(sim.akkuStart).toFixed(1);
       sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
-      $("batt-svg").innerHTML='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.15"/>'+
-        '<polyline points="'+line+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+      svg+='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.16" stroke="var(--netz)" stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
     }
+    svg+='<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    $("batt-svg").innerHTML=svg;
     // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
     let li="";
     platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
