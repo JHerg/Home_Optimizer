@@ -1551,7 +1551,21 @@ if("serviceWorker" in navigator){
   setTC(); if(mm&&mm.addEventListener)mm.addEventListener("change",setTC);
 })();
 
+/* Einmalige Voreinstellung: Miele WSG363 Waschprogramme als "Meine Geräte".
+   Läuft nur einmal (Flag in cfg), fügt nur fehlende hinzu, überschreibt nichts. */
+function seedPresets(){
+  if(cfg.seedMieleWSG363)return;
+  [
+    {typ:"wm",icon:"🌀",name:"Waschmaschine: Eco 40–60",kwh:0.49,dauer:3,von:6,bis:22},
+    {typ:"wm",icon:"🌀",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
+    {typ:"wm",icon:"🌀",name:"Waschmaschine: Handtücher 60°",kwh:1.1,dauer:3,von:6,bis:22}
+  ].forEach(p=>{ if(!meineGeraete.some(m=>m.name===p.name)) meineGeraete.push(p); });
+  cfg.seedMieleWSG363=true;
+  speichern();
+}
+
 ladeGespeichert();
+seedPresets();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
