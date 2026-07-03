@@ -430,11 +430,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt">
     <div class="frage">3 · Dein Stromtarif</div>
-    <div class="frage" style="font-size:13px;margin-top:2px">Dein dynamischer Stromanbieter</div>
-    <div class="hilfe">Alle dynamischen Tarife rechnen mit demselben Börsenpreis (EPEX-Spot). Die Auswahl dient der Anzeige – die Börsendaten kommen über die aWATTar-Schnittstelle.</div>
-    <div class="wahl" id="w-anbieter" style="margin-bottom:16px"></div>
-    <div class="hilfe">Stell es dir vor wie beim Einkaufen: Der Börsenpreis ist der reine Einkaufspreis für Strom. Dein Anbieter packt darauf noch alle weiteren Kosten (Netz, Steuern, Service). Dieser feste 'Aufschlag' steht in deinem Vertrag. Die Summe aus beidem ist dein tatsächlicher Preis für Strom aus dem Netz.</div>
-    <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
+    <div class="hilfe">Hast du einen dynamischen (stündlich wechselnden) Börsentarif oder einen festen Arbeitspreis?</div>
+    <div class="wahl" id="w-tarif" style="margin-bottom:14px"></div>
+    <div id="tarif-dynamisch">
+      <div class="frage" style="font-size:13px">Dein dynamischer Stromanbieter</div>
+      <div class="hilfe">Alle dynamischen Tarife rechnen mit demselben Börsenpreis (EPEX-Spot). Die Auswahl dient der Anzeige – die Börsendaten kommen über die aWATTar-Schnittstelle.</div>
+      <div class="wahl" id="w-anbieter" style="margin-bottom:16px"></div>
+      <div class="hilfe">Der Börsenpreis ist der reine Einkaufspreis. Dein Anbieter packt darauf einen festen 'Aufschlag' (Netz, Steuern, Service). Die Summe ist dein tatsächlicher Preis pro kWh aus dem Netz.</div>
+      <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
+    </div>
+    <div id="tarif-fest" hidden>
+      <div class="frage" style="font-size:13px">Dein fester Arbeitspreis</div>
+      <div class="hilfe">Der Preis pro Kilowattstunde aus deinem Vertrag. Dann plant die App rein nach Sonne – Netzstrom kostet immer gleich viel.</div>
+      <div class="zahl-feld"><input id="f-festpreis" value="0,32" inputmode="decimal"><span class="einheit">€/kWh Arbeitspreis</span></div>
+    </div>
   </div>
   <div class="abschnitt">
     <div class="frage">4 · Dein Stromspeicher (optional)</div>
@@ -533,7 +542,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
-  faktor:1.0,anbieter:"Ostrom",akku_an:false,akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -652,6 +661,15 @@ function stunden(tagStr){
   for(let h=0;h<24;h++){
     const spot=daten.preise[tagStr+"-"+h];
     arr.push({h,spot:(spot==null?null:spot),pv:daten.pv[tagStr+"-"+h]||0});
+  }
+  if(cfg.tarif==="fest"){
+    const fp=Math.max(0,(cfg.festpreis||0)*100); // €/kWh -> ct/kWh, konstant über den Tag
+    arr.forEach(s=>{
+      s.voll=fp;
+      if(s.pv>=cfg.schwelle){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
+      else{s.klasse="mittel";s.eff=fp;s.warum="Netzstrom (fester Tarif)";}
+    });
+    return arr;
   }
   const mitPreis=arr.filter(s=>s.spot!=null).map(s=>s.spot+cfg.aufschlag).sort((a,b)=>a-b);
   const q=p=>mitPreis.length?mitPreis[Math.min(mitPreis.length-1,Math.floor(p*mitPreis.length))]:null;
@@ -790,11 +808,14 @@ function renderPlaner(arr){
   const linksL = akkuAn
     ? '<span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span>'
     : '<span style="top:'+TOPY+'%;transform:translateY(-50%)">☀️ '+maxSurplus.toFixed(1)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+(maxSurplus/2).toFixed(1)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kW</span>';
-  // Strompreis-Kurve (in beiden Modi) mit rechter ct/kWh-Achse
+  // Strompreis: dynamisch als Kurve mit rechter ct/kWh-Achse; fester Tarif = konstant, keine Kurve
+  const dyn=cfg.tarif!=="fest";
   const preise=arr.map(s=>s.voll).filter(v=>v!=null);
   const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
-  const rechtsL='<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>';
-  let preisPfad="";{let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
+  const rechtsL=dyn?'<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>':'';
+  let preisPfad="";
+  if(dyn){let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
+  const preisLeg=dyn?'<span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span>':'<span><i class="lg-line" style="border-top-style:dotted"></i>💶 Fester Tarif: '+dz((cfg.festpreis||0).toFixed(2))+' €/kWh</span>';
   chart.innerHTML=
     '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
       '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+mid+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
@@ -805,7 +826,7 @@ function renderPlaner(arr){
     '</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+'<span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>';
+    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+preisLeg+'</div>';
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
@@ -847,7 +868,7 @@ function renderPlaner(arr){
       sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
       svg+='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.16" stroke="var(--netz)" stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
     }
-    svg+='<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    if(preisPfad)svg+='<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
     $("batt-svg").innerHTML=svg;
     // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
     let li="";
@@ -882,7 +903,7 @@ function renderPlaner(arr){
         if(best==null||marg<best.marg)best={h:p.h,marg,preis:p.preis,frei:p.frei};
       });
       if(best&&best.frei>0.1) tip='<div class="v-tipp">💡 Tipp: Um '+best.h+'–'+(best.h+1)+' Uhr ist noch Sonnenüberschuss frei – ein Gerät dorthin ziehen kostet nichts.</div>';
-      else if(best&&best.preis!=null) tip='<div class="v-tipp">💡 Tipp: Günstigste Netzstunde ist '+best.h+'–'+(best.h+1)+' Uhr (~'+dz(best.preis.toFixed(1))+' ct/kWh)'+(akkuAn?' – dorthin ziehen, wenn Speicher leer &amp; keine Sonne.':' – dorthin ziehen, wenn keine Sonne da ist.')+'</div>';
+      else if(dyn&&best&&best.preis!=null) tip='<div class="v-tipp">💡 Tipp: Günstigste Netzstunde ist '+best.h+'–'+(best.h+1)+' Uhr (~'+dz(best.preis.toFixed(1))+' ct/kWh)'+(akkuAn?' – dorthin ziehen, wenn Speicher leer &amp; keine Sonne.':' – dorthin ziehen, wenn keine Sonne da ist.')+'</div>';
     }
     const haupt = ok
       ? (akkuAn?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"✅ Deine Geräte laufen komplett aus Sonnenstrom")
@@ -930,11 +951,14 @@ let letzterLoad=0;
 async function laden(){
   $("status").textContent="Lade Sonnen- und Preisdaten…";
   try{
-    const [, pvQuelle] = await Promise.all([ladePreise(), ladePV()]);
+    const jobs=[ladePV()];
+    if(cfg.tarif!=="fest")jobs.push(ladePreise()); // fester Tarif braucht keine Börsendaten
+    const res=await Promise.all(jobs);
+    const pvQuelle=res[0];
     letzterLoad=Date.now();
     $("status").textContent="Stand: " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     aktualisieren();
-    $("quelle-preis").textContent = cfg.anbieter;
+    $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : cfg.anbieter;
     $("quelle-sonne").textContent = pvQuelle;
   }catch(e){
     $("status").innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
@@ -952,6 +976,12 @@ document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
 const richtungen=[["Süd",0],["Südwest",45],["West",90],["Südost",-45],["Ost",-90],["Nord",180]];
 const neigungen=[["Flach (~10°)",10],["Leicht geneigt (~25°)",25],["Normal steil (~35°)",35],["Steil (~45°)",45]];
 const anbieterListe=[["Ostrom","Ostrom"],["Tibber","Tibber"],["aWATTar","aWATTar"],["Rabot","Rabot"],["Octopus","Octopus"],["Anderer","Anderer"]];
+const tarifListe=[["Dynamisch","dynamisch"],["Fester Preis","fest"]];
+function tarifUI(){
+  const fest=cfg.tarif==="fest";
+  if($("tarif-dynamisch"))$("tarif-dynamisch").hidden=fest;
+  if($("tarif-fest"))$("tarif-fest").hidden=!fest;
+}
 function renderWahl(boxId,liste,aktiv,setzen){
   const box=$(boxId);box.innerHTML="";
   liste.forEach(([label,wert])=>{
@@ -972,9 +1002,12 @@ $("btn-einrichten").onclick=()=>{
   $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
+  $("f-festpreis").value=dz(cfg.festpreis);
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
+  renderWahl("w-tarif",tarifListe,cfg.tarif,v=>{cfg.tarif=v;tarifUI();});
+  tarifUI();
   renderMeineVerwaltung();
   const info=$("adresse-info");info.className="adresse-ok";
   info.textContent="✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",");
@@ -1003,6 +1036,7 @@ $("btn-fertig").onclick=()=>{
   const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
+  const fp=parseFloat($("f-festpreis").value.replace(",","."));if(!isNaN(fp)&&fp>=0)cfg.festpreis=fp;
   speichern();
   sheetZu();laden();
 };
