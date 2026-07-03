@@ -303,6 +303,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .mv-btn{border:none;background:var(--karte);border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;box-shadow:var(--hairline);transition:transform var(--schnell)}
 .mv-btn:active{transform:scale(.9)}
 
+/* Woche + Routinen */
+.woche-tagzeile{display:flex;gap:12px;padding:11px 12px;border-radius:14px;background:var(--papier);margin-bottom:8px}
+.woche-tagzeile.im-horizont{background:var(--gruen-hell)}
+.woche-kopf{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--tinte);min-width:104px;flex-shrink:0}
+.woche-inhalt{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
+.woche-item{font-size:13px;color:var(--nacht);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.woche-item b{font-family:var(--mono);font-weight:600}
+.woche-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:6px;background:rgba(20,31,44,.09);color:var(--grau)}
+.woche-tag.opt{background:var(--gruen);color:#fff}
+.woche-leer{color:var(--grau);font-size:13px}
+.routine-banner{display:flex;gap:8px;align-items:flex-start;background:var(--sonne-hell);color:#7A5A0C;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;margin:12px 0 4px;line-height:1.4}
+.routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:6px;transition:border-color var(--schnell),color var(--schnell)}
+.routine-add:hover{border-color:var(--sonne);color:var(--nacht)}
+
 /* Dark Mode – folgt der Systemeinstellung */
 @media (prefers-color-scheme: dark){
   :root{
@@ -326,6 +340,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .sonne-meter{background:rgba(255,255,255,.1)}
   .sonnen-summe{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
   .sonnen-summe b{color:#FFE9B8}
+  .routine-banner{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
+  .routine-add{border-color:#3A4C5E}
   .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
   .planer-leiste{background:rgba(255,255,255,.03)}
   .p-block{background:linear-gradient(135deg,#2E4560,#22344A);box-shadow:0 4px 12px -4px rgba(0,0,0,.7)}
@@ -360,14 +376,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="segment" role="group" aria-label="Tag wählen">
   <button id="btn-heute" class="aktiv">Heute</button>
   <button id="btn-morgen">Morgen</button>
+  <button id="btn-woche">Woche</button>
 </div>
 <div class="status" id="status">Lade Sonnen- und Preisdaten…</div>
 <div class="quellen-info">
   Datenquellen: Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b>
 </div>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
+<div class="routine-banner" id="routine-banner" hidden></div>
 
-<section class="karte">
+<section class="karte" id="karte-geraete">
   <div class="karten-kopf">
     <h2>Was steht an?</h2>
     <button class="alle-loeschen" id="btn-alle-loeschen">Alle löschen</button>
@@ -377,7 +395,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="chip-plus" id="btn-geraet">＋ Gerät hinzufügen</button>
 </section>
 
-<section class="karte">
+<section class="karte" id="karte-plan">
   <div class="karten-kopf">
     <h2>Dein Tagesplan</h2>
     <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
@@ -405,7 +423,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
 </section>
 
-<section class="karte">
+<section class="karte" id="karte-band">
   <h2>Tagesüberblick</h2>
   <div class="untertitel">Oben: wie viel Sonne dein Dach liefert. Unten: die Preis-Ampel.</div>
   <div class="band-scroll"><div class="band" id="band"></div></div>
@@ -416,6 +434,18 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <span><span class="punkt" style="background:#BDC8D0"></span>normal</span>
     <span><span class="punkt" style="background:var(--rot)"></span>teuer</span>
   </div>
+</section>
+
+<section class="karte" id="karte-woche" hidden>
+  <div class="karten-kopf">
+    <h2>Deine Woche</h2>
+  </div>
+  <div class="untertitel">Wiederkehrende Routinen für die nächsten 7 Tage. Heute &amp; morgen werden im Tagesplan sonnenoptimiert – spätere Tage folgen, sobald sie im Prognosefenster sind.</div>
+  <div id="woche-liste"></div>
+  <div class="karten-kopf" style="margin-top:18px"><h2 style="font-size:15px">🔁 Routinen</h2></div>
+  <div class="untertitel">Feste Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
+  <div id="routine-liste"></div>
+  <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
 </section>
 
 <!-- Einrichtung -->
@@ -548,6 +578,40 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="loeschen-knopf" id="btn-b-loeschen">🗑 Gerät aus der Liste löschen</button>
 </div>
 
+<!-- Routine anlegen/bearbeiten -->
+<div class="sheet" id="sheet-routine" role="dialog" aria-label="Routine">
+  <button class="sheet-schliessen" data-zu>✕</button>
+  <h3 id="routine-titel">Routine</h3>
+  <div class="sub">Wiederkehrende Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
+  <div class="abschnitt">
+    <div class="frage">Was läuft?</div>
+    <div class="g-typen" id="routine-typen"></div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage">Name</div>
+    <div class="adresse-zeile"><input id="routine-name" type="text" autocomplete="off" placeholder="z. B. Handtücher 60°" aria-label="Routine-Name"></div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage">Verbrauch &amp; Laufzeit</div>
+    <div class="zahl-feld"><input id="routine-kwh" inputmode="decimal"><span class="einheit">kWh gesamt</span></div>
+    <div class="zahl-feld" style="margin-top:10px"><input id="routine-dauer" inputmode="decimal"><span class="einheit">Stunden</span></div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage">An welchem Tag?</div>
+    <div class="wahl" id="routine-wochentag"></div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage">Wie oft?</div>
+    <div class="wahl" id="routine-rhythmus"></div>
+    <div id="routine-start-box" hidden style="margin-top:12px">
+      <div class="frage" style="font-size:13px">Ab wann?</div>
+      <div class="wahl" id="routine-start"></div>
+    </div>
+  </div>
+  <button class="fertig" id="routine-speichern">Speichern</button>
+  <button class="loeschen-knopf" id="routine-loeschen" hidden>🗑 Routine löschen</button>
+</div>
+
 <!-- Texteingabe (Name) – ersetzt das in installierten Apps unzuverlässige prompt() -->
 <div class="sheet" id="sheet-eingabe" role="dialog" aria-label="Eingabe" style="z-index:13">
   <button class="sheet-schliessen" id="eingabe-x">✕</button>
@@ -588,18 +652,21 @@ let geraete=[
 ];
 
 let meineGeraete=[]; // selbst gespeicherte Geraete ("Meine Geräte")
+let routinen=[]; // wiederkehrende Routinen (Wochentag + Rhythmus)
 let daten={preise:{},pv:{}};
-let tag="heute";
+let tag="heute"; // "heute" | "morgen" | "woche"
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
 let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
 let platzSig=""; // Signatur (Tag+Geraete), um Vorschlag nur bei Bedarf neu zu erzeugen
 let ungeplant=[]; // Geraete, die zeitlich nicht mehr in den (heutigen) Plan passen
 let eingabeResolve=null; // offener Promise-Resolver des Texteingabe-Sheets
+let planGeraete=geraete; // effektive Geraeteliste des gezeigten Tages (manuell + faellige Routinen)
+let routineEntwurf=null,routineEdit=null; // Zustand des Routine-Sheets
 
 /* ---------- Speichern / Laden (localStorage) ---------- */
 const SPEICHER_KEY="energie-optimierer-v1";
 function speichern(){
-  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,meineGeraete}));}catch(e){}
+  try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,meineGeraete,routinen}));}catch(e){}
 }
 function ladeGespeichert(){
   try{
@@ -608,6 +675,7 @@ function ladeGespeichert(){
     if(s.cfg)Object.assign(cfg,s.cfg);
     if(Array.isArray(s.geraete))geraete=s.geraete;
     if(Array.isArray(s.meineGeraete))meineGeraete=s.meineGeraete;
+    if(Array.isArray(s.routinen))routinen=s.routinen;
   }catch(e){}
 }
 
@@ -620,6 +688,32 @@ function heuteStr(){return berlinTeile(new Date()).key;}
 function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
 function euro(v){return v.toFixed(2).replace(".",",")+" €";}
 function dz(v){return String(v).replace(".",",");}
+
+/* ---------- Routinen (wiederkehrende Geraete) ---------- */
+const WOCHENTAGE=[["Mo",1],["Di",2],["Mi",3],["Do",4],["Fr",5],["Sa",6],["So",0]]; // Wert = getUTCDay
+const WOCHENTAG_KURZ={0:"So",1:"Mo",2:"Di",3:"Mi",4:"Do",5:"Fr",6:"Sa"};
+function wochentagVonKey(tagStr){return new Date(tagStr+"T12:00:00Z").getUTCDay();} // 0=So..6=Sa
+// Datum eines Wochentags in dieser/naechster Woche (relativ zu heute), als YYYY-MM-DD.
+function datumFuerWochentag(wd,wochenOffset){
+  const heute=new Date(heuteStr()+"T12:00:00Z"), diff=wd-heute.getUTCDay();
+  return new Date(heute.getTime()+(diff+(wochenOffset||0)*7)*86400000).toISOString().slice(0,10);
+}
+// Ist die Routine an diesem Datum faellig? (Wochentag + ggf. 14-taegige Paritaet zum Anker)
+function routineFaelligAn(r,tagStr){
+  if(wochentagVonKey(tagStr)!==r.wochentag)return false;
+  if(r.rhythmus===2){
+    if(!r.anker)return true;
+    const tage=Math.round((Date.parse(tagStr+"T12:00:00Z")-Date.parse(r.anker+"T12:00:00Z"))/86400000);
+    return (((Math.round(tage/7))%2)+2)%2===0; // gleiche Parität wie Ankerwoche
+  }
+  return true;
+}
+// Routinen des Tages als Pseudo-Geraete (fuers Einplanen im Tagesplan)
+function routinenFuerTag(tagStr){
+  return routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr))
+    .map(r=>({typ:r.typ,icon:r.icon,name:r.name,kwh:r.kwh,dauer:r.dauer,von:r.von,bis:r.bis,anzahl:1,routine:true}));
+}
+function geraeteFuerTag(tagStr){return geraete.concat(routinenFuerTag(tagStr));}
 
 /* ---------- Datenquellen ---------- */
 async function ladePreise(){
@@ -732,11 +826,12 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
   return best;
 }
 // Auto-Vorschlag: platziert alle Geraete-Durchgaenge ueberschussbewusst als Startpunkt.
+// Nutzt planGeraete = manuelle Geraete + faellige Routinen des gezeigten Tages.
 function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   ungeplant=[];
-  geraete.forEach((g,gi)=>{
+  planGeraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer));
     const devKW=g.kwh/g.dauer;
     let naechsterStart = g.von, n = 0;
@@ -745,7 +840,7 @@ function autoPlatzierung(arr){
       if(!f)break; // Kein Fenster mehr gefunden, Schleife abbrechen
       naechsterStart = f.start + dauer;
       for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-devKW);}
-      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer});
+      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine});
       n++;
     }
     if(n<g.anzahl)ungeplant.push({icon:g.icon,name:g.name,fehlend:g.anzahl-n});
@@ -821,7 +916,7 @@ function renderChips(){
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
 function planSignatur(){
-  return tag+"|"+geraete.map(g=>g.typ+":"+g.name+":"+g.kwh+":"+g.dauer+":"+g.anzahl+":"+g.von+":"+g.bis).join(",");
+  return tag+"|"+planGeraete.map(g=>g.typ+":"+g.name+":"+g.kwh+":"+g.dauer+":"+g.anzahl+":"+g.von+":"+g.bis+":"+(g.routine?"R":"")).join(",");
 }
 function sichereVorschlag(arr){
   const sig=planSignatur();
@@ -932,7 +1027,7 @@ function renderPlaner(arr){
       const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
       li+='<div class="pl-zeile">'+
         '<span class="pl-ic">'+b.icon+'</span>'+
-        '<span class="pl-info"><span class="pl-name">'+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
+        '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
         '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
         '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
         '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
@@ -1016,8 +1111,22 @@ function renderBand(arr,tagStr){
   });
 }
 let aktuelleStunden=null;
+function tageskarten(zeigen){
+  ["karte-geraete","karte-plan","karte-band"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigen;});
+  $("karte-woche").hidden=zeigen;
+}
 function aktualisieren(){
+  if(tag==="woche"){
+    tageskarten(false);
+    $("sonnen-summe").hidden=true;
+    $("routine-banner").hidden=true;
+    $("titel").textContent="Deine Woche";
+    renderWoche();
+    return;
+  }
+  tageskarten(true);
   const tagStr=tag==="heute"?heuteStr():morgenStr();
+  planGeraete=geraeteFuerTag(tagStr); // manuelle Geraete + faellige Routinen
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
@@ -1026,8 +1135,53 @@ function aktualisieren(){
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>";}
   else ss.hidden=true;
+  routineBanner(tagStr);
   if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null))
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
+}
+// Erinnerungs-Banner: an einem Routine-Tag (nur "heute") zeigen, was ansteht + geplantes Fenster.
+function routineBanner(tagStr){
+  const el=$("routine-banner");
+  const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr));
+  if(tag!=="heute"||!faellig.length){el.hidden=true;return;}
+  const teile=faellig.map(r=>{
+    const b=platzierungen.find(p=>p.routine&&p.name===r.name);
+    return r.icon+" "+r.name+(b?" ("+b.start+"–"+(b.start+b.dauer)+" Uhr)":"");
+  });
+  el.hidden=false;
+  el.innerHTML="🔁 Heute geplant: "+teile.join(" · ");
+}
+function renderWoche(){
+  const heuteK=heuteStr(),morgenK=morgenStr();
+  let html="";
+  for(let i=0;i<7;i++){
+    const key=new Date(Date.parse(heuteK+"T12:00:00Z")+i*86400000).toISOString().slice(0,10);
+    const wd=wochentagVonKey(key);
+    const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,key));
+    const imHorizont=(key===heuteK||key===morgenK);
+    const tagLabel=(i===0?"Heute":i===1?"Morgen":WOCHENTAG_KURZ[wd])+" · "+key.slice(8,10)+"."+key.slice(5,7)+".";
+    const inner=!faellig.length
+      ? '<span class="woche-leer">– keine Routine</span>'
+      : faellig.map(r=>'<span class="woche-item">'+r.icon+' '+r.name+' <b>'+dz(r.kwh)+' kWh</b> <span class="woche-tag'+(imHorizont?' opt':'')+'">'+(imHorizont?"im Tagesplan":"geplant")+'</span></span>').join("");
+    html+='<div class="woche-tagzeile'+(imHorizont?' im-horizont':'')+'"><div class="woche-kopf">'+tagLabel+'</div><div class="woche-inhalt">'+inner+'</div></div>';
+  }
+  $("woche-liste").innerHTML=html;
+  renderRoutineListe();
+}
+function renderRoutineListe(){
+  const box=$("routine-liste");
+  if(!routinen.length){box.innerHTML='<div class="plan-leer" style="text-align:left">Noch keine Routine. Lege z. B. „Handtücher jeden Samstag" an.</div>';return;}
+  box.innerHTML=routinen.map((r,i)=>{
+    const rhy=r.rhythmus===2?"alle 2 Wochen":"jede Woche";
+    return '<div class="mv-zeile"><span class="mv-ic">'+r.icon+'</span>'+
+      '<span class="mv-info"><span class="mv-name">'+r.name+'</span><span class="mv-k">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+' · ~'+dz(r.kwh)+' kWh · '+dz(r.dauer)+' h</span></span>'+
+      '<button class="mv-btn" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
+      '<button class="mv-btn" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>';
+  }).join("");
+  box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
+  box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=()=>{
+    routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
+  });
 }
 let letzterLoad=0;
 async function laden(){
@@ -1292,9 +1446,85 @@ $("btn-b-loeschen").onclick=()=>{
   speichern();sheetZu();renderChips();aktualisieren();
 };
 
-/* Tag-Umschalter */
-$("btn-heute").onclick=()=>{tag="heute";$("btn-heute").classList.add("aktiv");$("btn-morgen").classList.remove("aktiv");aktualisieren();};
-$("btn-morgen").onclick=()=>{tag="morgen";$("btn-morgen").classList.add("aktiv");$("btn-heute").classList.remove("aktiv");aktualisieren();};
+/* Tag-Umschalter (Heute / Morgen / Woche) */
+function setzeTag(t){
+  tag=t;
+  [["btn-heute","heute"],["btn-morgen","morgen"],["btn-woche","woche"]].forEach(([id,v])=>$(id).classList.toggle("aktiv",v===t));
+  aktualisieren();
+}
+$("btn-heute").onclick=()=>setzeTag("heute");
+$("btn-morgen").onclick=()=>setzeTag("morgen");
+$("btn-woche").onclick=()=>setzeTag("woche");
+
+/* Routinen anlegen / bearbeiten */
+function routineTypenRender(){
+  const box=$("routine-typen");box.innerHTML="";
+  typen.forEach(t=>{
+    const b=document.createElement("button");
+    b.innerHTML='<span class="ic">'+t.icon+'</span><span class="tn">'+t.name+'</span>';
+    if(routineEntwurf&&routineEntwurf.typ===t.id)b.classList.add("aktiv");
+    b.onclick=()=>{
+      routineEntwurf.typ=t.id;routineEntwurf.icon=t.icon;
+      const nf=$("routine-name"),kf=$("routine-kwh"),df=$("routine-dauer");
+      if(!nf.value){nf.value=t.name;}
+      if(!kf.value){const vals=Object.values(t.klassen);kf.value=dz(vals[Math.min(4,vals.length-1)]);}
+      if(!df.value){df.value=dz(t.dauer);}
+      routineTypenRender();
+    };
+    box.appendChild(b);
+  });
+}
+function routineChips(boxId,liste,aktiv,setzen){
+  const box=$(boxId);box.innerHTML="";
+  liste.forEach(([lab,val])=>{
+    const b=document.createElement("button");b.textContent=lab;
+    if(aktiv===val)b.classList.add("aktiv");
+    b.onclick=()=>setzen(val);
+    box.appendChild(b);
+  });
+}
+function routineChipsAlle(){
+  routineChips("routine-wochentag",WOCHENTAGE,routineEntwurf.wochentag,v=>{routineEntwurf.wochentag=v;routineChipsAlle();});
+  routineChips("routine-rhythmus",[["Jede Woche",1],["Alle 2 Wochen",2]],routineEntwurf.rhythmus,v=>{routineEntwurf.rhythmus=v;$("routine-start-box").hidden=(v!==2);routineChipsAlle();});
+  routineChips("routine-start",[["Diese Woche",0],["Nächste Woche",1]],routineEntwurf.startOffset,v=>{routineEntwurf.startOffset=v;routineChipsAlle();});
+  $("routine-start-box").hidden=(routineEntwurf.rhythmus!==2);
+}
+function oeffneRoutine(i){
+  routineEdit=(i==null?null:i);
+  if(i==null){
+    routineEntwurf={typ:"wm",icon:"🌀",name:"",von:6,bis:23,wochentag:6,rhythmus:1,startOffset:0};
+    $("routine-titel").textContent="Neue Routine";
+    $("routine-name").value="";$("routine-kwh").value="";$("routine-dauer").value="";
+    $("routine-loeschen").hidden=true;
+  }else{
+    const r=routinen[i];
+    routineEntwurf={typ:r.typ,icon:r.icon,name:r.name,von:r.von,bis:r.bis,wochentag:r.wochentag,rhythmus:r.rhythmus,startOffset:0};
+    $("routine-titel").textContent="Routine bearbeiten";
+    $("routine-name").value=r.name;$("routine-kwh").value=dz(r.kwh);$("routine-dauer").value=dz(r.dauer);
+    $("routine-loeschen").hidden=false;
+  }
+  routineTypenRender();routineChipsAlle();
+  sheetAuf("sheet-routine");
+}
+$("btn-routine-add").onclick=()=>oeffneRoutine(null);
+$("routine-speichern").onclick=()=>{
+  const name=($("routine-name").value.trim())||routineEntwurf.name||"Routine";
+  const kwh=parseFloat($("routine-kwh").value.replace(",","."));
+  const dauer=parseFloat($("routine-dauer").value.replace(",","."));
+  if(isNaN(kwh)||kwh<=0){alert("Bitte einen Verbrauch in kWh eingeben.");return;}
+  if(isNaN(dauer)||dauer<=0||dauer>12){alert("Bitte eine Laufzeit in Stunden eingeben (max. 12).");return;}
+  const r={typ:routineEntwurf.typ,icon:routineEntwurf.icon,name,
+    kwh:Math.round(kwh*100)/100,dauer:Math.round(dauer*10)/10,
+    von:routineEntwurf.von,bis:routineEntwurf.bis,
+    wochentag:routineEntwurf.wochentag,rhythmus:routineEntwurf.rhythmus,aktiv:true};
+  if(r.rhythmus===2)r.anker=datumFuerWochentag(r.wochentag,routineEntwurf.startOffset);
+  if(routineEdit==null)routinen.push(r);else routinen[routineEdit]=r;
+  speichern();sheetZu();platzSig="";aktualisieren();
+};
+$("routine-loeschen").onclick=()=>{
+  if(routineEdit!=null){routinen.splice(routineEdit,1);speichern();platzSig="";}
+  sheetZu();aktualisieren();
+};
 
 /* Aktualisieren */
 function starteAktualisierung(){
