@@ -1613,6 +1613,10 @@ function seedPresets(){
     hinzu({typ:"sp",icon:"🍽️",name:"Spülmaschine",kwh:0.9,dauer:2.5,von:6,bis:23});
     cfg.seedSpuel1=true;geaendert=true;
   }
+  if(!cfg.seedBett1){
+    hinzu({typ:"wm",icon:"🌀",name:"Waschmaschine: Bettwäsche 60°",kwh:1.1,dauer:3,von:6,bis:22});
+    cfg.seedBett1=true;geaendert=true;
+  }
   if(geaendert)speichern();
 }
 
