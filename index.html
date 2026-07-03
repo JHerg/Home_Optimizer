@@ -403,6 +403,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
   <div id="planer">
+    <div id="planer-warnung"></div>
     <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
     <div class="regler">
       <label class="switch-zeile">
@@ -849,7 +850,11 @@ function autoPlatzierung(arr){
       bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine});
       n++;
     }
-    if(n<g.anzahl)ungeplant.push({icon:g.icon,name:g.name,fehlend:g.anzahl-n});
+    if(n<g.anzahl){
+      const jetzt=(tag==="heute")?berlinTeile(new Date()).stunde:0;
+      ungeplant.push({icon:g.icon,name:g.name,fehlend:g.anzahl-n,
+        abStart:Math.max(naechsterStart,jetzt),dauer,bis:Math.min(24,g.bis)});
+    }
   });
   return bloecke;
 }
@@ -928,14 +933,30 @@ function sichereVorschlag(arr){
   const sig=planSignatur();
   if(sig!==platzSig){platzierungen=autoPlatzierung(arr);platzSig=sig;}
 }
+// Klartext-Warnung für Geräte, die heute zeitlich nicht mehr in den Plan passen.
+function ungeplantHtml(){
+  if(!ungeplant.length)return "";
+  const heuteTag=(tag==="heute");
+  const zeilen=ungeplant.map(u=>{
+    const anzahl=u.fehlend>1?' ('+u.fehlend+'×)':'';
+    let grund="";
+    if(u.abStart!=null&&u.dauer!=null&&u.bis!=null)
+      grund=': frühester freier Start '+u.abStart+' Uhr + '+dz(u.dauer)+' h Laufzeit passt nicht mehr vor '+u.bis+' Uhr';
+    return '<li>'+u.icon+' '+u.name+anzahl+grund+'</li>';
+  }).join("");
+  return '<div class="v-haupt warn" style="margin-bottom:12px">⚠️ '+(heuteTag?"Heute":"An diesem Tag")+
+    ' nicht mehr einplanbar:<ul style="margin:6px 0 4px 18px;font-weight:600">'+zeilen+
+    '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln oder im Gerät das Zeitfenster (Start-/Endzeit) erweitern.</span></div>';
+}
 function renderPlaner(arr){
-  const chart=$("planer-chart"),rest=$("planer-rest");
+  const chart=$("planer-chart"),rest=$("planer-rest"),warn=$("planer-warnung");
   const akkuAn=cfg.akku_an;
   $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
-  if(arr.every(s=>s.eff==null)){chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML="";return;}
+  if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML="";return;}
+  warn.innerHTML=ungeplantHtml();
   if(!platzierungen.length){
     const leerText=ungeplant.length
-      ? '⚠️ '+ungeplant.map(u=>u.icon+' '+u.name).join(', ')+' passt heute zeitlich nicht mehr rein. Wechsle auf „Morgen" oder erweitere das Zeitfenster im Gerät.'
+      ? 'Für heute ist kein Gerät mehr einplanbar – siehe Hinweis oben.'
       : 'Wähle oben mindestens ein Gerät (＋ drücken).';
     chart.innerHTML='<div class="plan-leer">'+leerText+'</div>';rest.innerHTML="";return;
   }
@@ -980,7 +1001,6 @@ function renderPlaner(arr){
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
     '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+preisLeg+'</div>';
   rest.innerHTML=
-    (ungeplant.length?'<div class="v-haupt warn" style="margin-bottom:12px">⚠️ '+ungeplant.map(u=>u.icon+' '+u.name+(u.fehlend>1?' ('+u.fehlend+'×)':'')).join(', ')+' passt heute zeitlich nicht mehr rein – auf „Morgen" wechseln oder das Zeitfenster im Gerät erweitern.</div>':'')+
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
     '<div class="planer-deckung" id="planer-deckung"></div>'+
