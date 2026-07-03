@@ -354,6 +354,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="quellen-info">
   Datenquellen: Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b>
 </div>
+<div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
 
 <section class="karte">
   <div class="karten-kopf">
@@ -974,6 +975,7 @@ async function laden(){
     aktualisieren();
     $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : cfg.anbieter;
     $("quelle-sonne").textContent = pvQuelle;
+    $("pv-fallback-hinweis").hidden = pvQuelle!=="Open-Meteo";
   }catch(e){
     $("status").innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
   }
