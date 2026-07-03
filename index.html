@@ -503,6 +503,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe">Deine gespeicherten Geräte – umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
     <div class="meine-verwaltung" id="meine-verwaltung"></div>
   </div>
+  <div class="abschnitt">
+    <div class="frage">☀️ Prognose kalibrieren</div>
+    <div class="hilfe">Die kostenlose Sonnenprognose rechnet meist zu niedrig. Trag an ein paar Abenden deinen <b>echten</b> Tagesertrag aus deinem EMS/Wechselrichter ein – die App vergleicht ihn mit ihrer eigenen Prognose und korrigiert sich dann automatisch. Je mehr Tage, desto genauer.</div>
+    <div class="hilfe" id="kalib-prognose" style="color:var(--tinte);font-weight:600">Heutige Prognose: – kWh</div>
+    <div class="zahl-feld"><input id="f-kalib-real" inputmode="decimal" placeholder="z. B. 41"><span class="einheit">kWh echter Ertrag heute</span></div>
+    <button class="merken-knopf" id="btn-kalib" style="margin-top:10px">✓ Übernehmen &amp; kalibrieren</button>
+    <div class="hilfe" id="kalib-status" style="margin-top:8px"></div>
+  </div>
   <details class="experte">
     <summary>Für Experten</summary>
     <div class="abschnitt" style="margin-top:12px">
@@ -520,8 +528,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="zahl-feld"><input id="f-schwelle" value="1500" inputmode="decimal"><span class="einheit">Watt Grundlast</span></div>
     </div>
     <div class="abschnitt">
-      <div class="frage">Prognose-Kalibrierung</div>
-      <div class="hilfe">Vergleiche an 2–3 Tagen die App-Prognose mit dem echten Tagesertrag aus deinem EMS und trage das Verhältnis ein. Beispiel: real 44 kWh, prognostiziert 25 kWh → 44 ÷ 25 = Faktor 1,76. Bei 1,0 bleibt die Prognose unverändert.</div>
+      <div class="frage">Prognose-Faktor (manuell)</div>
+      <div class="hilfe">Wird normalerweise oben über „Prognose kalibrieren" automatisch gesetzt. Hier kannst du ihn direkt überschreiben. Bei 1,0 bleibt die Prognose unverändert.</div>
       <div class="zahl-feld"><input id="f-faktor" value="1.0" inputmode="decimal"><span class="einheit">× Faktor</span></div>
     </div>
   </details>
@@ -644,7 +652,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,kalib:[],anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -1290,6 +1298,44 @@ function renderWahl(boxId,liste,aktiv,setzen){
 }
 renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
 renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
+/* ---------- Prognose-Kalibrierung (aus echtem EMS-Ertrag) ---------- */
+function prognoseHeute(){ // heutige (bereits faktorierte) Prognose in kWh
+  let s=0;const t=heuteStr();for(let h=0;h<24;h++)s+=(daten.pv[t+"-"+h]||0);return s/1000;
+}
+function faktorAusKalib(){ // Mittel der Verhältnisse real/roh über die gespeicherten Tage
+  const k=cfg.kalib||[];let sum=0,n=0;
+  k.forEach(e=>{if(e.raw>0.5){sum+=e.real/e.raw;n++;}});
+  return n?Math.max(0.3,Math.min(3,sum/n)):null;
+}
+function skaliereProg(alt,neu){ // vorhandene PV-Daten ohne Neuabruf umskalieren
+  if(alt>0&&neu>0&&alt!==neu){const s=neu/alt;Object.keys(daten.pv).forEach(k=>daten.pv[k]*=s);}
+}
+function kalibUI(){
+  const p=prognoseHeute();
+  $("kalib-prognose").innerHTML="Heutige Prognose: <b>"+(p>0.1?p.toFixed(0):"–")+" kWh</b>";
+  const n=(cfg.kalib||[]).length;
+  $("kalib-status").innerHTML = n
+    ? "Aktueller Faktor: <b>"+dz(cfg.faktor.toFixed(2))+"</b> (aus "+n+" Tag"+(n>1?"en":"")+"). <a href=\"#\" id=\"kalib-reset\">Zurücksetzen</a>"
+    : "Noch nicht kalibriert (Faktor "+dz(cfg.faktor.toFixed(2))+").";
+  const rl=$("kalib-reset");
+  if(rl)rl.onclick=e=>{e.preventDefault();const alt=cfg.faktor;cfg.kalib=[];cfg.faktor=1.0;skaliereProg(alt,cfg.faktor);$("f-faktor").value=dz(cfg.faktor);speichern();aktualisieren();kalibUI();};
+}
+$("btn-kalib").onclick=()=>{
+  const real=parseFloat(($("f-kalib-real").value||"").replace(",","."));
+  if(isNaN(real)||real<=0){alert("Bitte den echten Tagesertrag in kWh eingeben (z. B. 41).");return;}
+  const p=prognoseHeute();
+  const alt=cfg.faktor;
+  const raw=alt>0?p/alt:p; // Prognose ohne Faktor
+  if(!(raw>0.5)){alert("Für heute liegt noch keine belastbare Sonnenprognose vor – bitte am Abend eintragen, wenn Tagesdaten da sind.");return;}
+  cfg.kalib=(cfg.kalib||[]).filter(e=>e.d!==heuteStr()); // pro Tag ein Eintrag
+  cfg.kalib.push({d:heuteStr(),raw:Math.round(raw*100)/100,real:Math.round(real*100)/100});
+  if(cfg.kalib.length>14)cfg.kalib=cfg.kalib.slice(-14);
+  const nf=faktorAusKalib(); if(nf)cfg.faktor=Math.round(nf*100)/100;
+  skaliereProg(alt,cfg.faktor);
+  $("f-faktor").value=dz(cfg.faktor);
+  $("f-kalib-real").value="";
+  speichern();aktualisieren();kalibUI();
+};
 $("btn-einrichten").onclick=()=>{
   $("f-adresse").value=cfg.adresse;
   $("f-aufschlag").value=dz(cfg.aufschlag);
@@ -1299,6 +1345,8 @@ $("btn-einrichten").onclick=()=>{
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
   $("f-festpreis").value=dz(cfg.festpreis);
   $("f-fs-key").value=cfg.fsKey||"";
+  $("f-kalib-real").value="";
+  kalibUI();
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
