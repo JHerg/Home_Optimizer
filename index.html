@@ -369,7 +369,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <h2>Dein Tagesplan</h2>
     <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
   </div>
-  <div class="untertitel">Ziehe die Geräte auf die Zeitleiste. Unten siehst du, was aus <b>Sonne</b>, <b>Speicher</b> oder <b>Netz</b> gedeckt wird.</div>
+  <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
   <div id="planer">
     <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
     <div class="regler">
@@ -385,7 +385,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="regler-zeile">
         <div class="regler-kopf"><span>🏠 Grundlast (Ø&nbsp;Verbrauch)</span><b id="rg-last-val">1500 W</b></div>
         <input type="range" id="rg-last" min="0" max="3000" step="50" value="1500" aria-label="Grundlast in Watt">
-        <div class="regler-hinweis">Saisonal: Winter mit Wärmepumpe höher, Sommer oft nahe null.</div>
+        <div class="regler-hinweis">Bestimmt, wie viel Sonne für die Geräte übrig bleibt (PV − Grundlast). Saisonal: Winter mit Wärmepumpe höher, Sommer oft nahe null.</div>
       </div>
     </div>
     <div id="planer-rest"></div>
@@ -766,6 +766,8 @@ function sichereVorschlag(arr){
 }
 function renderPlaner(arr){
   const chart=$("planer-chart"),rest=$("planer-rest");
+  const akkuAn=cfg.akku_an;
+  $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
   if(arr.every(s=>s.eff==null)){chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML="";return;}
   if(!platzierungen.length){chart.innerHTML='<div class="plan-leer">Wähle oben mindestens ein Gerät (＋ drücken).</div>';rest.innerHTML="";return;}
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
@@ -778,7 +780,6 @@ function renderPlaner(arr){
   });
   const lanes=Math.max(1,laneEnde.length);
   const leisteH=Math.max(120,lanes*34+66);
-  const akkuAn=cfg.akku_an;
   const cap=Math.max(1,cfg.akku_kwh||0);
   // Plot-Bereich vertikal: oben=voll (TOPY%), unten=0 (BASE%) – darunter etwas Luft.
   const TOPY=8,BASE=88,RANGE=BASE-TOPY;
@@ -809,10 +810,10 @@ function renderPlaner(arr){
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
     (akkuAn
-      ? '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: Sonnenüberschuss</span><span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span></div>'+
+      ? '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span><span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span></div>'+
         '<div class="preis-titel">Dynamischer Strompreis</div><div class="planer-preis">'+ps+'</div>'+
         '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>'
-      : '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: Sonnenüberschuss (kW)</span><span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>');
+      : '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (kW, PV − Grundlast)</span><span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>');
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
