@@ -620,13 +620,13 @@ async function ladePV(){
     const watts=j.result&&j.result.watts?j.result.watts:{};
     const summe={},anzahl={};
     Object.keys(watts).forEach(k=>{
-      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde;
-      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1;
+      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
+      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1; // Wh pro Stunde
     });
     Object.keys(summe).forEach(k=>daten.pv[k]=(summe[k]/anzahl[k])*cfg.faktor); // Wh * Faktor
     return"Forecast.Solar";
   }catch(e){
-    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+ // Open-Meteo liefert W/m², muss umgerechnet werden
+    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
       "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
       "&forecast_days=2&timezone=Europe%2FBerlin";
     const r=await fetch(u);
