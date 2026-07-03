@@ -463,6 +463,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="zahl-feld"><input id="f-kwp" value="7.6" inputmode="decimal"><span class="einheit">kWp</span></div>
     </div>
     <div class="abschnitt">
+      <div class="frage">Forecast.Solar API-Key (optional)</div>
+      <div class="hilfe">Ohne Key teilen sich alle Nutzer im selben Mobilfunknetz ein niedriges Limit – das führt öfter zum Ausweichen auf die ungenauere Wetter-Rückfalllösung. Ein kostenloser <a href="https://forecast.solar/" target="_blank" rel="noopener">Forecast.Solar-Account</a> gibt dir ein eigenes, höheres Limit. Key hier eintragen, leer lassen = wie bisher.</div>
+      <div class="adresse-zeile"><input id="f-fs-key" placeholder="z. B. AbCdEf123..." aria-label="Forecast.Solar API-Key"></div>
+    </div>
+    <div class="abschnitt">
       <div class="frage">Einspeisevergütung</div>
       <div class="hilfe">Was du pro kWh bekommst, wenn Sonnenstrom ins Netz fließt statt in deine Geräte. So viel „kostet" dich Eigenverbrauch in Sonnenstunden.</div>
       <div class="zahl-feld"><input id="f-verguetung" value="7.9" inputmode="decimal"><span class="einheit">ct/kWh</span></div>
@@ -543,7 +548,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
-  faktor:1.0,anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -611,20 +616,25 @@ async function ladePreise(){
     daten.preise[t.key+"-"+t.stunde]=e.marketprice/10;
   });
 }
+function warten(ms){return new Promise(r=>setTimeout(r,ms));}
+async function holeForecastSolar(){
+  const basis="https://api.forecast.solar/"+(cfg.fsKey?cfg.fsKey+"/":"")+"estimate/"+cfg.lat+"/"+cfg.lon+"/"+cfg.neigung+"/"+cfg.azimut+"/"+cfg.kwp;
+  const r=await fetch(basis);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const j=await r.json();
+  const watts=j.result&&j.result.watts?j.result.watts:{};
+  const summe={},anzahl={};
+  Object.keys(watts).forEach(k=>{
+    const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
+    summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1; // Wh pro Stunde
+  });
+  Object.keys(summe).forEach(k=>daten.pv[k]=(summe[k]/anzahl[k])*cfg.faktor); // Wh * Faktor
+}
 async function ladePV(){
   daten.pv={};
   try{
-    const u="https://api.forecast.solar/estimate/"+cfg.lat+"/"+cfg.lon+"/"+cfg.neigung+"/"+cfg.azimut+"/"+cfg.kwp;
-    const r=await fetch(u);
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const j=await r.json();
-    const watts=j.result&&j.result.watts?j.result.watts:{};
-    const summe={},anzahl={};
-    Object.keys(watts).forEach(k=>{
-      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
-      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1; // Wh pro Stunde
-    });
-    Object.keys(summe).forEach(k=>daten.pv[k]=(summe[k]/anzahl[k])*cfg.faktor); // Wh * Faktor
+    try{ await holeForecastSolar(); }
+    catch(e){ await warten(900); await holeForecastSolar(); } // kurzer Retry vor dem Fallback
     return"Forecast.Solar";
   }catch(e){
     const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
@@ -1019,6 +1029,7 @@ $("btn-einrichten").onclick=()=>{
   $("f-faktor").value=dz(cfg.faktor);
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
   $("f-festpreis").value=dz(cfg.festpreis);
+  $("f-fs-key").value=cfg.fsKey||"";
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
@@ -1053,6 +1064,7 @@ $("btn-fertig").onclick=()=>{
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
   const fp=parseFloat($("f-festpreis").value.replace(",","."));if(!isNaN(fp)&&fp>=0)cfg.festpreis=fp;
+  cfg.fsKey=$("f-fs-key").value.trim();
   speichern();
   sheetZu();laden();
 };
