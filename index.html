@@ -740,9 +740,11 @@ function simuliere(arr,bloecke){
     const s=arr[h];
     let pv=Math.max(0,s.pv/1000);
     let dev=0; // Gesamt-Gerätebedarf in kW für diese Stunde
+    const devAnteil=new Map(); // Geräte-Leistung in DIESER Stunde (auch Teilstunden) je Block
     aktiv[h].forEach(b=>{
       const restDauer=b.echteDauer-(h-b.start);
-      dev+=b.devKW*Math.min(1,Math.max(0,restDauer));
+      const anteil=b.devKW*Math.min(1,Math.max(0,restDauer));
+      devAnteil.set(b,anteil); dev+=anteil;
     });
     // PV: erst Grundlast, dann Geraete
     const pvBase=Math.min(pv,base); pv-=pvBase; const baseDef=base-pvBase;
@@ -754,7 +756,7 @@ function simuliere(arr,bloecke){
     const battBase=Math.min(akku,baseDef); akku-=battBase; const netzBase=baseDef-battBase;
     const battDev=Math.min(akku,devDef); akku-=battDev; const netzDev=devDef-battDev;
     // Geraete-Fluesse anteilig auf die aktiven Bloecke verteilen
-    if(dev>0)aktiv[h].forEach(b=>{const sh=b.devKW/dev;b._sun+=pvDev*sh;b._batt+=battDev*sh;b._grid+=netzDev*sh;});
+    if(dev>0)aktiv[h].forEach(b=>{const sh=devAnteil.get(b)/dev;b._sun+=pvDev*sh;b._batt+=battDev*sh;b._grid+=netzDev*sh;});
     const preis=(s.voll!=null?s.voll:(s.eff!=null?s.eff:null));
     sonneKwh+=pvDev; akkuKwh+=battDev; netzKwh+=netzDev; netzCt+=(preis!=null?netzDev*preis:0);
     hausNetzKwh+=netzBase+netzDev;
