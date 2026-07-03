@@ -288,6 +288,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .meine-chip{position:relative;display:flex;align-items:stretch}
 .mc-add{flex:1;display:flex;align-items:center;gap:11px;text-align:left;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);padding:11px 13px;cursor:pointer;transition:border-color var(--schnell),background var(--schnell)}
 .mc-add:hover{border-color:var(--sonne);background:var(--sonne-hell)}
+.meine-chip.gewaehlt .mc-add{border-color:var(--nacht);box-shadow:0 0 0 1.5px var(--nacht)}
 .mc-ic{font-size:22px}
 .mc-t{display:flex;flex-direction:column}
 .mc-n{font-size:14px;font-weight:600;color:var(--nacht)}
@@ -583,8 +584,13 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3 id="routine-titel">Routine</h3>
   <div class="sub">Wiederkehrende Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
+  <div class="abschnitt" id="routine-meine-abschnitt" hidden>
+    <div class="frage">★ Aus deinen Geräten</div>
+    <div class="hilfe">Ein gespeichertes Gerät antippen – Name, Verbrauch &amp; Laufzeit werden übernommen.</div>
+    <div class="meine-chips" id="routine-meine"></div>
+  </div>
   <div class="abschnitt">
-    <div class="frage">Was läuft?</div>
+    <div class="frage" id="routine-typen-frage">Was läuft?</div>
     <div class="g-typen" id="routine-typen"></div>
   </div>
   <div class="abschnitt">
@@ -1464,14 +1470,33 @@ function routineTypenRender(){
     b.innerHTML='<span class="ic">'+t.icon+'</span><span class="tn">'+t.name+'</span>';
     if(routineEntwurf&&routineEntwurf.typ===t.id)b.classList.add("aktiv");
     b.onclick=()=>{
-      routineEntwurf.typ=t.id;routineEntwurf.icon=t.icon;
+      routineEntwurf.typ=t.id;routineEntwurf.icon=t.icon;routineEntwurf.meineIdx=null;
       const nf=$("routine-name"),kf=$("routine-kwh"),df=$("routine-dauer");
       if(!nf.value){nf.value=t.name;}
       if(!kf.value){const vals=Object.values(t.klassen);kf.value=dz(vals[Math.min(4,vals.length-1)]);}
       if(!df.value){df.value=dz(t.dauer);}
-      routineTypenRender();
+      routineTypenRender();routineMeineRender();
     };
     box.appendChild(b);
+  });
+}
+// "Meine Geräte" als Schnellauswahl im Routine-Sheet: übernimmt Werte ins Formular.
+function routineMeineRender(){
+  const box=$("routine-meine"),sec=$("routine-meine-abschnitt");
+  if(!meineGeraete.length){sec.hidden=true;box.innerHTML="";return;}
+  sec.hidden=false;box.innerHTML="";
+  meineGeraete.forEach((m,i)=>{
+    const c=document.createElement("div");
+    c.className="meine-chip"+(routineEntwurf.meineIdx===i?" gewaehlt":"");
+    c.innerHTML='<button class="mc-add" data-rm="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+m.name+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>';
+    box.appendChild(c);
+  });
+  box.querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{
+    const m=meineGeraete[+b.dataset.rm];
+    routineEntwurf.typ=m.typ||"wm";routineEntwurf.icon=m.icon;routineEntwurf.meineIdx=+b.dataset.rm;
+    routineEntwurf.von=(m.von!=null?m.von:6);routineEntwurf.bis=(m.bis!=null?m.bis:23);
+    $("routine-name").value=m.name;$("routine-kwh").value=dz(m.kwh);$("routine-dauer").value=dz(m.dauer);
+    routineMeineRender();routineTypenRender();
   });
 }
 function routineChips(boxId,liste,aktiv,setzen){
@@ -1492,18 +1517,18 @@ function routineChipsAlle(){
 function oeffneRoutine(i){
   routineEdit=(i==null?null:i);
   if(i==null){
-    routineEntwurf={typ:"wm",icon:"🌀",name:"",von:6,bis:23,wochentag:6,rhythmus:1,startOffset:0};
+    routineEntwurf={typ:"wm",icon:"🌀",name:"",von:6,bis:23,wochentag:6,rhythmus:1,startOffset:0,meineIdx:null};
     $("routine-titel").textContent="Neue Routine";
     $("routine-name").value="";$("routine-kwh").value="";$("routine-dauer").value="";
     $("routine-loeschen").hidden=true;
   }else{
     const r=routinen[i];
-    routineEntwurf={typ:r.typ,icon:r.icon,name:r.name,von:r.von,bis:r.bis,wochentag:r.wochentag,rhythmus:r.rhythmus,startOffset:0};
+    routineEntwurf={typ:r.typ,icon:r.icon,name:r.name,von:r.von,bis:r.bis,wochentag:r.wochentag,rhythmus:r.rhythmus,startOffset:0,meineIdx:null};
     $("routine-titel").textContent="Routine bearbeiten";
     $("routine-name").value=r.name;$("routine-kwh").value=dz(r.kwh);$("routine-dauer").value=dz(r.dauer);
     $("routine-loeschen").hidden=false;
   }
-  routineTypenRender();routineChipsAlle();
+  routineMeineRender();routineTypenRender();routineChipsAlle();
   sheetAuf("sheet-routine");
 }
 $("btn-routine-add").onclick=()=>oeffneRoutine(null);
