@@ -596,7 +596,6 @@ function heuteStr(){return berlinTeile(new Date()).key;}
 function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
 function euro(v){return v.toFixed(2).replace(".",",")+" €";}
 function dz(v){return String(v).replace(".",",");}
-function planStunden(g){return Math.max(1,Math.ceil(g.dauer));}
 
 /* ---------- Datenquellen ---------- */
 async function ladePreise(){
@@ -706,7 +705,7 @@ function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   geraete.forEach((g,gi)=>{
-    const dauer=planStunden(g), devKW=g.kwh/dauer;
+    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer;
     for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
@@ -936,7 +935,7 @@ function renderBand(arr,tagStr){
 let aktuelleStunden=null;
 function aktualisieren(){
   const tagStr=tag==="heute"?heuteStr():morgenStr();
-  const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
+  const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000/1000;
   aktuelleStunden=arr;
   syncRegler();
   sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);
