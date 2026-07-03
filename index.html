@@ -210,9 +210,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .gridline.null{height:1.5px;background:rgba(20,31,44,.16)}
 .y-achse{position:absolute;inset:0;pointer-events:none;z-index:2}
 .y-achse span{position:absolute;left:4px;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--grau);background:var(--karte);padding:0 3px;border-radius:4px;opacity:.9;white-space:nowrap}
-.std-achse{position:relative;height:15px;margin-top:3px}
-.std-achse span{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--grau)}
-.achse-titel{text-align:center;font-size:10px;color:var(--grau);margin-top:1px}
+.std-achse{position:relative;height:22px;margin-top:0}
+.std-achse .ax-tik{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--grau);display:flex;flex-direction:column;align-items:center;gap:2px}
+.std-achse .ax-tik i{width:1px;height:5px;background:var(--grau);opacity:.5}
+.std-achse .ax-first{transform:none;align-items:flex-start}
+.std-achse .ax-last{transform:translateX(-100%);align-items:flex-end}
+.achse-titel{text-align:center;font-size:10px;color:var(--grau);margin-top:2px}
 .chart-legende{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:9px;font-size:11px;color:var(--grau)}
 .chart-legende span{display:flex;align-items:center;gap:5px}
 .chart-legende i{width:16px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0}
@@ -783,7 +786,7 @@ function renderPlaner(arr){
     '<div class="planer-deckung" id="planer-deckung"></div>'+
     '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span><span><i style="background:var(--netz)"></i>Speicher</span><span><i style="background:var(--rot)"></i>Netz</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>';
-  let ax="";for(let h=0;h<=24;h+=3)ax+='<span style="left:'+(h/24*100)+'%">'+h+'</span>';$("std-achse").innerHTML=ax;
+  let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
   platzierungen.forEach(b=>{
     const el=document.createElement("div");
