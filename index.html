@@ -620,13 +620,13 @@ async function ladePV(){
     const watts=j.result&&j.result.watts?j.result.watts:{};
     const summe={},anzahl={};
     Object.keys(watts).forEach(k=>{
-      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde;
-      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1;
+      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
+      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1; // Wh pro Stunde
     });
-    Object.keys(summe).forEach(k=>daten.pv[k]=summe[k]/anzahl[k]); // Forecast.Solar liefert bereits Wh pro Stunde, Faktor wird nicht benötigt
+    Object.keys(summe).forEach(k=>daten.pv[k]=(summe[k]/anzahl[k])*cfg.faktor); // Wh * Faktor
     return"Forecast.Solar";
   }catch(e){
-    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+ // Open-Meteo liefert W/m², muss umgerechnet werden
+    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
       "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
       "&forecast_days=2&timezone=Europe%2FBerlin";
     const r=await fetch(u);
@@ -635,7 +635,7 @@ async function ladePV(){
     const t=j.hourly.time,g=j.hourly.global_tilted_irradiance;
     for(let i=0;i<t.length;i++){
       const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10);
-      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; // W/m² -> W -> Wh (implizit für 1h)
+      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; // W/m² -> W -> Wh (für 1h) * Faktor
     }
     return"Open-Meteo";
   }
@@ -706,8 +706,8 @@ function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   geraete.forEach((g,gi)=>{
-    const dauer=Math.max(1,Math.ceil(g.dauer));
-    const devKW=g.kwh/dauer; // kW = kWh / h (Stunden, nicht h)
+    const dauer=Math.max(1,Math.ceil(g.dauer)); // Aufgerundete Stunden für die Block-Darstellung
+    const devKW=g.kwh/g.dauer; // Echte Leistung kW = kWh / echte Dauer
     for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
@@ -735,8 +735,12 @@ function simuliere(arr,bloecke){
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
     const s=arr[h];
-    let pv=Math.max(0,s.pv/1000);
-    const dev=aktiv[h].reduce((a,b)=>a+b.devKW,0);
+    let pv=Math.max(0,s.pv/1000); // PV-Ertrag in kW für diese Stunde
+    let dev=0; // Gesamt-Gerätebedarf in kW für diese Stunde
+    aktiv[h].forEach(b=>{
+      const restDauer=b.echteDauer-(h-b.start);
+      dev+=b.devKW*Math.min(1,Math.max(0,restDauer)); // Anteilige Leistung für die letzte Stunde
+    });
     // PV: erst Grundlast, dann Geraete
     const pvBase=Math.min(pv,base); pv-=pvBase; const baseDef=base-pvBase;
     const pvDev=Math.min(pv,dev); pv-=pvDev; const devDef=dev-pvDev;
@@ -746,7 +750,7 @@ function simuliere(arr,bloecke){
     // Defizite: Grundlast zuerst, dann Geraete – jeweils Speicher, dann Netz
     const battBase=Math.min(akku,baseDef); akku-=battBase; const netzBase=baseDef-battBase;
     const battDev=Math.min(akku,devDef); akku-=battDev; const netzDev=devDef-battDev;
-    // Geraete-Fluesse anteilig auf die aktiven Bloecke verteilen
+    // Geraete-Fluesse (sind kWh für diese Stunde) anteilig auf die aktiven Bloecke verteilen
     if(dev>0)aktiv[h].forEach(b=>{const sh=b.devKW/dev;b._sun+=pvDev*sh;b._batt+=battDev*sh;b._grid+=netzDev*sh;});
     const preis=(s.voll!=null?s.voll:(s.eff!=null?s.eff:null));
     sonneKwh+=pvDev; akkuKwh+=battDev; netzKwh+=netzDev; netzCt+=(preis!=null?netzDev*preis:0);
