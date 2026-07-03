@@ -705,7 +705,8 @@ function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   geraete.forEach((g,gi)=>{
-    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer;
+    const safeDauer = Math.max(0.1, g.dauer || 0.1); // Verhindert Division durch 0
+    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/safeDauer;
     for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
