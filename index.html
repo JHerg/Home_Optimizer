@@ -135,13 +135,6 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .legende span{display:flex;align-items:center;gap:6px}
 .punkt{width:10px;height:10px;border-radius:4px;display:inline-block}
 .detail{font-family:var(--mono);font-size:12px;padding:12px 0 0;min-height:18px;color:var(--tinte)}
-details.kurven{background:var(--karte);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--hairline),var(--schatten);margin-bottom:14px}
-details.kurven summary{font-size:14px;font-weight:700;cursor:pointer;list-style:none}
-details.kurven summary::-webkit-details-marker{display:none}
-details.kurven summary::after{content:"⌄";float:right;color:var(--grau);transition:transform var(--weich)}
-details.kurven[open] summary::after{transform:rotate(180deg)}
-svg{width:100%;height:auto;display:block;margin-top:10px}
-.achse{font-family:var(--mono);font-size:9px;fill:var(--grau)}
 
 /* Sheets */
 .schleier{position:fixed;inset:0;background:rgba(16,24,34,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:none;z-index:10;opacity:0;transition:opacity var(--weich)}
@@ -404,11 +397,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <span><span class="punkt" style="background:var(--rot)"></span>teuer</span>
   </div>
 </section>
-
-<details class="kurven">
-  <summary>Für Neugierige: Preis- und Sonnenkurve</summary>
-  <div id="chart"></div>
-</details>
 
 <!-- Einrichtung -->
 <div class="schleier" id="schleier"></div>
@@ -918,40 +906,13 @@ function renderBand(arr,tagStr){
     band.appendChild(b);
   });
 }
-function renderChart(arr){
-  const B=760,H=240,pad={l:38,r:38,t:12,b:22};
-  const maxPV=Math.max(1,...arr.map(s=>s.pv));
-  const preise=arr.map(s=>s.spot).filter(v=>v!=null);
-  const minP=preise.length?Math.min(0,...preise):0;
-  const maxP=preise.length?Math.max(10,...preise):10;
-  const x=h=>pad.l+(B-pad.l-pad.r)*h/23;
-  const yP=v=>pad.t+(H-pad.t-pad.b)*(1-(v-minP)/(maxP-minP||1));
-  let preisPfad="",offen=false;
-  arr.forEach(s=>{
-    if(s.spot==null){offen=false;return;}
-    preisPfad+=(offen?" L":" M")+x(s.h)+","+yP(s.spot);offen=true;
-  });
-  let achsen="";
-  for(let h=0;h<=23;h+=3)achsen+='<text class="achse" x="'+x(h)+'" y="'+(H-6)+'" text-anchor="middle">'+h+'</text>';
-  [minP,(minP+maxP)/2,maxP].forEach(v=>{achsen+='<text class="achse" x="4" y="'+(yP(v)+3)+'">'+v.toFixed(0)+'</text>';});
-
-  const yV=w=>pad.t+(H-pad.t-pad.b)*(1-w/maxPV);
-  let pvPfad="M"+x(0)+","+yV(arr[0].pv);
-  arr.forEach(s=>{pvPfad+=" L"+x(s.h)+","+yV(s.pv);});
-  pvPfad+=" L"+x(23)+","+(H-pad.b)+" L"+x(0)+","+(H-pad.b)+" Z";
-  [0,maxPV/2,maxPV].forEach(w=>{achsen+='<text class="achse" x="'+(B-4)+'" y="'+(yV(w)+3)+'" text-anchor="end">'+(w/1000).toFixed(1)+'</text>';});
-  $("chart").innerHTML='<svg viewBox="0 0 '+B+' '+H+'" role="img" aria-label="Preis- und Sonnenkurve">'+
-    '<path d="'+pvPfad+'" fill="var(--sonne-hell)" stroke="var(--sonne)" stroke-width="1.5"/>'+
-    (preisPfad?'<path d="'+preisPfad+'" fill="none" stroke="var(--netz)" stroke-width="2.5" stroke-linejoin="round"/>':'')+
-    achsen+'</svg>';
-}
 let aktuelleStunden=null;
 function aktualisieren(){
   const tagStr=tag==="heute"?heuteStr():morgenStr();
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
-  sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);renderChart(arr);
+  sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+kwhTag.toFixed(0)+" kWh</b>";}
