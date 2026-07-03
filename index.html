@@ -788,31 +788,22 @@ function renderPlaner(arr){
   let ps="";for(let h=0;h<24;h++)ps+='<div class="preis-col k-'+arr[h].klasse+'"'+(h===jetztH?' data-jetzt':'')+'></div>';
   const kwhL=v=>(cap>=10?Math.round(v):v.toFixed(1));
   const mid=(TOPY+BASE)/2;
-  // Preis-Kennwerte (Sonne-only: Preis als Kurve mit rechter Achse)
-  const preise=arr.map(s=>s.voll).filter(v=>v!=null);
-  const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
   const linksL = akkuAn
     ? '<span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span>'
     : '<span style="top:'+TOPY+'%;transform:translateY(-50%)">☀️ '+maxSurplus.toFixed(1)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+(maxSurplus/2).toFixed(1)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kW</span>';
-  const rechtsL = akkuAn ? '' :
-    '<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>';
-  let preisPfad="";
-  if(!akkuAn){let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
   chart.innerHTML=
     '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
       '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+mid+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
-      '<div class="y-achse">'+linksL+'</div>'+rechtsL+
+      '<div class="y-achse">'+linksL+'</div>'+
       '<div class="surplus-layer">'+sb+'</div>'+
-      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none">'+(akkuAn?'':('<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>'))+'</svg>'+
+      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
       nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
     '</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    (akkuAn
-      ? '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span><span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span></div>'+
-        '<div class="preis-titel">Dynamischer Strompreis</div><div class="planer-preis">'+ps+'</div>'+
-        '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>'
-      : '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (kW, PV − Grundlast)</span><span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>');
+    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+'</div>'+
+    '<div class="preis-titel">Dynamischer Strompreis</div><div class="planer-preis">'+ps+'</div>'+
+    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>';
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
