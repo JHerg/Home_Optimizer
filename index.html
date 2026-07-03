@@ -250,6 +250,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .switch-ui::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform var(--schnell)}
 .switch input:checked+.switch-ui{background:var(--gruen)}
 .switch input:checked+.switch-ui::after{transform:translateX(18px)}
+/* Grundlast-Zonen */
+.gl-zonen{display:flex;gap:7px}
+.gl-z{flex:1;display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--linie);border-radius:12px;background:var(--karte);padding:9px 6px;cursor:pointer;text-align:center;transition:border-color var(--schnell),background var(--schnell),transform var(--schnell)}
+.gl-z:active{transform:scale(.96)}
+.gl-z b{font-size:12px;font-weight:700;color:var(--nacht)}
+.gl-z span{font-size:10.5px;color:var(--grau);font-family:var(--mono)}
+.gl-z.aktiv{border-color:var(--sonne);background:var(--sonne-hell)}
+.gl-z.aktiv b{color:var(--nacht)}
 /* Rechte Y-Achse (Preis) */
 .y-achse.y-rechts span{left:auto;right:4px}
 .chart-legende i.lg-line{height:0;border-top:2px solid var(--preis-linie);border-radius:0}
@@ -409,22 +417,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div id="planer">
     <div id="planer-warnung"></div>
     <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
-    <div class="regler">
-      <label class="switch-zeile">
-        <span>🔋 Speicher berücksichtigen</span>
-        <span class="switch"><input type="checkbox" id="rg-akku-an"><span class="switch-ui"></span></span>
-      </label>
-      <div class="regler-hinweis" id="rg-akku-aus-hint">Aus: Planung nur nach <b>Sonne</b> und <b>dynamischem Preis</b>. An: dein Speicher wird mitgerechnet.</div>
-      <div class="regler-zeile" id="rg-akku-zeile" hidden>
-        <div class="regler-kopf"><span>🔋 Speicher heute morgen</span><b id="rg-akku-val">5,0 kWh</b></div>
-        <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
-      </div>
-      <div class="regler-zeile">
-        <div class="regler-kopf"><span>🏠 Grundlast (Ø&nbsp;Verbrauch)</span><b id="rg-last-val">400 W</b></div>
-        <input type="range" id="rg-last" min="0" max="3000" step="50" value="400" aria-label="Grundlast in Watt">
-        <div class="regler-hinweis">Bestimmt, wie viel Sonne für die Geräte übrig bleibt (PV − Grundlast). Saisonal: Winter mit Wärmepumpe höher, Sommer oft nahe null.</div>
-      </div>
-    </div>
     <div id="planer-rest"></div>
   </div>
 </section>
@@ -494,9 +486,32 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     </div>
   </div>
   <div class="abschnitt">
-    <div class="frage">4 · Dein Stromspeicher (optional)</div>
-    <div class="hilfe">Hier nur die <b>Größe</b> deines Speichers. Ob er überhaupt mitgerechnet wird und wie voll er <b>morgens</b> ist, stellst du direkt im Tagesplan ein (Schalter „Speicher berücksichtigen").</div>
-    <div class="zahl-feld"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
+    <div class="frage">4 · 🔋 Dein Stromspeicher (optional)</div>
+    <label class="switch-zeile">
+      <span>Speicher berücksichtigen</span>
+      <span class="switch"><input type="checkbox" id="rg-akku-an"><span class="switch-ui"></span></span>
+    </label>
+    <div class="hilfe" id="rg-akku-aus-hint">Aus: Planung nur nach <b>Sonne</b> und <b>dynamischem Preis</b>. An: dein Speicher wird mitgerechnet. (Wenn dein EMS den Speicher selbst steuert, ruhig aus lassen.)</div>
+    <div id="akku-details" hidden>
+      <div class="zahl-feld" style="margin-top:12px"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
+      <div class="regler-zeile" id="rg-akku-zeile" style="margin-top:14px">
+        <div class="regler-kopf"><span>🔋 Speicherstand heute morgen</span><b id="rg-akku-val">5,0 kWh</b></div>
+        <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
+      </div>
+    </div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage">5 · 🏠 Grundlast (Ø Dauerverbrauch)</div>
+    <div class="hilfe">Der ständige Hintergrundverbrauch (Kühlschrank, Standby, Wärmepumpe …). Er wird zuerst aus der Sonne gedeckt – erst darüber bleibt Überschuss für deine Geräte. <b>Stark saisonal:</b> im Sommer heizt die Wärmepumpe kaum (nur Warmwasser) → oft nahe null; im Winter heizt sie durch → hoch.</div>
+    <div class="regler-kopf"><span>Aktueller Wert</span><b id="rg-last-val">400 W</b></div>
+    <input type="range" id="rg-last" min="0" max="3000" step="50" value="400" aria-label="Grundlast in Watt">
+    <div class="hilfe" style="margin:8px 0 6px">Typische Bereiche – zum Übernehmen antippen:</div>
+    <div class="gl-zonen" id="gl-zonen">
+      <button class="gl-z" data-w="200"><b>☀️ Sommer</b><span>~150–300 W</span></button>
+      <button class="gl-z" data-w="500"><b>🍂 Übergang</b><span>~300–800 W</span></button>
+      <button class="gl-z" data-w="1200"><b>❄️ Winter · WP</b><span>~0,8–2 kW</span></button>
+    </div>
+    <div class="hilfe" id="gl-hinweis" style="margin-top:8px"></div>
   </div>
   <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
     <div class="frage">★ Meine Geräte</div>
@@ -521,11 +536,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="frage">Forecast.Solar API-Key (optional)</div>
       <div class="hilfe">Ohne Key teilen sich alle Nutzer im selben Mobilfunknetz ein niedriges Limit – das führt öfter zum Ausweichen auf die ungenauere Wetter-Rückfalllösung. Der kostenlose Public-Tarif von Forecast.Solar hat keinen Key. Ab dem kostenpflichtigen <a href="https://forecast.solar/" target="_blank" rel="noopener">Personal-Tarif</a> (aktuell ca. 16 €/Jahr) bekommst du ein eigenes, höheres Limit. Key hier eintragen, leer lassen = wie bisher (Public, kostenlos).</div>
       <div class="adresse-zeile"><input id="f-fs-key" placeholder="z. B. AbCdEf123..." aria-label="Forecast.Solar API-Key"></div>
-    </div>
-    <div class="abschnitt">
-      <div class="frage">Durchschnittliche Grundlast</div>
-      <div class="hilfe">Der ständige Verbrauch im Hintergrund (Kühlschrank, Standby, Wärmepumpe …). Er wird zuerst aus der Sonne gedeckt – erst darüber gibt es Überschuss für Geräte und zum Laden des Speichers. Ohne Sonne entlädt diese Grundlast den Speicher. Realistisch sind je nach Haushalt oft 200–600 W; mit laufender Wärmepumpe mehr.</div>
-      <div class="zahl-feld"><input id="f-schwelle" value="1500" inputmode="decimal"><span class="einheit">Watt Grundlast</span></div>
     </div>
     <div class="abschnitt">
       <div class="frage">Prognose-Faktor (manuell)</div>
@@ -1340,12 +1350,12 @@ $("btn-einrichten").onclick=()=>{
   $("f-adresse").value=cfg.adresse;
   $("f-aufschlag").value=dz(cfg.aufschlag);
   $("f-kwp").value=dz(cfg.kwp);
-  $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
   $("f-festpreis").value=dz(cfg.festpreis);
   $("f-fs-key").value=cfg.fsKey||"";
   $("f-kalib-real").value="";
+  syncRegler();renderGrundlast();
   kalibUI();
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
@@ -1376,7 +1386,6 @@ $("btn-fertig").onclick=()=>{
   if (cfg.lat === null || cfg.lon === null) { alert("Bitte zuerst eine gültige Adresse suchen und finden."); return; }
   const a=parseFloat($("f-aufschlag").value.replace(",","."));if(!isNaN(a))cfg.aufschlag=a;
   const k=parseFloat($("f-kwp").value.replace(",","."));if(!isNaN(k)&&k>0)cfg.kwp=k;
-  const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
   const fp=parseFloat($("f-festpreis").value.replace(",","."));if(!isNaN(fp)&&fp>=0)cfg.festpreis=fp;
@@ -1394,19 +1403,37 @@ $("btn-alle-loeschen").onclick=()=>{
 /* Neuer Auto-Vorschlag (setzt manuelle Platzierungen zurück) */
 $("btn-vorschlag").onclick=()=>{platzSig="";aktualisieren();};
 
-/* Schieberegler unter dem Diagramm: Speicherstand morgens + Grundlast */
+/* Speicher- und Grundlast-Regler (jetzt in Einrichten) */
 function syncRegler(){
   const an=$("rg-akku-an");if(an)an.checked=!!cfg.akku_an;
-  const az=$("rg-akku-zeile");if(az)az.hidden=!cfg.akku_an;
-  const ra=$("rg-akku"),rl=$("rg-last");
+  const det=$("akku-details");if(det)det.hidden=!cfg.akku_an;
+  const ra=$("rg-akku");
   if(ra){ra.max=Math.max(1,cfg.akku_kwh||10);ra.value=Math.min(parseFloat(ra.max),cfg.akku_stand||0);$("rg-akku-val").textContent=dz((cfg.akku_stand||0).toFixed(1))+" kWh";}
-  if(rl){rl.value=cfg.schwelle||0;$("rg-last-val").textContent=Math.round(cfg.schwelle||0)+" W";}
 }
-$("rg-akku-an").onchange=()=>{cfg.akku_an=$("rg-akku-an").checked;speichern();aktualisieren();};
+// Grundlast-Regler inkl. Saison-Zonen (Sommer / Übergang / Winter-Wärmepumpe)
+function grundlastZoneIdx(w){return w<=300?0:(w<=800?1:2);}
+const GL_ZONEN_NAME=["Sommer","Übergang","Winter · Wärmepumpe"];
+const GL_ZONEN_TXT=[
+  "geringe Grundlast – Wärmepumpe macht nur Warmwasser, dazu Kühlschrank & Standby.",
+  "mittlere Grundlast – die Wärmepumpe heizt zeitweise mit.",
+  "hohe Grundlast – die Wärmepumpe heizt durchgehend."
+];
+function renderGrundlast(){
+  const w=cfg.schwelle||0;
+  const rl=$("rg-last");if(rl)rl.value=w;
+  const lab=$("rg-last-val");if(lab)lab.textContent=Math.round(w)+" W";
+  const idx=grundlastZoneIdx(w);
+  document.querySelectorAll("#gl-zonen .gl-z").forEach((b,i)=>b.classList.toggle("aktiv",i===idx));
+  const h=$("gl-hinweis");if(h)h.innerHTML="Aktuell ~<b>"+GL_ZONEN_NAME[idx]+"</b>: "+GL_ZONEN_TXT[idx];
+}
+$("rg-akku-an").onchange=()=>{cfg.akku_an=$("rg-akku-an").checked;const d=$("akku-details");if(d)d.hidden=!cfg.akku_an;speichern();aktualisieren();};
 $("rg-akku").oninput=()=>{cfg.akku_stand=parseFloat($("rg-akku").value)||0;aktualisieren();};
 $("rg-akku").onchange=()=>speichern();
-$("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;aktualisieren();};
+$("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;renderGrundlast();aktualisieren();};
 $("rg-last").onchange=()=>speichern();
+document.querySelectorAll("#gl-zonen .gl-z").forEach(b=>b.onclick=()=>{
+  cfg.schwelle=parseInt(b.dataset.w,10)||0;renderGrundlast();speichern();aktualisieren();
+});
 
 /* Gerät hinzufügen */
 function renderTypen(){
