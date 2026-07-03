@@ -707,10 +707,12 @@ function autoPlatzierung(arr){
   const bloecke=[];
   geraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer));
-    const devKW=g.kwh/g.dauer;
+    const devKW=g.kwh/g.dauer; // Echte Leistung kW = kWh / echte Dauer
+    let naechsterStart = g.von; // Verhindert, dass gleiche Geräte parallel laufen
     for(let n=0;n<g.anzahl;n++){
-      const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
+      const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis);
       if(!f)continue;
+      naechsterStart = f.start + dauer; // Nächster Durchgang kann erst nach Ende des vorigen starten
       for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-devKW);}
       bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer});
     }
