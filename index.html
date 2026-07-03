@@ -24,7 +24,7 @@
   --gelb:#DDA000; --gelb-hell:#FBF1D3;
   --rot:#CF4436; --rot-hell:#FAE4E1;
   --grau:#63727E; --linie:#E4EAF0;
-  --knopf:#141F2C; --knopf-fg:#FFFFFF;
+  --knopf:#141F2C; --knopf-fg:#FFFFFF; --preis-linie:#8B5CF6;
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   --radius:20px; --radius-sm:13px; --radius-pill:999px;
   --schatten:0 1px 2px rgba(20,31,44,.04), 0 10px 26px -12px rgba(20,31,44,.14);
@@ -232,6 +232,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 /* Schieberegler + Tipp */
 .regler{background:var(--papier);border-radius:14px;padding:14px;margin:16px 0 4px;display:flex;flex-direction:column;gap:15px}
 .regler-zeile{display:flex;flex-direction:column;gap:8px}
+.regler-zeile[hidden]{display:none}
 .regler-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:600;color:var(--nacht)}
 .regler-kopf b{font-family:var(--mono);color:var(--netz);font-size:14px}
 .regler-hinweis{font-size:11px;color:var(--grau);line-height:1.4}
@@ -239,6 +240,17 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .regler input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--knopf);box-shadow:0 2px 6px rgba(20,31,44,.4);border:3px solid var(--karte);cursor:pointer}
 .regler input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--knopf);border:3px solid var(--karte);cursor:pointer}
 .v-tipp{font-size:12.5px;color:var(--tinte);background:var(--sonne-hell);border-radius:11px;padding:10px 12px;margin-bottom:11px;line-height:1.45}
+/* Umschalter (Switch) */
+.switch-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:var(--nacht);cursor:pointer}
+.switch{position:relative;flex-shrink:0;width:46px;height:28px}
+.switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.switch-ui{position:absolute;inset:0;background:rgba(20,31,44,.18);border-radius:99px;transition:background var(--schnell)}
+.switch-ui::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform var(--schnell)}
+.switch input:checked+.switch-ui{background:var(--gruen)}
+.switch input:checked+.switch-ui::after{transform:translateX(18px)}
+/* Rechte Y-Achse (Preis) */
+.y-achse.y-rechts span{left:auto;right:4px}
+.chart-legende i.lg-line{height:0;border-top:2px solid var(--preis-linie);border-radius:0}
 .planer-deckung{display:flex;gap:2px;height:30px;margin-top:8px}
 .planer-deckung .deckung-col{flex:1 1 0;display:flex;flex-direction:column-reverse;background:rgba(20,31,44,.05);border-radius:3px;overflow:hidden}
 .planer-deckung .deckung-col.jetzt{box-shadow:0 0 0 1.5px var(--nacht)}
@@ -285,7 +297,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 @media (prefers-color-scheme: dark){
   :root{
     --nacht:#E9EFF4; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182736;
-    --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864;
+    --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864; --preis-linie:#A78BFA;
     --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
     --schatten:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
     --schatten-lg:0 2px 6px rgba(0,0,0,.35), 0 26px 50px -18px rgba(0,0,0,.7);
@@ -314,6 +326,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   .gridline{background:rgba(255,255,255,.06)}
   .gridline.null{background:rgba(255,255,255,.32)}
   .regler input[type=range]{background:rgba(255,255,255,.14)}
+  .switch-ui{background:rgba(255,255,255,.2)}
 }
 </style>
 </head>
@@ -360,7 +373,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div id="planer">
     <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
     <div class="regler">
-      <div class="regler-zeile">
+      <label class="switch-zeile">
+        <span>🔋 Speicher berücksichtigen</span>
+        <span class="switch"><input type="checkbox" id="rg-akku-an"><span class="switch-ui"></span></span>
+      </label>
+      <div class="regler-hinweis" id="rg-akku-aus-hint">Aus: Planung nur nach <b>Sonne</b> und <b>dynamischem Preis</b>. An: dein Speicher wird mitgerechnet.</div>
+      <div class="regler-zeile" id="rg-akku-zeile" hidden>
         <div class="regler-kopf"><span>🔋 Speicher heute morgen</span><b id="rg-akku-val">5,0 kWh</b></div>
         <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
       </div>
@@ -423,8 +441,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
   </div>
   <div class="abschnitt">
-    <div class="frage">4 · Dein Stromspeicher</div>
-    <div class="hilfe">Für die Tagesplanung reichen zwei Werte: die Größe des Speichers und wie voll er <b>morgens vor Sonnenaufgang</b> ist. Über den Tag lädt ihn der Sonnenüberschuss (nach Abzug der Grundlast), und die Grundlast entlädt ihn, wenn keine Sonne da ist.</div>
+    <div class="frage">4 · Dein Stromspeicher (optional)</div>
+    <div class="hilfe">Standard ist Planung nur nach Sonne und dynamischem Preis. Wenn du deinen Speicher kennst, kannst du ihn mitrechnen lassen: Über den Tag lädt ihn der Sonnenüberschuss (nach Abzug der Grundlast), und die Grundlast entlädt ihn ohne Sonne.</div>
+    <label class="switch-zeile" style="margin-bottom:12px"><span>🔋 Speicher berücksichtigen</span><span class="switch"><input type="checkbox" id="f-akku-an"><span class="switch-ui"></span></span></label>
     <div class="zahl-feld" style="margin-bottom:9px"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
     <div class="zahl-feld"><input id="f-akku-stand" value="5" inputmode="decimal"><span class="einheit">kWh morgens geladen</span></div>
   </div>
@@ -515,7 +534,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,verguetung:7.9,schwelle:1500,
-  faktor:1.0,anbieter:"Ostrom",akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,anbieter:"Ostrom",akku_an:false,akku_kwh:10,akku_stand:5,adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -685,7 +704,7 @@ function autoPlatzierung(arr){
 // den Speicher. Defizite werden aus dem Speicher (erst Grundlast, dann Geraete) und zuletzt
 // aus dem Netz gedeckt. So laedt die Grundlast den Speicher langsamer und entlaedt ihn nachts.
 function simuliere(arr,bloecke){
-  const cap=Math.max(0,cfg.akku_kwh||0);
+  const cap=cfg.akku_an?Math.max(0,cfg.akku_kwh||0):0; // Speicher aus -> keine Kapazität
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
   const base=Math.max(0,(cfg.schwelle||0)/1000); // Grundlast kW (durchgehend)
   let akku=start;
@@ -759,35 +778,46 @@ function renderPlaner(arr){
   });
   const lanes=Math.max(1,laneEnde.length);
   const leisteH=Math.max(120,lanes*34+66);
+  const akkuAn=cfg.akku_an;
   const cap=Math.max(1,cfg.akku_kwh||0);
-  // Plot-Bereich vertikal: oben=voll (TOPY%), unten=0 kWh (BASE%) – darunter etwas Luft,
-  // damit die Speicherlinie sichtbar auf der Null ruht.
+  // Plot-Bereich vertikal: oben=voll (TOPY%), unten=0 (BASE%) – darunter etwas Luft.
   const TOPY=8,BASE=88,RANGE=BASE-TOPY;
   let sb="";
   for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;bottom:'+(100-BASE)+'%;height:'+(su/maxSurplus*RANGE).toFixed(1)+'%"></div>';}
   const nowLine=jetztH>=0?'<div class="now-line" style="left:'+((jetztH+0.5)/24*100)+'%"></div>':'';
-  // Preis-Leiste (dynamischer Strompreis je Stunde, gleiche Ampel wie Tagesüberblick)
   let ps="";for(let h=0;h<24;h++)ps+='<div class="preis-col k-'+arr[h].klasse+'"'+(h===jetztH?' data-jetzt':'')+'></div>';
   const kwhL=v=>(cap>=10?Math.round(v):v.toFixed(1));
+  const mid=(TOPY+BASE)/2;
+  // Preis-Kennwerte (Sonne-only: Preis als Kurve mit rechter Achse)
+  const preise=arr.map(s=>s.voll).filter(v=>v!=null);
+  const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
+  const linksL = akkuAn
+    ? '<span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span>'
+    : '<span style="top:'+TOPY+'%;transform:translateY(-50%)">☀️ '+maxSurplus.toFixed(1)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+(maxSurplus/2).toFixed(1)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kW</span>';
+  const rechtsL = akkuAn ? '' :
+    '<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>';
+  let preisPfad="";
+  if(!akkuAn){let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
   chart.innerHTML=
     '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
-      '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+((TOPY+BASE)/2)+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
-      '<div class="y-achse"><span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+((TOPY+BASE)/2)+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span></div>'+
+      '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+mid+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
+      '<div class="y-achse">'+linksL+'</div>'+rechtsL+
       '<div class="surplus-layer">'+sb+'</div>'+
-      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
+      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none">'+(akkuAn?'':('<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>'))+'</svg>'+
       nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
     '</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: Sonnenüberschuss</span><span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span></div>'+
-    '<div class="preis-titel">Dynamischer Strompreis</div>'+
-    '<div class="planer-preis">'+ps+'</div>'+
-    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>';
+    (akkuAn
+      ? '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: Sonnenüberschuss</span><span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span></div>'+
+        '<div class="preis-titel">Dynamischer Strompreis</div><div class="planer-preis">'+ps+'</div>'+
+        '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne/gratis</span><span><i style="background:var(--gelb)"></i>günstig</span><span><i style="background:#C2CDD6"></i>normal</span><span><i style="background:var(--rot)"></i>teuer</span></div>'
+      : '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: Sonnenüberschuss (kW)</span><span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span></div>');
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
     '<div class="planer-deckung" id="planer-deckung"></div>'+
-    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span><span><i style="background:var(--netz)"></i>Speicher</span><span><i style="background:var(--rot)"></i>Netz</span></div>'+
+    '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>';
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
@@ -816,12 +846,14 @@ function renderPlaner(arr){
   }
   function updateSim(){
     const sim=simuliere(arr,platzierungen);
-    // Batterie-Füllstand als gefüllte Fläche (0 = leer auf der Baseline, voll = oben)
-    const yv=v=>(TOPY+(1-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap:0))*RANGE);
-    let line="0,"+yv(sim.akkuStart).toFixed(1);
-    sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
-    $("batt-svg").innerHTML='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.15"/>'+
-      '<polyline points="'+line+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    // Speicher-Füllstand als gefüllte Fläche – nur wenn Speicher aktiv (sonst Preis-Kurve)
+    if(akkuAn){
+      const yv=v=>(TOPY+(1-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap:0))*RANGE);
+      let line="0,"+yv(sim.akkuStart).toFixed(1);
+      sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
+      $("batt-svg").innerHTML='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.15"/>'+
+        '<polyline points="'+line+'" fill="none" stroke="var(--netz)" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    }
     // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
     let li="";
     platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
@@ -831,7 +863,7 @@ function renderPlaner(arr){
         '<span class="pl-ic">'+b.icon+'</span>'+
         '<span class="pl-info"><span class="pl-name">'+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
         '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
-        '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% Sonne/Speicher</span></span>'+
+        '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% '+(akkuAn?"Sonne/Speicher":"Sonne")+'</span></span>'+
         '</div>';
     });
     $("planer-liste").innerHTML=li;
@@ -855,15 +887,17 @@ function renderPlaner(arr){
         if(best==null||marg<best.marg)best={h:p.h,marg,preis:p.preis,frei:p.frei};
       });
       if(best&&best.frei>0.1) tip='<div class="v-tipp">💡 Tipp: Um '+best.h+'–'+(best.h+1)+' Uhr ist noch Sonnenüberschuss frei – ein Gerät dorthin ziehen kostet nichts.</div>';
-      else if(best&&best.preis!=null) tip='<div class="v-tipp">💡 Tipp: Günstigste Netzstunde ist '+best.h+'–'+(best.h+1)+' Uhr (~'+dz(best.preis.toFixed(1))+' ct/kWh) – dorthin ziehen, wenn Speicher leer &amp; keine Sonne.</div>';
+      else if(best&&best.preis!=null) tip='<div class="v-tipp">💡 Tipp: Günstigste Netzstunde ist '+best.h+'–'+(best.h+1)+' Uhr (~'+dz(best.preis.toFixed(1))+' ct/kWh)'+(akkuAn?' – dorthin ziehen, wenn Speicher leer &amp; keine Sonne.':' – dorthin ziehen, wenn keine Sonne da ist.')+'</div>';
     }
+    const haupt = ok
+      ? (akkuAn?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"✅ Deine Geräte laufen komplett aus Sonnenstrom")
+      : "⚠️ "+sim.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(sim.netzCt/100)+")";
     $("planer-verdikt").innerHTML=
-      '<div class="v-haupt '+(ok?"gut":"warn")+'">'+(ok?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"⚠️ "+sim.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(sim.netzCt/100)+")")+'</div>'+
-      tip+
+      '<div class="v-haupt '+(ok?"gut":"warn")+'">'+haupt+'</div>'+tip+
       '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+sim.sonneKwh.toFixed(1)+' kWh</b></div>'+
-      '<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>'+
+      (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
       '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
-      '<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>';
+      (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>':'');
   }
   updateSim();
 }
@@ -969,6 +1003,7 @@ $("btn-einrichten").onclick=()=>{
   $("f-verguetung").value=dz(cfg.verguetung);
   $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
+  $("f-akku-an").checked=!!cfg.akku_an;
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
   $("f-akku-stand").value=dz(cfg.akku_stand);
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
@@ -1000,6 +1035,7 @@ $("btn-fertig").onclick=()=>{
   const v=parseFloat($("f-verguetung").value.replace(",","."));if(!isNaN(v))cfg.verguetung=v;
   const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
+  cfg.akku_an=$("f-akku-an").checked;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
   const as=parseFloat($("f-akku-stand").value.replace(",","."));if(!isNaN(as)&&as>=0)cfg.akku_stand=as;
   speichern();
@@ -1013,10 +1049,13 @@ $("btn-vorschlag").onclick=()=>{platzSig="";aktualisieren();};
 
 /* Schieberegler unter dem Diagramm: Speicherstand morgens + Grundlast */
 function syncRegler(){
+  const an=$("rg-akku-an");if(an)an.checked=!!cfg.akku_an;
+  const az=$("rg-akku-zeile");if(az)az.hidden=!cfg.akku_an;
   const ra=$("rg-akku"),rl=$("rg-last");
   if(ra){ra.max=Math.max(1,cfg.akku_kwh||10);ra.value=Math.min(parseFloat(ra.max),cfg.akku_stand||0);$("rg-akku-val").textContent=dz((cfg.akku_stand||0).toFixed(1))+" kWh";}
   if(rl){rl.value=cfg.schwelle||0;$("rg-last-val").textContent=Math.round(cfg.schwelle||0)+" W";}
 }
+$("rg-akku-an").onchange=()=>{cfg.akku_an=$("rg-akku-an").checked;speichern();aktualisieren();};
 $("rg-akku").oninput=()=>{cfg.akku_stand=parseFloat($("rg-akku").value)||0;aktualisieren();};
 $("rg-akku").onchange=()=>speichern();
 $("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;aktualisieren();};
