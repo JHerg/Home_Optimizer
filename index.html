@@ -622,13 +622,14 @@ async function holeForecastSolar(){
   const r=await fetch(basis);
   if(!r.ok)throw new Error("HTTP "+r.status);
   const j=await r.json();
-  const watts=j.result&&j.result.watts?j.result.watts:{};
-  const summe={},anzahl={};
-  Object.keys(watts).forEach(k=>{
+  // watt_hours_period = exakte Energie (Wh) je API-Zeitabschnitt (Abschnitte sind NICHT
+  // zwingend volle Stunden, z.B. 07:29–08:00 bei Sonnenaufgang). Direkt auf Stunden
+  // summieren statt watts zu mitteln – vermeidet Verzerrung an Tagesrand-Stunden.
+  const whPeriode=j.result&&j.result.watt_hours_period?j.result.watt_hours_period:{};
+  Object.keys(whPeriode).forEach(k=>{
     const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
-    summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1; // Wh pro Stunde
+    daten.pv[key]=(daten.pv[key]||0)+whPeriode[k]*cfg.faktor;
   });
-  Object.keys(summe).forEach(k=>daten.pv[k]=(summe[k]/anzahl[k])*cfg.faktor); // Wh * Faktor
 }
 async function ladePV(){
   daten.pv={};
