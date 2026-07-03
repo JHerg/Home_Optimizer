@@ -686,8 +686,9 @@ function stunden(tagStr){
 // Sonnenueberschusses (restKW je Stunde). Geraete duerfen sich Stunden teilen,
 // solange der Ueberschuss reicht; der ungedeckte Anteil zahlt Netzpreis.
 function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
-  let best=null;
-  for(let start=von;start<=bis-dauer;start++){
+  let best=null, startH=von;
+  if(tag==="heute")startH=Math.max(von,berlinTeile(new Date()).stunde);
+  for(let start=startH;start<=bis-dauer;start++){
     let sum=0,ok=true;
     for(let i=0;i<dauer;i++){
       const h=start+i,s=arr[h];
@@ -705,13 +706,13 @@ function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   geraete.forEach((g,gi)=>{
-    const safeDauer = Math.max(0.1, g.dauer || 0.1); // Verhindert Division durch 0
-    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/safeDauer;
+    const safeDauer = Math.max(0.1, g.dauer || 0.1);
+    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/safeDauer; // kW = kWh / h
     for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
-      for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-Math.min(devKW,restKW[h]));}
-      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis)});
+      for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-devKW);}
+      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer});
     }
   });
   return bloecke;
@@ -725,7 +726,7 @@ function simuliere(arr,bloecke){
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
   const base=Math.max(0,(cfg.schwelle||0)/1000); // Grundlast kW (durchgehend)
   let akku=start;
-  const aktiv=Array.from({length:24},()=>[]);
+  const aktiv=Array.from({length:24},()=>[]), gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
   bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;for(let i=0;i<b.dauer;i++){const h=b.start+i;if(h>=0&&h<24)aktiv[h].push(b);}});
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
@@ -746,7 +747,7 @@ function simuliere(arr,bloecke){
     const preis=(s.voll!=null?s.voll:(s.eff!=null?s.eff:null));
     sonneKwh+=pvDev; akkuKwh+=battDev; netzKwh+=netzDev; netzCt+=(preis!=null?netzDev*preis:0);
     hausNetzKwh+=netzBase+netzDev;
-    per.push({h,sun:pvDev,batt:battDev,netz:netzDev,load:dev,akku,base,netzBase,frei,preis});
+    per.push({h,sun:pvDev,batt:battDev,netz:netzDev,load:dev,akku,base,netzBase,frei,preis,gesamtKwh});
   }
   return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt,hausNetzKwh};
 }
