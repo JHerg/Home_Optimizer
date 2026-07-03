@@ -285,6 +285,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .mc-k{font-size:11.5px;color:var(--grau);font-family:var(--mono)}
 .mc-weg{margin-left:8px;width:38px;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);color:var(--grau);font-size:14px;cursor:pointer;flex-shrink:0}
 .mc-weg:active{background:var(--rot-hell);color:var(--rot)}
+/* Meine Geräte – Verwaltung (Einstellungen) */
+.mv-zeile{display:flex;align-items:center;gap:10px;background:var(--papier);border-radius:12px;padding:9px 11px;margin-bottom:8px}
+.mv-ic{font-size:20px;flex-shrink:0}
+.mv-info{flex:1;display:flex;flex-direction:column;min-width:0}
+.mv-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mv-k{font-size:11.5px;color:var(--grau);font-family:var(--mono)}
+.mv-btn{border:none;background:var(--karte);border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;box-shadow:var(--hairline);transition:transform var(--schnell)}
+.mv-btn:active{transform:scale(.9)}
 
 /* Dark Mode – folgt der Systemeinstellung */
 @media (prefers-color-scheme: dark){
@@ -430,10 +438,13 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt">
     <div class="frage">4 · Dein Stromspeicher (optional)</div>
-    <div class="hilfe">Standard ist Planung nur nach Sonne und dynamischem Preis. Wenn du deinen Speicher kennst, kannst du ihn mitrechnen lassen: Über den Tag lädt ihn der Sonnenüberschuss (nach Abzug der Grundlast), und die Grundlast entlädt ihn ohne Sonne.</div>
-    <label class="switch-zeile" style="margin-bottom:12px"><span>🔋 Speicher berücksichtigen</span><span class="switch"><input type="checkbox" id="f-akku-an"><span class="switch-ui"></span></span></label>
-    <div class="zahl-feld" style="margin-bottom:9px"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
-    <div class="zahl-feld"><input id="f-akku-stand" value="5" inputmode="decimal"><span class="einheit">kWh morgens geladen</span></div>
+    <div class="hilfe">Hier nur die <b>Größe</b> deines Speichers. Ob er überhaupt mitgerechnet wird und wie voll er <b>morgens</b> ist, stellst du direkt im Tagesplan ein (Schalter „Speicher berücksichtigen").</div>
+    <div class="zahl-feld"><input id="f-akku-kwh" value="10" inputmode="decimal"><span class="einheit">kWh Kapazität</span></div>
+  </div>
+  <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
+    <div class="frage">★ Meine Geräte</div>
+    <div class="hilfe">Deine gespeicherten Geräte – umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
+    <div class="meine-verwaltung" id="meine-verwaltung"></div>
   </div>
   <details class="experte">
     <summary>Für Experten</summary>
@@ -965,12 +976,11 @@ $("btn-einrichten").onclick=()=>{
   $("f-verguetung").value=dz(cfg.verguetung);
   $("f-schwelle").value=dz(cfg.schwelle);
   $("f-faktor").value=dz(cfg.faktor);
-  $("f-akku-an").checked=!!cfg.akku_an;
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
-  $("f-akku-stand").value=dz(cfg.akku_stand);
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
+  renderMeineVerwaltung();
   const info=$("adresse-info");info.className="adresse-ok";
   info.textContent="✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",");
   sheetAuf("sheet-einrichten");
@@ -997,9 +1007,7 @@ $("btn-fertig").onclick=()=>{
   const v=parseFloat($("f-verguetung").value.replace(",","."));if(!isNaN(v))cfg.verguetung=v;
   const sw=parseFloat($("f-schwelle").value.replace(",","."));if(!isNaN(sw)&&sw>=0)cfg.schwelle=sw;
   const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
-  cfg.akku_an=$("f-akku-an").checked;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
-  const as=parseFloat($("f-akku-stand").value.replace(",","."));if(!isNaN(as)&&as>=0)cfg.akku_stand=as;
   speichern();
   sheetZu();laden();
 };
@@ -1067,6 +1075,29 @@ function renderMeine(){
   });
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeine();
+  });
+}
+function renderMeineVerwaltung(){
+  const box=$("meine-verwaltung"),sec=$("meine-verwaltung-abschnitt");
+  if(!box||!sec)return;
+  if(!meineGeraete.length){sec.hidden=true;box.innerHTML="";return;}
+  sec.hidden=false;box.innerHTML="";
+  meineGeraete.forEach((m,i)=>{
+    const row=document.createElement("div");
+    row.className="mv-zeile";
+    row.innerHTML='<span class="mv-ic">'+m.icon+'</span>'+
+      '<span class="mv-info"><span class="mv-name">'+m.name+'</span><span class="mv-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span>'+
+      '<button class="mv-btn" data-ren="'+i+'" aria-label="'+m.name+' umbenennen">✏️</button>'+
+      '<button class="mv-btn" data-del="'+i+'" aria-label="'+m.name+' löschen">🗑</button>';
+    box.appendChild(row);
+  });
+  box.querySelectorAll("[data-ren]").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.ren;
+    const neu=((typeof prompt==="function"?prompt("Neuer Name:",meineGeraete[i].name):meineGeraete[i].name)||"").trim();
+    if(neu){meineGeraete[i].name=neu;speichern();renderMeineVerwaltung();}
+  });
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    meineGeraete.splice(+b.dataset.del,1);speichern();renderMeineVerwaltung();
   });
 }
 $("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();renderMeine();
