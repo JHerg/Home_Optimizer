@@ -187,6 +187,10 @@ details.experte[open] summary::after{transform:rotate(180deg)}
 .g-typen button.aktiv{border-color:var(--nacht);background:var(--sonne-hell)}
 .g-typen .ic{font-size:26px;display:block}
 .g-typen .tn{font-size:11.5px;font-weight:600;margin-top:5px;display:block;color:var(--tinte)}
+.g-icons{display:flex;flex-wrap:wrap;gap:8px}
+.icon-btn{width:46px;height:46px;border:1.5px solid var(--linie);border-radius:12px;background:var(--karte);font-size:23px;line-height:1;cursor:pointer;transition:border-color var(--schnell),background var(--schnell),transform var(--schnell)}
+.icon-btn:active{transform:scale(.9)}
+.icon-btn.aktiv{border-color:var(--nacht);background:var(--sonne-hell);box-shadow:0 0 0 1.5px var(--nacht)}
 .schaetzung{background:linear-gradient(135deg,#FFF6E2,#FFEFCF);border-radius:14px;padding:14px 16px;font-size:13px;margin-top:14px;line-height:1.5}
 .schaetzung b{font-family:var(--mono)}
 .such-ergebnis{background:var(--gruen-hell);border-radius:14px;padding:14px 16px;font-size:13px;margin-top:10px;line-height:1.5}
@@ -575,6 +579,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe">Wie lange läuft ein Durchgang wirklich? Halbe Stunden sind ok (z.&nbsp;B. 1,5). Geplant wird auf volle Stunden aufgerundet.</div>
     <div class="zahl-feld"><input id="b-dauer" inputmode="decimal"><span class="einheit">Stunden</span></div>
   </div>
+  <div class="abschnitt">
+    <div class="frage">Symbol</div>
+    <div class="hilfe">Im Tagesplan siehst du nur dieses Symbol – wähle eins, an dem du das Gerät schnell erkennst.</div>
+    <div class="g-icons" id="b-icons"></div>
+  </div>
   <button class="fertig" id="btn-b-speichern">Speichern</button>
   <button class="merken-knopf" id="btn-b-merken">★ Unter „Meine Geräte" speichern</button>
   <button class="loeschen-knopf" id="btn-b-loeschen">🗑 Gerät aus der Liste löschen</button>
@@ -662,7 +671,7 @@ let meineGeraete=[]; // selbst gespeicherte Geraete ("Meine Geräte")
 let routinen=[]; // wiederkehrende Routinen (Wochentag + Rhythmus)
 let daten={preise:{},pv:{}};
 let tag="heute"; // "heute" | "morgen" | "woche"
-let wahlTyp=null,wahlKlasse=null,bearbIndex=null;
+let wahlTyp=null,wahlKlasse=null,bearbIndex=null,bearbIcon=null;
 let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
 let platzSig=""; // Signatur (Tag+Geraete), um Vorschlag nur bei Bedarf neu zu erzeugen
 let ungeplant=[]; // Geraete, die zeitlich nicht mehr in den (heutigen) Plan passen
@@ -1430,14 +1439,29 @@ $("btn-g-fertig").onclick=()=>{
 };
 
 /* Gerät bearbeiten */
+// Auswahl relevanter Symbole (Wäsche, Küche, Geräte)
+const ICON_WAHL=["🌀","👕","🌈","🛏️","🛁","🧺","🧦","🍽️","🍴","🧊","🔌","🔋","🚗","🍞","💡","🔥"];
+function renderIconWahl(boxId,aktiv,setzen){
+  const box=$(boxId);if(!box)return;box.innerHTML="";
+  ICON_WAHL.forEach(ic=>{
+    const b=document.createElement("button");b.type="button";b.textContent=ic;
+    b.className="icon-btn"+(ic===aktiv?" aktiv":"");
+    b.setAttribute("aria-label","Symbol "+ic);
+    b.onclick=()=>setzen(ic);
+    box.appendChild(b);
+  });
+}
 function oeffneBearbeiten(i){
   bearbIndex=i;
   const g=geraete[i];
+  bearbIcon=g.icon;
   $("b-titel").textContent=g.icon+" "+g.name+" bearbeiten";
   $("b-kwh").value=dz(g.kwh);
   $("b-dauer").value=dz(g.dauer);
   $("b-modell").value="";
   $("modell-ergebnis").innerHTML="";
+  const setzeIcon=ic=>{bearbIcon=ic;$("b-titel").textContent=ic+" "+g.name+" bearbeiten";renderIconWahl("b-icons",bearbIcon,setzeIcon);};
+  renderIconWahl("b-icons",bearbIcon,setzeIcon);
   sheetAuf("sheet-bearbeiten");
 }
 $("btn-modell").onclick=()=>{
@@ -1453,6 +1477,7 @@ $("btn-b-speichern").onclick=()=>{
   const d=parseFloat($("b-dauer").value.replace(",","."));
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
+  if(bearbIcon)g.icon=bearbIcon;
   speichern();sheetZu();renderChips();aktualisieren();
 };
 $("btn-b-merken").onclick=async()=>{
@@ -1461,6 +1486,7 @@ $("btn-b-merken").onclick=async()=>{
   const d=parseFloat($("b-dauer").value.replace(",","."));
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
+  if(bearbIcon)g.icon=bearbIcon;
   const name=((await frageText("Unter Meine Geräte speichern",g.name))||"").trim();
   if(!name)return;
   meineGeraete.push({typ:g.typ,icon:g.icon,name,kwh:g.kwh,dauer:g.dauer,von:g.von,bis:g.bis});
@@ -1603,9 +1629,9 @@ function seedPresets(){
   const hinzu=p=>{ if(!meineGeraete.some(m=>m.name===p.name)){meineGeraete.push(p);} };
   if(!cfg.seedMieleWSG363){
     [
-      {typ:"wm",icon:"🌀",name:"Waschmaschine: Eco 40–60",kwh:0.49,dauer:3,von:6,bis:22},
-      {typ:"wm",icon:"🌀",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
-      {typ:"wm",icon:"🌀",name:"Waschmaschine: Handtücher 60°",kwh:1.1,dauer:3,von:6,bis:22}
+      {typ:"wm",icon:"👕",name:"Waschmaschine: Eco 40–60",kwh:0.49,dauer:3,von:6,bis:22},
+      {typ:"wm",icon:"🌈",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
+      {typ:"wm",icon:"🛁",name:"Waschmaschine: Handtücher 60°",kwh:1.1,dauer:3,von:6,bis:22}
     ].forEach(hinzu);
     cfg.seedMieleWSG363=true;geaendert=true;
   }
@@ -1614,8 +1640,15 @@ function seedPresets(){
     cfg.seedSpuel1=true;geaendert=true;
   }
   if(!cfg.seedBett1){
-    hinzu({typ:"wm",icon:"🌀",name:"Waschmaschine: Bettwäsche 60°",kwh:1.1,dauer:3,von:6,bis:22});
+    hinzu({typ:"wm",icon:"🛏️",name:"Waschmaschine: Bettwäsche 60°",kwh:1.1,dauer:3,von:6,bis:22});
     cfg.seedBett1=true;geaendert=true;
+  }
+  // Icon-Migration: bestehende Vorlagen/Routinen mit generischem 🌀 auf sprechende Symbole heben
+  if(!cfg.iconFix1){
+    const map={"Waschmaschine: Eco 40–60":"👕","Waschmaschine: Bunt/Hell 40°":"🌈","Waschmaschine: Handtücher 60°":"🛁","Waschmaschine: Bettwäsche 60°":"🛏️"};
+    const upd=arr=>{if(Array.isArray(arr))arr.forEach(x=>{if(map[x.name]&&x.icon==="🌀")x.icon=map[x.name];});};
+    upd(meineGeraete);upd(routinen);
+    cfg.iconFix1=true;geaendert=true;
   }
   if(geaendert)speichern();
 }
