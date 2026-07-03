@@ -620,13 +620,13 @@ async function ladePV(){
     const watts=j.result&&j.result.watts?j.result.watts:{};
     const summe={},anzahl={};
     Object.keys(watts).forEach(k=>{
-      const key=k.slice(0,10)+"-"+parseInt(k.slice(11,13),10);
-      summe[key]=(summe[key]||0)+watts[k];anzahl[key]=(anzahl[key]||0)+1;
+      const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde;
+      summe[key]=(summe[key]||0)+watts[k]; anzahl[key]=(anzahl[key]||0)+1;
     });
-    Object.keys(summe).forEach(k=>daten.pv[k]=summe[k]/anzahl[k]*cfg.faktor);
+    Object.keys(summe).forEach(k=>daten.pv[k]=summe[k]/anzahl[k]); // Forecast.Solar liefert bereits Wh pro Stunde, Faktor wird nicht benötigt
     return"Forecast.Solar";
   }catch(e){
-    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
+    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+ // Open-Meteo liefert W/m², muss umgerechnet werden
       "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
       "&forecast_days=2&timezone=Europe%2FBerlin";
     const r=await fetch(u);
@@ -635,7 +635,7 @@ async function ladePV(){
     const t=j.hourly.time,g=j.hourly.global_tilted_irradiance;
     for(let i=0;i<t.length;i++){
       const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10);
-      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor;
+      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; // W/m² -> W -> Wh (implizit für 1h)
     }
     return"Open-Meteo";
   }
@@ -706,8 +706,8 @@ function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   geraete.forEach((g,gi)=>{
-    const safeDauer = Math.max(0.1, g.dauer || 0.1);
-    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/safeDauer; // kW = kWh / h
+    const dauer=Math.max(1,Math.ceil(g.dauer));
+    const devKW=g.kwh/dauer; // kW = kWh / h (Stunden, nicht h)
     for(let n=0;n<g.anzahl;n++){
       const f=bestesFensterSonne(arr,restKW,devKW,dauer,g.von,g.bis);
       if(!f)continue;
@@ -726,8 +726,12 @@ function simuliere(arr,bloecke){
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
   const base=Math.max(0,(cfg.schwelle||0)/1000); // Grundlast kW (durchgehend)
   let akku=start;
-  const aktiv=Array.from({length:24},()=>[]), gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
-  bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;for(let i=0;i<b.dauer;i++){const h=b.start+i;if(h>=0&&h<24)aktiv[h].push(b);}});
+  const gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
+  bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;});
+  const aktiv = Array.from({length: 24}, () => []);
+  bloecke.forEach(b => {
+    for (let i = 0; i < b.dauer; i++) { const h = b.start + i; if (h >= 0 && h < 24) aktiv[h].push(b); }
+  });
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
     const s=arr[h];
