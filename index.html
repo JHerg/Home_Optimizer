@@ -25,6 +25,7 @@
   --rot:#CF4436; --rot-hell:#FAE4E1;
   --grau:#63727E; --linie:#E4EAF0;
   --knopf:#141F2C; --knopf-fg:#FFFFFF; --preis-linie:#8B5CF6;
+  --sky-top:#CFE3F4; --sky-hor:#FCEECB; --sun-glow:rgba(245,168,12,.45);
   --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
   --radius:20px; --radius-sm:13px; --radius-pill:999px;
   --schatten:0 1px 2px rgba(20,31,44,.04), 0 10px 26px -12px rgba(20,31,44,.14);
@@ -61,6 +62,11 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 @keyframes dreh{to{transform:rotate(360deg)}}
 .sonnen-summe{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FFF6E2,#FFE9BE);color:#7A5A0C;border-radius:var(--radius-pill);padding:8px 16px;font-size:13px;font-weight:600;margin:12px 0 4px;box-shadow:0 1px 2px rgba(245,168,12,.18),0 8px 20px -10px rgba(245,168,12,.5)}
 .sonnen-summe b{color:#5E4408}
+.trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+.trust-chip.lern{opacity:.9}
+@media (prefers-color-scheme:dark){.trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}}
+:root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
+:root[data-theme="light"] .trust-chip{background:rgba(255,255,255,.55);color:#5E4408}
 
 .segment{display:flex;background:rgba(20,31,44,.055);border-radius:15px;padding:4px;margin:14px 0 8px;gap:2px}
 .segment button{flex:1;padding:11px;border:none;background:transparent;border-radius:11px;font-size:14px;font-weight:600;color:var(--grau);cursor:pointer;transition:color var(--schnell)}
@@ -223,6 +229,32 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .chart-legende i{width:16px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0}
 .chart-legende i.lg-bar{background:linear-gradient(180deg,#FFCB57,#F5A80C)}
 .chart-legende i.lg-area{background:var(--netz);opacity:.35;box-shadow:inset 0 0 0 1px var(--netz)}
+/* Sonnentag-Hero (2.0) */
+.sky{position:relative;height:172px;border-radius:15px;overflow:hidden;
+  background:linear-gradient(180deg,var(--sky-top),var(--sky-hor))}
+.sky svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero-sun{position:absolute;width:30px;height:30px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;
+  background:radial-gradient(circle at 38% 34%,#FFF1CE,#FFC24D 45%,var(--sonne) 80%);
+  box-shadow:0 0 0 5px var(--sun-glow),0 0 28px 8px var(--sun-glow)}
+.hero-sun::after{content:"";position:absolute;inset:-12px;border-radius:50%;
+  background:radial-gradient(circle,var(--sun-glow),transparent 68%);animation:sunpuls 3.6s ease-in-out infinite}
+@keyframes sunpuls{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:.35;transform:scale(1.26)}}
+.nowlab{position:absolute;top:7px;transform:translateX(-50%);z-index:4;white-space:nowrap;
+  font-family:var(--mono);font-size:10px;font-weight:700;color:#7A5A0C;background:rgba(255,255,255,.72);border-radius:6px;padding:2px 6px}
+.lane{position:relative;margin-top:9px}
+.lane .track{position:absolute;inset:0}
+.p-blk{position:absolute;top:0;height:34px;border-radius:11px;padding:0 8px;display:flex;align-items:center;gap:6px;
+  background:var(--karte);border:1px solid var(--linie);box-shadow:0 4px 12px -6px rgba(20,31,44,.4);
+  cursor:grab;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
+  transition:transform var(--schnell),box-shadow var(--schnell)}
+.p-blk .pbi{font-size:17px;line-height:1;flex-shrink:0}
+.p-blk .pbp{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--grau)}
+.p-blk .pbacc{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--grau)}
+.p-blk.full{background:var(--gruen-hell);border-color:transparent}
+.p-blk.full .pbp{color:var(--gruen)} .p-blk.full .pbacc{background:var(--gruen)}
+.p-blk.part .pbp{color:#B4780A} .p-blk.part .pbacc{background:var(--sonne)}
+.p-blk.zieht{cursor:grabbing;transform:scale(1.06);box-shadow:0 12px 24px -8px rgba(20,31,44,.55);z-index:6}
+.p-blk .pbb{position:absolute;top:3px;right:4px;font-size:10px}
 .preis-titel{font-size:11.5px;font-weight:600;color:var(--grau);margin:16px 0 6px}
 .planer-preis{display:flex;gap:2px;height:16px}
 .planer-preis .preis-col{flex:1 1 0;border-radius:3px}
@@ -347,6 +379,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     --nacht:#E9EFF4; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182736;
     --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864; --preis-linie:#A78BFA;
     --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
+    --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,168,12,.32);
     --schatten:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
     --schatten-lg:0 2px 6px rgba(0,0,0,.35), 0 26px 50px -18px rgba(0,0,0,.7);
     --hairline:0 0 0 1px rgba(255,255,255,.05);
@@ -1079,37 +1112,42 @@ function renderPlaner(arr){
     b._lane=lane; laneEnde[lane]=b.start+b.dauer;
   });
   const lanes=Math.max(1,laneEnde.length);
-  const leisteH=Math.max(120,lanes*34+66);
-  const cap=Math.max(1,cfg.akku_kwh||0);
-  // Plot-Bereich vertikal: oben=voll (TOPY%), unten=0 (BASE%) – darunter etwas Luft.
-  const TOPY=8,BASE=88,RANGE=BASE-TOPY;
-  let sb="";
-  for(let h=0;h<24;h++){const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000);sb+='<div class="surplus-bar" style="left:'+(h/24*100)+'%;width:'+(100/24)+'%;bottom:'+(100-BASE)+'%;height:'+(su/maxSurplus*RANGE).toFixed(1)+'%"></div>';}
-  const nowLine=jetztH>=0?'<div class="now-line" style="left:'+((jetztH+0.5)/24*100)+'%"></div>':'';
-  const kwhL=v=>(cap>=10?Math.round(v):v.toFixed(1));
-  const mid=(TOPY+BASE)/2;
-  const linksL = akkuAn
-    ? '<span style="top:'+TOPY+'%;transform:translateY(-50%)">🔋 '+kwhL(cap)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+kwhL(cap/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kWh</span>'
-    : '<span style="top:'+TOPY+'%;transform:translateY(-50%)">☀️ '+maxSurplus.toFixed(1)+'</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+(maxSurplus/2).toFixed(1)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">0 kW</span>';
-  // Strompreis: dynamisch als Kurve mit rechter ct/kWh-Achse; fester Tarif = konstant, keine Kurve
+  const laneH=lanes*40-6;                 // 34px Block + 6px Reihenabstand
   const dyn=cfg.tarif!=="fest";
+  // ---- Himmels-Koordinaten (SVG 0..100): Horizont unten, Zenit oben ----
+  const HOR=86, PEAK=14, X=h=>h/24*100;
+  let hs=24,he=0; for(let h=0;h<24;h++){ if(arr[h].pv>60){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
+  if(hs>=he){hs=6;he=21;}
+  const arcY=h=>{ if(h<=hs||h>=he)return HOR; return HOR-(HOR-PEAK)*Math.sin(Math.PI*(h-hs)/(he-hs)); };
+  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000); return HOR-(su/maxSurplus)*(HOR-24); };
   const preise=arr.map(s=>s.voll).filter(v=>v!=null);
   const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
-  const rechtsL=dyn?'<div class="y-achse y-rechts"><span style="top:'+TOPY+'%;transform:translateY(-50%)">'+Math.round(maxP)+' ct</span><span style="top:'+mid+'%;transform:translateY(-50%)">'+Math.round((minP+maxP)/2)+'</span><span style="top:'+BASE+'%;transform:translateY(-50%)">'+Math.round(minP)+'</span></div>':'';
-  let preisPfad="";
-  if(dyn){let offen=false;for(let h=0;h<24;h++){const v=arr[h].voll;if(v==null){offen=false;continue;}const x=(h+0.5).toFixed(2),y=(TOPY+(1-(v-minP)/spanP)*RANGE).toFixed(1);preisPfad+=(offen?" L":" M")+x+","+y;offen=true;}}
-  const preisLeg=dyn?'<span><i class="lg-line"></i>💶 Linie: Strompreis (ct/kWh)</span>':'<span><i class="lg-line" style="border-top-style:dotted"></i>💶 Fester Tarif: '+dz((cfg.festpreis||0).toFixed(2))+' €/kWh</span>';
+  const priceY=h=>{ const v=arr[h].voll; if(v==null)return null; return 44-((v-minP)/spanP)*24; };
+  let arcD=""; for(let h=hs;h<=he;h+=0.5){ arcD+=(arcD?"L":"M")+X(h).toFixed(2)+" "+arcY(h).toFixed(2)+" "; }
+  let surfD="M0 "+HOR; for(let h=0;h<24;h++){ surfD+=" L"+X(h+0.5).toFixed(2)+" "+surfTop(h).toFixed(2); } surfD+=" L100 "+HOR+" Z";
+  let priceD=""; if(dyn){let off=false;for(let h=0;h<24;h++){const y=priceY(h);if(y==null){off=false;continue;}priceD+=(off?" L":" M")+X(h+0.5).toFixed(2)+" "+y.toFixed(2);off=true;}}
+  let gridD=""; for(let k=0;k<=24;k+=3){gridD+='<line x1="'+X(k)+'" y1="6" x2="'+X(k)+'" y2="'+HOR+'"/>';} gridD+='<line x1="0" y1="'+HOR+'" x2="100" y2="'+HOR+'" stroke-width=".7"/>';
+  const nowX=jetztH>=0?X(jetztH+0.5):-1;
+  const nowLine=jetztH>=0?'<line x1="'+nowX+'" y1="'+arcY(jetztH+0.5).toFixed(1)+'" x2="'+nowX+'" y2="'+HOR+'" stroke="var(--nacht)" stroke-width=".5" stroke-dasharray="1.4 1.6" opacity=".4"/>':'';
+  const jetztStr=jetztH>=0?"jetzt · "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"";
+  const sunHtml=jetztH>=0?'<div class="nowlab" style="left:'+nowX+'%">'+jetztStr+'</div><div class="hero-sun" style="left:'+nowX+'%;top:'+arcY(jetztH+0.5).toFixed(1)+'%"></div>':'';
+  const preisLeg=dyn?'<span><i class="lg-line"></i>💶 Strompreis</span>':'<span><i class="lg-line" style="border-top-style:dotted"></i>💶 Fester Tarif: '+dz((cfg.festpreis||0).toFixed(2))+' €/kWh</span>';
   chart.innerHTML=
-    '<div class="planer-leiste" id="planer-leiste" style="height:'+leisteH+'px">'+
-      '<div class="gridline" style="top:'+TOPY+'%"></div><div class="gridline" style="top:'+mid+'%"></div><div class="gridline null" style="top:'+BASE+'%"></div>'+
-      '<div class="y-achse">'+linksL+'</div>'+rechtsL+
-      '<div class="surplus-layer">'+sb+'</div>'+
-      '<svg class="batt-svg" id="batt-svg" viewBox="0 0 24 100" preserveAspectRatio="none"></svg>'+
-      nowLine+'<div class="blocks-layer" id="blocks-layer"></div>'+
+    '<div class="sky">'+
+      '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
+        '<defs><linearGradient id="pl-surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--sonne)" stop-opacity=".32"/><stop offset="100%" stop-color="var(--sonne)" stop-opacity="0"/></linearGradient></defs>'+
+        '<g stroke="var(--linie)" stroke-width=".4" opacity=".55">'+gridD+'</g>'+
+        '<path id="pl-batt" fill="var(--netz)" fill-opacity=".16" stroke="var(--netz)" stroke-opacity=".35" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"></path>'+
+        '<path d="'+surfD+'" fill="url(#pl-surf)"></path>'+
+        '<path d="'+arcD+'" fill="none" stroke="var(--sonne)" stroke-width="1" stroke-dasharray="1.6 2.2" stroke-linecap="round" opacity=".9" vector-effect="non-scaling-stroke"></path>'+
+        (priceD?'<path d="'+priceD+'" fill="none" stroke="var(--preis-linie)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>':'')+
+        nowLine+
+      '</svg>'+sunHtml+
     '</div>'+
+    '<div class="lane" id="planer-leiste" style="height:'+laneH+'px"><div class="track" id="blocks-layer"></div></div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-bar"></i>☀️ Balken: freie Sonne für Geräte (PV − Grundlast)</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Fläche: Speicher-Füllstand</span>':'')+preisLeg+'</div>';
+    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>';
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
@@ -1123,11 +1161,12 @@ function renderPlaner(arr){
   const bl=$("blocks-layer");
   platzierungen.forEach(b=>{
     const el=document.createElement("div");
-    el.className="p-block";
-    el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*34+4)+"px";
-    el.innerHTML='<span class="blk-ic">'+b.icon+'</span>';
+    el.className="p-blk";
+    el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*40)+"px";
+    el.innerHTML='<span class="pbacc"></span>'+(b.routine?'<span class="pbb">🔁</span>':'')+'<span class="pbi">'+b.icon+'</span><span class="pbp"></span>';
     el.title=b.name+" ("+b.start+"–"+(b.start+b.dauer)+" Uhr) – ziehen zum Verschieben";
     el.addEventListener("pointerdown",e=>starteDrag(e,b,el));
+    b._el=el;
     bl.appendChild(el);
   });
   function starteDrag(e,blk,el){
@@ -1146,16 +1185,23 @@ function renderPlaner(arr){
   }
   function updateSim(){
     const sim=simuliere(arr,platzierungen);
-    // SVG neu aufbauen: bei aktivem Speicher die Füllstand-Fläche, immer die Preis-Kurve obenauf
-    let svg="";
-    if(akkuAn){
-      const yv=v=>(TOPY+(1-(sim.cap>0?Math.max(0,Math.min(sim.cap,v))/sim.cap:0))*RANGE);
-      let line="0,"+yv(sim.akkuStart).toFixed(1);
-      sim.per.forEach(p=>{line+=" "+(p.h+1)+","+yv(p.akku).toFixed(1);});
-      svg+='<polygon points="'+line+' 24,'+BASE+' 0,'+BASE+'" fill="var(--netz)" fill-opacity="0.16" stroke="var(--netz)" stroke-opacity="0.35" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    // Speicher-Füllstand als Fläche im Himmel (nur wenn aktiv); Blöcke nach Deckung einfärben
+    const bp=document.getElementById("pl-batt");
+    if(bp){
+      if(akkuAn && sim.cap>0){
+        const yb=v=>(HOR-(Math.max(0,Math.min(sim.cap,v))/sim.cap)*(HOR-24));
+        let d="M0 "+yb(sim.akkuStart).toFixed(1);
+        sim.per.forEach(p=>{d+=" L"+X(p.h+1).toFixed(2)+" "+yb(p.akku).toFixed(1);});
+        d+=" L100 "+HOR+" L0 "+HOR+" Z";
+        bp.setAttribute("d",d);
+      }else bp.setAttribute("d","");
     }
-    if(preisPfad)svg+='<path d="'+preisPfad+'" fill="none" stroke="var(--preis-linie)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
-    $("batt-svg").innerHTML=svg;
+    platzierungen.forEach(b=>{
+      if(!b._el)return;
+      const g=b.kwh>0?Math.round((b._sun+b._batt)/b.kwh*100):0;
+      b._el.classList.remove("full","part");b._el.classList.add(g>=99?"full":"part");
+      const pe=b._el.querySelector(".pbp");if(pe)pe.textContent=g+"%";
+    });
     // Gut lesbare Geräte-Liste mit Uhrzeiten und Deckung
     let li="";
     platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
@@ -1277,7 +1323,7 @@ function aktualisieren(){
   sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
-  if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>";}
+  if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>"+trustChip();}
   else ss.hidden=true;
   routineBanner(tagStr);
   if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null))
@@ -1418,6 +1464,20 @@ function faktorAusKalib(){ // Mittel der Verhältnisse real/roh über die gespei
   const k=cfg.kalib||[];let sum=0,n=0;
   k.forEach(e=>{if(e.raw>0.5){sum+=e.real/e.raw;n++;}});
   return n?Math.max(0.3,Math.min(3,sum/n)):null;
+}
+// Säule 2: Prognose-Genauigkeit als mittlerer Fehler der kalibrierten Vorhersage (in %)
+function prognoseGenauigkeit(){
+  const k=cfg.kalib||[]; if(k.length<2)return null;
+  let sum=0,n=0;
+  k.forEach(e=>{ if(e.raw>0.5&&e.real>0){ const pred=e.raw*cfg.faktor; sum+=Math.abs(e.real-pred)/e.real; n++; } });
+  return n?Math.round(sum/n*100):null;
+}
+function trustChip(){
+  const g=prognoseGenauigkeit();
+  if(g!=null)return ' <span class="trust-chip">✓ Prognose ±'+g+'%</span>';
+  const n=(cfg.kalib||[]).length;
+  if(n>=1)return ' <span class="trust-chip lern">kalibriert · '+n+' Tag'+(n>1?'e':'')+'</span>';
+  return '';
 }
 function skaliereProg(alt,neu){ // vorhandene PV-Daten ohne Neuabruf umskalieren
   if(alt>0&&neu>0&&alt!==neu){const s=neu/alt;Object.keys(daten.pv).forEach(k=>daten.pv[k]*=s);}
