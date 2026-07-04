@@ -911,16 +911,18 @@ function stunden(tagStr){
   return arr;
 }
 // Bestes Fenster fuer EIN Geraet unter Beruecksichtigung des noch freien
-// Sonnenueberschusses (restKW je Stunde). Geraete duerfen sich Stunden teilen,
-// solange der Ueberschuss reicht; der ungedeckte Anteil zahlt Netzpreis.
-function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
+// Sonnenueberschusses (restKW je Stunde). Verschiedene Geraete duerfen sich Stunden
+// teilen, solange der Ueberschuss reicht; der ungedeckte Anteil zahlt Netzpreis.
+// belegt[h]=true blockiert Stunden, in denen dieselbe Maschine schon laeuft
+// (gleicher Geraetetyp kann nicht parallel laufen).
+function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis,belegt){
   let best=null, startH=von;
   if(tag==="heute")startH=Math.max(von,berlinTeile(new Date()).stunde);
   for(let start=startH;start<=bis-dauer;start++){
     let sum=0,ok=true;
     for(let i=0;i<dauer;i++){
       const h=start+i,s=arr[h];
-      if(s.eff==null){ok=false;break;}
+      if(s.eff==null||(belegt&&belegt[h])){ok=false;break;}
       const gedeckt=Math.min(devKW,restKW[h]);
       const preis=(s.voll!=null?s.voll:s.eff);
       sum+=(devKW-gedeckt)*preis;
@@ -939,10 +941,14 @@ function autoPlatzierung(arr){
   ungeplant=[];
   const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
   const startMap=new Map(gespeichert.map(s=>[s.key+"#"+s.run,s.start]));
+  // Belegung je Geraetetyp: dieselbe Maschine kann nicht parallel laufen
+  const belegtProTyp={};
+  const belegtVon=t=>belegtProTyp[t]||(belegtProTyp[t]=new Array(24).fill(false));
   planGeraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer));
     const devKW=g.kwh/g.dauer;
     const key=deviceKey(g);
+    const belegt=belegtVon(g.typ||g.name); // gleicher Typ = eine Maschine
     let naechsterStart = g.von, n = 0;
     while(n < g.anzahl){
       const gesp=startMap.get(key+"#"+n);
@@ -950,12 +956,12 @@ function autoPlatzierung(arr){
       if(gesp!=null){
         start=Math.max(g.von,Math.min(g.bis-dauer,gesp)); // gespeicherte Platzierung, aufs Fenster begrenzt
       }else{
-        const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis);
-        if(!f)break; // kein Fenster mehr frei -> Rest gilt als ungeplant
+        const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis,belegt);
+        if(!f)break; // kein Fenster mehr frei / Maschine belegt -> Rest gilt als ungeplant
         start=f.start;
       }
       naechsterStart = start + dauer;
-      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24)restKW[h]=Math.max(0,restKW[h]-devKW);}
+      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
       bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key});
       n++;
     }
@@ -1562,8 +1568,12 @@ $("btn-alle-loeschen").onclick=()=>{
   if(typeof confirm==="function" && !confirm("Wirklich alle Geräte aus der Liste entfernen?"))return;
   geraete=[];speichern();renderChips();aktualisieren();
 };
-/* Neuer Auto-Vorschlag (setzt manuelle Platzierungen zurück) */
-$("btn-vorschlag").onclick=()=>{platzSig="";aktualisieren();};
+/* Neuer Auto-Vorschlag: gespeicherten Plan des Tages verwerfen und frisch optimieren */
+$("btn-vorschlag").onclick=()=>{
+  const k=tagKeyAktuell();
+  if(cfg.plaene&&cfg.plaene[k]){delete cfg.plaene[k];speichern();}
+  platzSig="";aktualisieren();
+};
 
 /* Speicher- und Grundlast-Regler (jetzt in Einrichten) */
 function syncRegler(){
