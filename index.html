@@ -286,6 +286,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .pl-nudge button{width:28px;height:28px;border:none;border-radius:8px;background:rgba(20,31,44,.07);font-size:15px;font-weight:700;color:var(--nacht);cursor:pointer;line-height:1;transition:background var(--schnell),transform var(--schnell)}
 .pl-nudge button:active{transform:scale(.9)}
 .pl-nudge button:disabled{opacity:.32;cursor:default}
+.pl-hak{flex-shrink:0;width:30px;height:30px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);font-size:15px;font-weight:700;color:var(--gruen);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),transform var(--schnell)}
+.pl-hak:hover{border-color:var(--gruen);background:var(--gruen-hell)}
+.pl-hak:active{transform:scale(.9)}
+.erledigt-box{margin-top:14px;border-top:1px dashed var(--linie);padding-top:12px}
+.erledigt-titel{font-size:11.5px;font-weight:700;color:var(--gruen);margin-bottom:7px}
+.erledigt-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--grau);padding:5px 2px}
+.erledigt-zeile span{text-decoration:line-through;opacity:.75}
+.erledigt-zeile button{border:none;background:none;font-size:12px;font-weight:600;color:var(--netz);cursor:pointer;flex-shrink:0;padding:2px 4px}
 .pl-deck{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;width:104px}
 .pl-meter{display:flex;width:100%;height:6px;border-radius:99px;overflow:hidden;background:rgba(20,31,44,.08)}
 .pl-meter span{display:block;height:100%}
@@ -662,7 +670,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,kalib:[],erledigt:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -747,7 +755,12 @@ function routinenFuerTag(tagStr){
   return routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr))
     .map(r=>({typ:r.typ,icon:r.icon,name:r.name,kwh:r.kwh,dauer:r.dauer,von:r.von,bis:r.bis,anzahl:1,routine:true}));
 }
-function geraeteFuerTag(tagStr){return geraete.concat(routinenFuerTag(tagStr));}
+// Als "heute schon gelaufen" abgehakte Einträge (verhindert das Weiterschieben)
+function erledigtListe(tagStr){return (cfg.erledigt&&cfg.erledigt[tagStr])||[];}
+function geraeteFuerTag(tagStr){
+  const done=new Set(erledigtListe(tagStr).map(e=>e.name));
+  return geraete.concat(routinenFuerTag(tagStr)).filter(g=>!done.has(g.name));
+}
 
 /* ---------- Datenquellen ---------- */
 async function ladePreise(){
@@ -975,17 +988,41 @@ function ungeplantHtml(){
     ' nicht mehr einplanbar:<ul style="margin:6px 0 4px 18px;font-weight:600">'+zeilen+
     '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln oder im Gerät das Zeitfenster (Start-/Endzeit) erweitern.</span></div>';
 }
+// "Heute schon gelaufen"-Liste (abgehakte Einträge)
+function erledigtHtml(tagKey){
+  const liste=erledigtListe(tagKey);
+  if(!liste.length)return "";
+  return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
+    liste.map((e,i)=>'<div class="erledigt-zeile"><span>'+e.icon+' '+e.name+'</span><button data-undo="'+i+'">zurück</button></div>').join("")+
+    '</div>';
+}
+function wireErledigt(tagKey){
+  document.querySelectorAll('#planer-rest [data-undo]').forEach(b=>b.onclick=()=>{
+    const l=cfg.erledigt&&cfg.erledigt[tagKey];if(!l)return;
+    l.splice(+b.dataset.undo,1);
+    if(!l.length)delete cfg.erledigt[tagKey];
+    speichern();platzSig="";aktualisieren();
+  });
+}
+function markiereErledigt(tagKey,name,icon){
+  cfg.erledigt=cfg.erledigt||{};
+  (cfg.erledigt[tagKey]=cfg.erledigt[tagKey]||[]);
+  if(!cfg.erledigt[tagKey].some(e=>e.name===name))cfg.erledigt[tagKey].push({name,icon});
+  speichern();platzSig="";aktualisieren();
+}
 function renderPlaner(arr){
   const chart=$("planer-chart"),rest=$("planer-rest"),warn=$("planer-warnung");
   const akkuAn=cfg.akku_an;
+  const tagKey = tag==="morgen"?morgenStr():heuteStr();
+  const kannAbhaken = (tag==="heute"); // "schon gelaufen" nur für heute sinnvoll
   $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
-  if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML="";return;}
+  if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;}
   warn.innerHTML=ungeplantHtml();
   if(!platzierungen.length){
     const leerText=ungeplant.length
       ? 'Für heute ist kein Gerät mehr einplanbar – siehe Hinweis oben.'
-      : 'Wähle oben mindestens ein Gerät (＋ drücken).';
-    chart.innerHTML='<div class="plan-leer">'+leerText+'</div>';rest.innerHTML="";return;
+      : (erledigtListe(tagKey).length?'Alles für heute erledigt oder eingeplant. 🎉':'Wähle oben mindestens ein Gerät (＋ drücken).');
+    chart.innerHTML='<div class="plan-leer">'+leerText+'</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;
   }
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
   const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
@@ -1033,7 +1070,9 @@ function renderPlaner(arr){
     '<div class="planer-deckung" id="planer-deckung"></div>'+
     '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>'+
-    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten kopieren</button>';
+    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten kopieren</button>'+
+    erledigtHtml(tagKey);
+  wireErledigt(tagKey);
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
   platzierungen.forEach(b=>{
@@ -1078,11 +1117,13 @@ function renderPlaner(arr){
       const netz=Math.max(0,100-gruen);
       const idx=platzierungen.indexOf(b);
       const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
+      const hakBtn=kannAbhaken?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
       li+='<div class="pl-zeile">'+
         '<span class="pl-ic">'+b.icon+'</span>'+
         '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
         '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
         '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
+        hakBtn+
         '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
         '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% '+(akkuAn?"Sonne/Speicher":"Sonne")+'</span></span>'+
         '</div>';
@@ -1092,6 +1133,10 @@ function renderPlaner(arr){
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
       const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
       if(ns!==b.start){b.start=ns;renderPlaner(arr);}
+    });
+    $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=()=>{
+      const b=platzierungen[+btn.dataset.hak];if(!b)return;
+      markiereErledigt(tagKey,b.name,b.icon);
     });
     // Deckungs-Streifen je Stunde
     let dv="";
@@ -1730,6 +1775,8 @@ function seedPresets(){
 
 ladeGespeichert();
 seedPresets();
+// Abgehakte Einträge nur für heute behalten (ältere Tage aufräumen)
+if(cfg.erledigt&&typeof cfg.erledigt==="object"){const hk=heuteStr();Object.keys(cfg.erledigt).forEach(k=>{if(k!==hk)delete cfg.erledigt[k];});}
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
