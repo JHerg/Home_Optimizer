@@ -333,6 +333,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .woche-item b{font-family:var(--mono);font-weight:600}
 .woche-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:6px;background:rgba(20,31,44,.09);color:var(--grau)}
 .woche-tag.opt{background:var(--gruen);color:#fff}
+.woche-tag.erl{background:var(--gruen-hell);color:var(--gruen)}
+.ung-hak{border:none;background:rgba(255,255,255,.5);color:#7A5A0C;border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;margin-left:4px;cursor:pointer}
+@media (prefers-color-scheme: dark){.ung-hak{background:rgba(0,0,0,.25);color:#FFCF6B}}
 .woche-leer{color:var(--grau);font-size:13px}
 .routine-banner{display:flex;gap:8px;align-items:flex-start;background:var(--sonne-hell);color:#7A5A0C;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;margin:12px 0 4px;line-height:1.4}
 .routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:6px;transition:border-color var(--schnell),color var(--schnell)}
@@ -670,7 +673,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],erledigt:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,kalib:[],erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -755,11 +758,32 @@ function routinenFuerTag(tagStr){
   return routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr))
     .map(r=>({typ:r.typ,icon:r.icon,name:r.name,kwh:r.kwh,dauer:r.dauer,von:r.von,bis:r.bis,anzahl:1,routine:true}));
 }
-// Als "heute schon gelaufen" abgehakte Einträge (verhindert das Weiterschieben)
+// Als "heute schon gelaufen" abgehakte Durchgänge (verhindert das Weiterschieben).
+// Zählbasiert: ein Eintrag = ein erledigter Durchgang (auch bei Geräten mit Anzahl>1).
 function erledigtListe(tagStr){return (cfg.erledigt&&cfg.erledigt[tagStr])||[];}
+function erledigtGruppen(tagStr){
+  const map=new Map();
+  erledigtListe(tagStr).forEach(e=>{const g=map.get(e.name)||{name:e.name,icon:e.icon,n:0};g.n++;map.set(e.name,g);});
+  return [...map.values()];
+}
+function tagKeyAktuell(){return tag==="morgen"?morgenStr():heuteStr();}
 function geraeteFuerTag(tagStr){
-  const done=new Set(erledigtListe(tagStr).map(e=>e.name));
-  return geraete.concat(routinenFuerTag(tagStr)).filter(g=>!done.has(g.name));
+  const zaehl={};
+  erledigtListe(tagStr).forEach(e=>{zaehl[e.name]=(zaehl[e.name]||0)+1;});
+  const out=[];
+  geraete.concat(routinenFuerTag(tagStr)).forEach(g=>{
+    const rest=(g.anzahl!=null?g.anzahl:1)-(zaehl[g.name]||0);
+    if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
+  });
+  return out;
+}
+function deviceKey(g){return (g.typ||"")+"|"+g.name;}
+// Aktuelle Platzierungen des gezeigten Tages persistieren (überlebt Neuladen)
+function speicherePlan(){
+  const key=tagKeyAktuell();
+  cfg.plaene=cfg.plaene||{};
+  cfg.plaene[key]=platzierungen.map(b=>({key:b._key,run:b.run,start:b.start}));
+  speichern();
 }
 
 /* ---------- Datenquellen ---------- */
@@ -874,20 +898,32 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis){
 }
 // Auto-Vorschlag: platziert alle Geraete-Durchgaenge ueberschussbewusst als Startpunkt.
 // Nutzt planGeraete = manuelle Geraete + faellige Routinen des gezeigten Tages.
+// Gespeicherte (auch manuell verschobene) Startzeiten des Tages werden übernommen,
+// nur neue/unbekannte Durchgänge werden frisch (überschussbewusst, ab jetzt) platziert.
 function autoPlatzierung(arr){
   const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
   const bloecke=[];
   ungeplant=[];
+  const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
+  const startMap=new Map(gespeichert.map(s=>[s.key+"#"+s.run,s.start]));
   planGeraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer));
     const devKW=g.kwh/g.dauer;
+    const key=deviceKey(g);
     let naechsterStart = g.von, n = 0;
     while(n < g.anzahl){
-      const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis);
-      if(!f)break; // Kein Fenster mehr gefunden, Schleife abbrechen
-      naechsterStart = f.start + dauer;
-      for(let i=0;i<dauer;i++){const h=f.start+i;restKW[h]=Math.max(0,restKW[h]-devKW);}
-      bloecke.push({gi,run:n,start:f.start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine});
+      const gesp=startMap.get(key+"#"+n);
+      let start;
+      if(gesp!=null){
+        start=Math.max(g.von,Math.min(g.bis-dauer,gesp)); // gespeicherte Platzierung, aufs Fenster begrenzt
+      }else{
+        const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis);
+        if(!f)break; // kein Fenster mehr frei -> Rest gilt als ungeplant
+        start=f.start;
+      }
+      naechsterStart = start + dauer;
+      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24)restKW[h]=Math.max(0,restKW[h]-devKW);}
+      bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key});
       n++;
     }
     if(n<g.anzahl){
@@ -971,35 +1007,45 @@ function planSignatur(){
 }
 function sichereVorschlag(arr){
   const sig=planSignatur();
-  if(sig!==platzSig){platzierungen=autoPlatzierung(arr);platzSig=sig;}
+  if(sig!==platzSig){platzierungen=autoPlatzierung(arr);platzSig=sig;speicherePlan();}
 }
 // Klartext-Warnung für Geräte, die heute zeitlich nicht mehr in den Plan passen.
+// Bei "heute" mit ✓-Knopf, um schon Gelaufenes als erledigt wegzuräumen (A2).
 function ungeplantHtml(){
   if(!ungeplant.length)return "";
   const heuteTag=(tag==="heute");
-  const zeilen=ungeplant.map(u=>{
+  const zeilen=ungeplant.map((u,i)=>{
     const anzahl=u.fehlend>1?' ('+u.fehlend+'×)':'';
     let grund="";
     if(u.abStart!=null&&u.dauer!=null&&u.bis!=null)
       grund=': frühester freier Start '+u.abStart+' Uhr + '+dz(u.dauer)+' h Laufzeit passt nicht mehr vor '+u.bis+' Uhr';
-    return '<li>'+u.icon+' '+u.name+anzahl+grund+'</li>';
+    const hak=heuteTag?' <button class="ung-hak" data-ungeplant="'+i+'">✓ gelaufen</button>':'';
+    return '<li>'+u.icon+' '+u.name+anzahl+grund+hak+'</li>';
   }).join("");
   return '<div class="v-haupt warn" style="margin-bottom:12px">⚠️ '+(heuteTag?"Heute":"An diesem Tag")+
     ' nicht mehr einplanbar:<ul style="margin:6px 0 4px 18px;font-weight:600">'+zeilen+
-    '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln oder im Gerät das Zeitfenster (Start-/Endzeit) erweitern.</span></div>';
+    '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln'+(heuteTag?', „✓ gelaufen" antippen':'')+' oder im Gerät das Zeitfenster erweitern.</span></div>';
 }
-// "Heute schon gelaufen"-Liste (abgehakte Einträge)
+function wireUngeplant(tagKey){
+  document.querySelectorAll('#planer-warnung [data-ungeplant]').forEach(b=>b.onclick=()=>{
+    const u=ungeplant[+b.dataset.ungeplant];if(!u)return;
+    markiereErledigt(tagKey,u.name,u.icon);
+  });
+}
+// "Heute schon gelaufen"-Liste (nach Gerät gruppiert, mit Anzahl)
 function erledigtHtml(tagKey){
-  const liste=erledigtListe(tagKey);
-  if(!liste.length)return "";
+  const gruppen=erledigtGruppen(tagKey);
+  if(!gruppen.length)return "";
   return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
-    liste.map((e,i)=>'<div class="erledigt-zeile"><span>'+e.icon+' '+e.name+'</span><button data-undo="'+i+'">zurück</button></div>').join("")+
+    gruppen.map(g=>'<div class="erledigt-zeile"><span>'+g.icon+' '+g.name+(g.n>1?' ('+g.n+'×)':'')+'</span><button data-undo-name="'+encodeURIComponent(g.name)+'">zurück</button></div>').join("")+
     '</div>';
 }
 function wireErledigt(tagKey){
-  document.querySelectorAll('#planer-rest [data-undo]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#planer-rest [data-undo-name]').forEach(b=>b.onclick=()=>{
+    const name=decodeURIComponent(b.dataset.undoName);
     const l=cfg.erledigt&&cfg.erledigt[tagKey];if(!l)return;
-    l.splice(+b.dataset.undo,1);
+    const idx=l.findIndex(e=>e.name===name); // nur EINEN Durchgang zurückholen
+    if(idx>=0)l.splice(idx,1);
     if(!l.length)delete cfg.erledigt[tagKey];
     speichern();platzSig="";aktualisieren();
   });
@@ -1007,7 +1053,7 @@ function wireErledigt(tagKey){
 function markiereErledigt(tagKey,name,icon){
   cfg.erledigt=cfg.erledigt||{};
   (cfg.erledigt[tagKey]=cfg.erledigt[tagKey]||[]);
-  if(!cfg.erledigt[tagKey].some(e=>e.name===name))cfg.erledigt[tagKey].push({name,icon});
+  cfg.erledigt[tagKey].push({name,icon}); // ein Eintrag = ein erledigter Durchgang
   speichern();platzSig="";aktualisieren();
 }
 function renderPlaner(arr){
@@ -1017,7 +1063,7 @@ function renderPlaner(arr){
   const kannAbhaken = (tag==="heute"); // "schon gelaufen" nur für heute sinnvoll
   $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
   if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;}
-  warn.innerHTML=ungeplantHtml();
+  warn.innerHTML=ungeplantHtml();wireUngeplant(tagKey);
   if(!platzierungen.length){
     const leerText=ungeplant.length
       ? 'Für heute ist kein Gerät mehr einplanbar – siehe Hinweis oben.'
@@ -1095,7 +1141,7 @@ function renderPlaner(arr){
       const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dh));
       if(ns!==blk.start){blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+ns+"–"+(ns+blk.dauer)+" Uhr)";updateSim();}
     };
-    const up=()=>{el.classList.remove("zieht");window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
+    const up=()=>{el.classList.remove("zieht");speicherePlan();window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
   }
   function updateSim(){
@@ -1132,7 +1178,7 @@ function renderPlaner(arr){
     $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
       const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
-      if(ns!==b.start){b.start=ns;renderPlaner(arr);}
+      if(ns!==b.start){b.start=ns;speicherePlan();renderPlaner(arr);}
     });
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
@@ -1240,7 +1286,8 @@ function aktualisieren(){
 // Erinnerungs-Banner: an einem Routine-Tag (nur "heute") zeigen, was ansteht + geplantes Fenster.
 function routineBanner(tagStr){
   const el=$("routine-banner");
-  const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr));
+  const done=new Set(erledigtListe(tagStr).map(e=>e.name));
+  const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr)&&!done.has(r.name));
   if(tag!=="heute"||!faellig.length){el.hidden=true;return;}
   const teile=faellig.map(r=>{
     const b=platzierungen.find(p=>p.routine&&p.name===r.name);
@@ -1251,16 +1298,26 @@ function routineBanner(tagStr){
 }
 function renderWoche(){
   const heuteK=heuteStr(),morgenK=morgenStr();
+  const doneHeute=new Set(erledigtListe(heuteK).map(e=>e.name));
+  // Morgen ist bei dynamischem Tarif erst optimierbar, wenn Börsenpreise vorliegen (ab ~14 Uhr)
+  const preiseMorgen=Object.keys(daten.preise).some(k=>k.indexOf(morgenK+"-")===0);
+  const morgenOptimierbar=(cfg.tarif==="fest")||preiseMorgen;
   let html="";
   for(let i=0;i<7;i++){
     const key=new Date(Date.parse(heuteK+"T12:00:00Z")+i*86400000).toISOString().slice(0,10);
     const wd=wochentagVonKey(key);
     const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,key));
-    const imHorizont=(key===heuteK||key===morgenK);
+    const istHeute=(key===heuteK), istMorgen=(key===morgenK);
+    const imHorizont=istHeute||istMorgen;
     const tagLabel=(i===0?"Heute":i===1?"Morgen":WOCHENTAG_KURZ[wd])+" · "+key.slice(8,10)+"."+key.slice(5,7)+".";
     const inner=!faellig.length
       ? '<span class="woche-leer">– keine Routine</span>'
-      : faellig.map(r=>'<span class="woche-item">'+r.icon+' '+r.name+' <b>'+dz(r.kwh)+' kWh</b> <span class="woche-tag'+(imHorizont?' opt':'')+'">'+(imHorizont?"im Tagesplan":"geplant")+'</span></span>').join("");
+      : faellig.map(r=>{
+          let stat="geplant",cls="";
+          if(istHeute){ if(doneHeute.has(r.name)){stat="✓ erledigt";cls=" erl";} else {stat="im Tagesplan";cls=" opt";} }
+          else if(istMorgen){ if(morgenOptimierbar){stat="im Tagesplan";cls=" opt";} else {stat="ab 14 Uhr";} }
+          return '<span class="woche-item">'+r.icon+' '+r.name+' <b>'+dz(r.kwh)+' kWh</b> <span class="woche-tag'+cls+'">'+stat+'</span></span>';
+        }).join("");
     html+='<div class="woche-tagzeile'+(imHorizont?' im-horizont':'')+'"><div class="woche-kopf">'+tagLabel+'</div><div class="woche-inhalt">'+inner+'</div></div>';
   }
   $("woche-liste").innerHTML=html;
@@ -1775,8 +1832,11 @@ function seedPresets(){
 
 ladeGespeichert();
 seedPresets();
-// Abgehakte Einträge nur für heute behalten (ältere Tage aufräumen)
-if(cfg.erledigt&&typeof cfg.erledigt==="object"){const hk=heuteStr();Object.keys(cfg.erledigt).forEach(k=>{if(k!==hk)delete cfg.erledigt[k];});}
+// Abgehakte Einträge nur für heute behalten; gespeicherte Pläne für heute+morgen (ältere weg)
+(function(){const hk=heuteStr(),mk=morgenStr();
+  if(cfg.erledigt&&typeof cfg.erledigt==="object")Object.keys(cfg.erledigt).forEach(k=>{if(k!==hk)delete cfg.erledigt[k];});
+  if(cfg.plaene&&typeof cfg.plaene==="object")Object.keys(cfg.plaene).forEach(k=>{if(k!==hk&&k!==mk)delete cfg.plaene[k];});
+})();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
