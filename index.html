@@ -178,11 +178,6 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .zahl-feld input{width:100px;padding:12px;border:1.5px solid var(--linie);border-radius:12px;font-family:var(--mono);font-size:16px;text-align:right;transition:border-color var(--schnell),box-shadow var(--schnell)}
 .zahl-feld input:focus{outline:none;border-color:var(--netz);box-shadow:0 0 0 3px rgba(59,111,212,.15)}
 .zahl-feld .einheit{font-size:13px;color:var(--grau)}
-.kopier-knopf{width:100%;padding:12px;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);color:var(--tinte);font-size:13.5px;font-weight:600;cursor:pointer;margin-top:12px;transition:border-color var(--schnell),transform var(--schnell)}
-.kopier-knopf:hover{border-color:var(--netz)}
-.kopier-knopf:active{transform:scale(.98)}
-.kopier-knopf.ok{border-color:var(--gruen);color:var(--gruen)}
-.kopier-hint{font-size:11px;color:var(--grau);line-height:1.45;margin-top:7px;text-align:center;padding:0 4px}
 .fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(20,31,44,.5)}
 .fertig:active{transform:scale(.98)}
 .loeschen-knopf{width:100%;padding:13px;border:1.5px solid var(--rot);border-radius:15px;background:transparent;color:var(--rot);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:background var(--schnell)}
@@ -1314,8 +1309,6 @@ function renderPlaner(arr){
     '<div class="planer-deckung" id="planer-deckung"></div>'+
     '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>'+
-    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten als Text kopieren</button>'+
-    '<div class="kopier-hint">Kopiert den Plan als Text – zum Einfügen in deine Geräte-Timer, einen Kalender-Eintrag, eine Notiz oder dein EMS (z. B. Bullerbü). Die App steuert selbst nichts.</div>'+
     erledigtHtml(tagKey);
   wireErledigt(tagKey);
   const bl=$("blocks-layer");
@@ -1422,27 +1415,7 @@ function renderPlaner(arr){
       '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
       (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>':'');
   }
-  const kopf=$("btn-kopieren");
-  if(kopf)kopf.onclick=()=>{
-    const zeilen=platzierungen.slice().sort((a,b)=>a.start-b.start)
-      .map(b=>b.name+": "+b.start+"–"+(b.start+b.dauer)+" Uhr");
-    const kopf2=(tag==="heute"?"Heute":"Morgen")+" – empfohlene Startzeiten:\n";
-    const text=kopf2+zeilen.join("\n");
-    const fertig=()=>{kopf.textContent="✓ Kopiert";kopf.classList.add("ok");setTimeout(()=>{kopf.textContent="📋 Startzeiten als Text kopieren";kopf.classList.remove("ok");},1800);};
-    if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(fertig).catch(()=>fallbackKopie(text,fertig));
-    }else fallbackKopie(text,fertig);
-  };
   updateSim();
-}
-function fallbackKopie(text,fertig){
-  try{
-    const ta=document.createElement("textarea");
-    ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
-    document.body.appendChild(ta);ta.focus();ta.select();
-    document.execCommand("copy");document.body.removeChild(ta);
-    fertig();
-  }catch(e){/* Kopieren nicht möglich – still ignorieren */}
 }
 let aktuelleStunden=null;
 function tageskarten(zeigen){
