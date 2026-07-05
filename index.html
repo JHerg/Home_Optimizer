@@ -1070,27 +1070,60 @@ async function ladePreise(){
   });
 }
 function warten(ms){return new Promise(r=>setTimeout(r,ms));}
+// Signatur aus Standort + Anlage: ändert sie sich, ist der gespeicherte Stand ungültig.
+function fsSignatur(){ return [cfg.lat,cfg.lon,cfg.kwp,cfg.neigung,cfg.azimut].join("|"); }
+// Letzten guten Forecast.Solar-Stand (Rohwerte je Stunde, OHNE Kalibrierfaktor) pro Tag lokal sichern.
+function fsCacheSpeichern(roh){
+  let c; try{c=JSON.parse(localStorage.getItem("eo-fs-cache")||"{}");}catch(e){c={};}
+  if(!c||c.sig!==fsSignatur())c={sig:fsSignatur(),tage:{}};
+  c.tage=c.tage||{};
+  const perTag={}; Object.keys(roh).forEach(key=>{const d=key.slice(0,10);(perTag[d]=perTag[d]||{})[key]=roh[key];});
+  const ts=Date.now(); Object.keys(perTag).forEach(d=>{c.tage[d]={ts,werte:perTag[d]};});
+  const hk=heuteStr(),mk=morgenStr(); Object.keys(c.tage).forEach(d=>{if(d!==hk&&d!==mk)delete c.tage[d];});
+  try{localStorage.setItem("eo-fs-cache",JSON.stringify(c));}catch(e){}
+}
+// Gespeicherte Rohwerte für heute+morgen laden (nur wenn Standort/Anlage unverändert). {roh,ts} oder null.
+function fsCacheLaden(){
+  let c; try{c=JSON.parse(localStorage.getItem("eo-fs-cache")||"{}");}catch(e){return null;}
+  if(!c||c.sig!==fsSignatur()||!c.tage)return null;
+  const hk=heuteStr(),mk=morgenStr(); const roh={}; let ts=0,hat=false;
+  [hk,mk].forEach(d=>{const e=c.tage[d]; if(e&&e.werte){Object.assign(roh,e.werte);ts=Math.max(ts,e.ts||0);hat=true;}});
+  return hat?{roh,ts}:null;
+}
+function fsRohAnwenden(roh){ Object.keys(roh).forEach(key=>{ daten.pv[key]=(daten.pv[key]||0)+roh[key]*cfg.faktor; }); }
+function hhmm(ts){ return new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}); }
 async function holeForecastSolar(){
   const basis="https://api.forecast.solar/"+(cfg.fsKey?cfg.fsKey+"/":"")+"estimate/"+cfg.lat+"/"+cfg.lon+"/"+cfg.neigung+"/"+cfg.azimut+"/"+cfg.kwp;
   const r=await fetch(basis);
   if(!r.ok)throw new Error("HTTP "+r.status);
   const j=await r.json();
   // watt_hours_period = exakte Energie (Wh) je API-Zeitabschnitt (Abschnitte sind NICHT
-  // zwingend volle Stunden, z.B. 07:29–08:00 bei Sonnenaufgang). Direkt auf Stunden
-  // summieren statt watts zu mitteln – vermeidet Verzerrung an Tagesrand-Stunden.
+  // zwingend volle Stunden, z.B. 07:29–08:00 bei Sonnenaufgang). Direkt auf Stunden summieren.
   const whPeriode=j.result&&j.result.watt_hours_period?j.result.watt_hours_period:{};
-  Object.keys(whPeriode).forEach(k=>{
-    const t=new Date(k), key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; // Bsp: "2024-07-03-14"
-    daten.pv[key]=(daten.pv[key]||0)+whPeriode[k]*cfg.faktor;
-  });
+  const roh={};
+  Object.keys(whPeriode).forEach(k=>{ const t=new Date(k),key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; roh[key]=(roh[key]||0)+whPeriode[k]; });
+  if(!Object.keys(roh).length)throw new Error("leere Antwort");
+  fsCacheSpeichern(roh);   // guten Stand sichern (Rohwerte)
+  fsRohAnwenden(roh);      // mit Kalibrierfaktor in daten.pv übernehmen
 }
-async function ladePV(){
+async function ladePV(force){
   daten.pv={};
+  const cache=fsCacheLaden();
+  const FRISCH=30*60*1000; // 30 Min: so lange gilt ein gespeicherter Stand als aktuell (spart Abrufe)
+  // 1) Frischer Stand vorhanden & kein erzwungenes Neuladen -> ohne API-Abruf übernehmen
+  if(!force && cache && (Date.now()-cache.ts)<FRISCH){
+    fsRohAnwenden(cache.roh);
+    return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false};
+  }
+  // 2) Frisch von Forecast.Solar holen (ein kurzer Retry)
   try{
     try{ await holeForecastSolar(); }
-    catch(e){ await warten(900); await holeForecastSolar(); } // kurzer Retry vor dem Fallback
-    return"Forecast.Solar";
+    catch(e){ await warten(900); await holeForecastSolar(); }
+    return {label:"Forecast.Solar", warnung:false};
   }catch(e){
+    // 3) Abruf fehlgeschlagen -> letzter guter Forecast.Solar-Stand (statt ungenauem Open-Meteo)
+    if(cache){ daten.pv={}; fsRohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false}; }
+    // 4) Kein gespeicherter Stand -> Wetter-Rückfall (Open-Meteo)
     const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
       "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
       "&forecast_days=2&timezone=Europe%2FBerlin";
@@ -1098,11 +1131,9 @@ async function ladePV(){
     if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);
     const j=await r.json();
     const t=j.hourly.time,g=j.hourly.global_tilted_irradiance;
-    for(let i=0;i<t.length;i++){
-      const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10);
-      daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; // W/m² -> W -> Wh (für 1h) * Faktor
-    }
-    return"Open-Meteo";
+    daten.pv={};
+    for(let i=0;i<t.length;i++){ const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10); daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; }
+    return {label:"Open-Meteo", warnung:true};
   }
 }
 async function geocode(adresse){
@@ -1743,19 +1774,19 @@ function renderVerlauf(){
   box.querySelectorAll(".vl-bilanz b").forEach((b,i)=>zaehlElement(b,"vlbil"+i));
 }
 let letzterLoad=0;
-async function laden(){
+async function laden(force){
   $("status").textContent="Lade Sonnen- und Preisdaten…";
   try{
-    const jobs=[ladePV()];
+    const jobs=[ladePV(force)];
     if(cfg.tarif!=="fest")jobs.push(ladePreise()); // fester Tarif braucht keine Börsendaten
     const res=await Promise.all(jobs);
-    const pvQuelle=res[0];
+    const r0=res[0]||{label:"–",warnung:false};
     letzterLoad=Date.now();
     $("status").textContent="Stand: " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     aktualisieren();
     $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : cfg.anbieter;
-    $("quelle-sonne").textContent = pvQuelle;
-    $("pv-fallback-hinweis").hidden = pvQuelle!=="Open-Meteo";
+    $("quelle-sonne").textContent = r0.label;
+    $("pv-fallback-hinweis").hidden = !r0.warnung;
   }catch(e){
     $("status").innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
   }
@@ -2208,17 +2239,18 @@ $("routine-loeschen").onclick=()=>{
 };
 
 /* Aktualisieren */
-function starteAktualisierung(){
+function starteAktualisierung(force){
   const b=$("btn-aktualisieren");
   if(b.classList.contains("laedt"))return;
   b.classList.add("laedt");
-  laden().finally(()=>b.classList.remove("laedt"));
+  laden(force).finally(()=>b.classList.remove("laedt"));
 }
-$("btn-aktualisieren").onclick=starteAktualisierung;
-// Installierte Web-App bleibt im Hintergrund "eingefroren" – beim Zurueckkehren
-// aktualisieren, wenn die Daten aelter als 10 Minuten sind.
+// Manuelles ↻ erzwingt einen frischen Abruf (fällt bei Fehlern auf den gespeicherten Stand zurück).
+$("btn-aktualisieren").onclick=()=>starteAktualisierung(true);
+// Installierte Web-App bleibt im Hintergrund "eingefroren" – beim Zurueckkehren automatisch
+// aktualisieren (nicht erzwungen: nutzt den gespeicherten Stand, wenn er frisch genug ist).
 document.addEventListener("visibilitychange",()=>{
-  if(document.visibilityState==="visible" && Date.now()-letzterLoad>10*60*1000) starteAktualisierung();
+  if(document.visibilityState==="visible" && Date.now()-letzterLoad>10*60*1000) starteAktualisierung(false);
 });
 
 /* Service Worker: Offline-Betrieb + frische Version beim Neustart */
