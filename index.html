@@ -32,16 +32,17 @@
   --schatten-lg:0 2px 6px rgba(20,31,44,.05), 0 24px 48px -16px rgba(20,31,44,.22);
   --hairline:0 0 0 1px rgba(20,31,44,.05);
   --schnell:.16s cubic-bezier(.32,.72,.34,1); --weich:.28s cubic-bezier(.32,.72,.34,1);
+  --amb-glow:rgba(245,168,12,.15); --amb-sky:#E4EDF4;   /* Tageszeit-Ambiente (per JS gesetzt) */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;
   padding-bottom:calc(48px + env(safe-area-inset-bottom));padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));
   background:
-    radial-gradient(120% 80% at 82% -8%, rgba(245,168,12,.14) 0%, rgba(245,168,12,0) 42%),
+    radial-gradient(120% 82% at 82% -8%, var(--amb-glow) 0%, transparent 46%),
     radial-gradient(120% 70% at 0% -6%, rgba(59,111,212,.12) 0%, rgba(59,111,212,0) 40%),
-    linear-gradient(180deg,#E4EDF4 0%,var(--papier) 260px);
-  background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    linear-gradient(180deg,var(--amb-sky) 0%,var(--papier) 300px);
+  background-attachment:fixed;transition:background-color var(--weich);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 button{font-family:var(--sans);-webkit-tap-highlight-color:transparent}
 button:active{transform:translateY(.5px)}
 button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-offset:2px}
@@ -52,12 +53,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-o
 h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-height:1.08}
 .unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
-.kopf-aktionen{display:flex;gap:8px;flex-shrink:0}
+.kopf-aktionen{display:flex;gap:6px;flex-shrink:0}
 .claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
-.knopf-einrichten{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:14px;padding:10px 15px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform var(--schnell),box-shadow var(--schnell)}
-.knopf-einrichten:hover{box-shadow:var(--schatten-lg)}
-.knopf-einrichten:active{transform:scale(.96)}
-.knopf-aktualisieren{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:14px;width:44px;font-size:18px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:transform var(--schnell),box-shadow var(--schnell)}
+.knopf-aktualisieren{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:13px;width:42px;height:42px;font-size:17px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:transform var(--schnell),box-shadow var(--schnell)}
+.knopf-aktualisieren:hover{box-shadow:var(--schatten-lg)}
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
 @keyframes dreh{to{transform:rotate(360deg)}}
@@ -65,7 +64,6 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 .sonnen-summe b{color:#5E4408}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
-@media (prefers-color-scheme:dark){.trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
 :root[data-theme="light"] .trust-chip{background:rgba(255,255,255,.55);color:#5E4408}
 
@@ -171,7 +169,7 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .hilfe-schritte{list-style:none;display:flex;flex-direction:column;gap:11px}
 .hilfe-schritte li{display:flex;gap:11px;font-size:13px;color:var(--tinte);line-height:1.5}
 .hilfe-schritte .num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--sonne-hell);color:#7A5A0C;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
-@media (prefers-color-scheme: dark){.hilfe-schritte .num{color:#FFCF6B}}
+:root[data-theme="dark"] .hilfe-schritte .num{color:#FFCF6B}
 .hilfe-glossar{display:flex;flex-direction:column;gap:11px}
 .hilfe-glossar div{font-size:13px;color:var(--tinte);line-height:1.5}
 .hilfe-fertig{width:100%;padding:14px;border:none;border-radius:14px;background:var(--knopf);color:var(--knopf-fg);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform var(--schnell)}
@@ -264,12 +262,17 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .sky-taps{position:absolute;inset:0;z-index:4}
 .sky-tap{position:absolute;top:0;bottom:0;border:none;background:transparent;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sky-tap.sel{background:rgba(255,255,255,.26);box-shadow:inset 1.2px 0 0 rgba(122,90,12,.4),inset -1.2px 0 0 rgba(122,90,12,.4)}
-@media (prefers-color-scheme: dark){.sky-tap.sel{background:rgba(255,255,255,.1)}}
+:root[data-theme="dark"] .sky-tap.sel{background:rgba(255,255,255,.1)}
 .hero-detail{font-family:var(--mono);font-size:11.5px;color:var(--grau);text-align:center;margin-top:9px;min-height:17px;line-height:1.45}
 .hero-detail b{color:var(--tinte)}
 .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
-.hs-kachel{display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:13px;padding:10px 10px;overflow:hidden}
-.hs-ic{font-size:17px;line-height:1;flex-shrink:0}
+.hs-kachel{display:flex;align-items:center;gap:7px;background:var(--papier);border-radius:13px;padding:10px 9px;overflow:hidden}
+.hs-ic{width:30px;height:30px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(20,31,44,.12);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0}
+.hs-ring{position:relative;width:30px;height:30px;flex-shrink:0}
+.hs-ring svg{width:30px;height:30px;transform:rotate(-90deg)}
+.hs-ring-bg{fill:none;stroke:var(--linie);stroke-width:3.2}
+.hs-ring-fg{fill:none;stroke:var(--gruen);stroke-width:3.2;stroke-linecap:round;transition:stroke-dasharray var(--weich)}
+.hs-ring-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
 .hs-tx{display:flex;flex-direction:column;min-width:0}
 .hs-tx b{font-size:14px;font-weight:700;color:var(--nacht);letter-spacing:-.01em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hs-tx span{font-size:9.5px;color:var(--grau);line-height:1.2;overflow:hidden}
@@ -398,7 +401,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .woche-tag.opt{background:var(--gruen);color:#fff}
 .woche-tag.erl{background:var(--gruen-hell);color:var(--gruen)}
 .ung-hak{border:none;background:rgba(255,255,255,.5);color:#7A5A0C;border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;margin-left:4px;cursor:pointer}
-@media (prefers-color-scheme: dark){.ung-hak{background:rgba(0,0,0,.25);color:#FFCF6B}}
+:root[data-theme="dark"] .ung-hak{background:rgba(0,0,0,.25);color:#FFCF6B}
 .woche-leer{color:var(--grau);font-size:13px}
 .routine-banner{display:flex;gap:8px;align-items:flex-start;background:var(--sonne-hell);color:#7A5A0C;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;margin:12px 0 4px;line-height:1.4}
 .routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:6px;transition:border-color var(--schnell),color var(--schnell)}
@@ -443,49 +446,50 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .vs-ok{border:none;background:var(--knopf);color:var(--knopf-fg);border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;transition:transform var(--schnell)}
 .vs-ok:active{transform:scale(.95)}
 .vs-nein{border:none;background:rgba(20,31,44,.06);color:var(--grau);border-radius:9px;width:32px;height:32px;font-size:13px;cursor:pointer;flex-shrink:0}
-@media (prefers-color-scheme: dark){.vs-nein{background:rgba(255,255,255,.08)}}
+:root[data-theme="dark"] .vs-nein{background:rgba(255,255,255,.08)}
 :root[data-theme="dark"] .vs-nein{background:rgba(255,255,255,.08)}
 
 /* Dark Mode – folgt der Systemeinstellung */
-@media (prefers-color-scheme: dark){
-  :root{
-    --nacht:#E9EFF4; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182736;
-    --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864; --preis-linie:#A78BFA;
-    --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
-    --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,168,12,.32);
-    --schatten:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
-    --schatten-lg:0 2px 6px rgba(0,0,0,.35), 0 26px 50px -18px rgba(0,0,0,.7);
-    --hairline:0 0 0 1px rgba(255,255,255,.05);
-  }
-  body{background:
-    radial-gradient(120% 80% at 82% -8%, rgba(245,168,12,.12) 0%, rgba(245,168,12,0) 42%),
-    radial-gradient(120% 70% at 0% -6%, rgba(59,111,212,.14) 0%, rgba(59,111,212,0) 40%),
-    linear-gradient(180deg,#14232F 0%,var(--papier) 260px)}
-  .segment{background:rgba(255,255,255,.06)}
-  .chip.an{box-shadow:0 0 0 1.5px var(--nacht),0 6px 16px -8px rgba(0,0,0,.6)}
-  .g-typen button.aktiv{background:var(--sonne-hell);border-color:var(--sonne)}
-  input{background:var(--papier);color:var(--nacht)}
-  .zelle.k-mittel .kachel{background:#5A6A78}
-  .plan-eintrag.k-mittel{border-left-color:#5A6A78}
-  .sonne-meter{background:rgba(255,255,255,.1)}
-  .sonnen-summe{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
-  .sonnen-summe b{color:#FFE9B8}
-  .routine-banner{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
-  .routine-add{border-color:#3A4C5E}
-  .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
-  .planer-leiste{background:rgba(255,255,255,.03)}
-  .p-block{background:linear-gradient(135deg,#2E4560,#22344A);box-shadow:0 4px 12px -4px rgba(0,0,0,.7)}
-  .planer-deckung .deckung-col{background:rgba(255,255,255,.06)}
-  .v-haupt.warn{color:#FFCF6B}
-  .mc-add:hover{background:var(--sonne-hell)}
-  .pl-meter{background:rgba(255,255,255,.1)}
-  .pl-nudge button{background:rgba(255,255,255,.1);color:#fff}
-  .gridline{background:rgba(255,255,255,.06)}
-  .gridline.null{background:rgba(255,255,255,.32)}
-  .regler input[type=range]{background:rgba(255,255,255,.14)}
-  .switch-ui{background:rgba(255,255,255,.2)}
+:root[data-theme="dark"]{
+  --nacht:#E9EFF4; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182736;
+  --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864; --preis-linie:#A78BFA;
+  --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
+  --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,168,12,.32);
+  --schatten:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+  --schatten-lg:0 2px 6px rgba(0,0,0,.35), 0 26px 50px -18px rgba(0,0,0,.7);
+  --hairline:0 0 0 1px rgba(255,255,255,.05);
+  --amb-glow:rgba(245,168,12,.12); --amb-sky:#14232F;
 }
+:root[data-theme="dark"] .segment{background:rgba(255,255,255,.06)}
+:root[data-theme="dark"] .chip.an{box-shadow:0 0 0 1.5px var(--nacht),0 6px 16px -8px rgba(0,0,0,.6)}
+:root[data-theme="dark"] .g-typen button.aktiv{background:var(--sonne-hell);border-color:var(--sonne)}
+:root[data-theme="dark"] input{background:var(--papier);color:var(--nacht)}
+:root[data-theme="dark"] .zelle.k-mittel .kachel{background:#5A6A78}
+:root[data-theme="dark"] .plan-eintrag.k-mittel{border-left-color:#5A6A78}
+:root[data-theme="dark"] .sonne-meter{background:rgba(255,255,255,.1)}
+:root[data-theme="dark"] .sonnen-summe{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
+:root[data-theme="dark"] .sonnen-summe b{color:#FFE9B8}
+:root[data-theme="dark"] .routine-banner{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
+:root[data-theme="dark"] .routine-add{border-color:#3A4C5E}
+:root[data-theme="dark"] .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
+:root[data-theme="dark"] .planer-leiste{background:rgba(255,255,255,.03)}
+:root[data-theme="dark"] .p-block{background:linear-gradient(135deg,#2E4560,#22344A);box-shadow:0 4px 12px -4px rgba(0,0,0,.7)}
+:root[data-theme="dark"] .planer-deckung .deckung-col{background:rgba(255,255,255,.06)}
+:root[data-theme="dark"] .v-haupt.warn{color:#FFCF6B}
+:root[data-theme="dark"] .mc-add:hover{background:var(--sonne-hell)}
+:root[data-theme="dark"] .pl-meter{background:rgba(255,255,255,.1)}
+:root[data-theme="dark"] .pl-nudge button{background:rgba(255,255,255,.1);color:#fff}
+:root[data-theme="dark"] .gridline{background:rgba(255,255,255,.06)}
+:root[data-theme="dark"] .gridline.null{background:rgba(255,255,255,.32)}
+:root[data-theme="dark"] .regler input[type=range]{background:rgba(255,255,255,.14)}
+:root[data-theme="dark"] .switch-ui{background:rgba(255,255,255,.2)}
 </style>
+<script>
+/* Farbmodus sofort setzen (vor dem Rendern), damit es kein Aufblitzen gibt. */
+(function(){try{var t=localStorage.getItem("eo-theme");
+  var d=(t==="dunkel")||((t==="auto"||!t)&&window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);
+  document.documentElement.dataset.theme=d?"dark":"light";}catch(e){document.documentElement.dataset.theme="light";}})();
+</script>
 </head>
 <body>
 
@@ -496,9 +500,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="unterzeile" id="standort-zeile">Altbaumburgweg, Köln</div>
   </div>
   <div class="kopf-aktionen">
+    <button class="knopf-aktualisieren" id="btn-thema" aria-label="Farbmodus wechseln" title="Farbmodus">🌗</button>
     <button class="knopf-aktualisieren" id="btn-hilfe" aria-label="So funktioniert's" title="So funktioniert's">?</button>
     <button class="knopf-aktualisieren" id="btn-aktualisieren" aria-label="Daten aktualisieren" title="Preise & Sonnenprognose neu laden">↻</button>
-    <button class="knopf-einrichten" id="btn-einrichten">⚙️ Einrichten</button>
+    <button class="knopf-aktualisieren" id="btn-einrichten" aria-label="Einrichten" title="Einrichten">⚙️</button>
   </div>
 </div>
 <div class="claim">Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
@@ -1424,8 +1429,12 @@ function renderPlaner(arr){
   const maxKW = Math.max(0,...arr.map(s=>s.pv||0))/1000;
   let vollMin=null; arr.forEach(s=>{ if(s.voll!=null && (vollMin==null||s.voll<vollMin)) vollMin=s.voll; });
   const kachel=(ic,wert,label)=>'<div class="hs-kachel"><span class="hs-ic">'+ic+'</span><span class="hs-tx"><b>'+wert+'</b><span>'+label+'</span></span></div>';
+  const kachelRing=(pct,ic,wert,label)=>'<div class="hs-kachel"><span class="hs-ring">'+
+    '<svg viewBox="0 0 36 36" aria-hidden="true"><circle class="hs-ring-bg" cx="18" cy="18" r="15.915"/>'+
+    '<circle class="hs-ring-fg" cx="18" cy="18" r="15.915" stroke-dasharray="'+Math.max(0,Math.min(100,pct))+' 100"/></svg>'+
+    '<span class="hs-ring-ic">'+ic+'</span></span><span class="hs-tx"><b>'+wert+'</b><span>'+label+'</span></span></div>';
   let k3;
-  if(hatBloecke){ const sm=simuliere(arr,platzierungen); const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; const ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; k3=kachel('🔋',ev+'%','Eigenverbrauch'); }
+  if(hatBloecke){ const sm=simuliere(arr,platzierungen); const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; const ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; k3=kachelRing(ev,'🔋',ev+'%','Eigenverbrauch'); }
   else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
   else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
   const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
@@ -1463,6 +1472,7 @@ function renderPlaner(arr){
     '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>'+
     statsHtml+budgetHtml;
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
+  chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
     const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
     $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+(s.eff!=null?' · 💶 '+dz(s.eff.toFixed(1))+' ct/kWh':'');
@@ -1605,10 +1615,14 @@ function aktualisieren(){
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
+  if(typeof ambienteAnwenden==="function")ambienteAnwenden();
   renderChips();sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
-  if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>"+trustChip();}
+  if(kwhTag>0.1){ss.hidden=false;
+    ss.innerHTML='☀️ Dein Dach liefert voraussichtlich <b>&nbsp;<span class="zahl">'+Math.round(kwhTag)+'</span> kWh</b>'+trustChip();
+    const z=ss.querySelector(".zahl"); if(z)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
+  }
   else ss.hidden=true;
   routineBanner(tagStr);
   if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null))
@@ -1725,6 +1739,7 @@ function renderVerlauf(){
     (lern?'<div class="vl-titel">Was die App gelernt hat</div>'+lern:'')+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  box.querySelectorAll(".vl-bilanz b").forEach((b,i)=>zaehlElement(b,"vlbil"+i));
 }
 let letzterLoad=0;
 async function laden(){
@@ -2209,12 +2224,58 @@ document.addEventListener("visibilitychange",()=>{
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
-/* Statusleisten-/Theme-Farbe an Hell/Dunkel anpassen */
-(function(){
-  const mm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)");
-  const setTC=()=>{const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute("content",(mm&&mm.matches)?"#0F1A24":"#E4EEF4");};
-  setTC(); if(mm&&mm.addEventListener)mm.addEventListener("change",setTC);
-})();
+/* ===== Farbmodus (hell/dunkel/automatisch) + Tageszeit-Ambiente ===== */
+function systemDunkel(){return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;}
+// Ambiente: der obere Seitenrand färbt sich nach echter Uhrzeit (und Hell/Dunkel).
+function ambienteAnwenden(){
+  const dark = document.documentElement.dataset.theme==="dark";
+  let h; try{h=berlinTeile(new Date()).stunde;}catch(e){h=new Date().getHours();}
+  let glow, sky;
+  if(h>=5&&h<8){        glow=dark?"rgba(255,120,90,.17)":"rgba(255,150,110,.22)";  sky=dark?"#241826":"#FBE6DC"; } // Morgenrot
+  else if(h>=8&&h<17){  glow=dark?"rgba(245,168,12,.12)":"rgba(245,168,12,.15)";   sky=dark?"#14232F":"#E4EDF4"; } // Tag
+  else if(h>=17&&h<21){ glow=dark?"rgba(255,130,40,.20)":"rgba(255,150,40,.26)";   sky=dark?"#2A1C18":"#FCEBD6"; } // Sonnenuntergang
+  else {                glow=dark?"rgba(90,110,200,.15)":"rgba(90,110,200,.13)";   sky=dark?"#0F1826":"#DDE6F0"; } // Nacht
+  const r=document.documentElement.style; r.setProperty("--amb-glow",glow); r.setProperty("--amb-sky",sky);
+}
+function themaAnwenden(){
+  const pref=localStorage.getItem("eo-theme")||"auto";
+  const dark = pref==="dunkel" || (pref==="auto" && systemDunkel());
+  document.documentElement.dataset.theme = dark?"dark":"light";
+  const b=$("btn-thema");
+  if(b){ b.textContent = pref==="auto"?"🌗":(pref==="hell"?"☀️":"🌙");
+    b.title = "Farbmodus: "+(pref==="auto"?"Automatisch":(pref==="hell"?"Hell":"Dunkel")); }
+  const m=document.querySelector('meta[name="theme-color"]'); if(m)m.setAttribute("content",dark?"#0F1A24":"#E4EEF4");
+  ambienteAnwenden();
+}
+$("btn-thema").onclick=()=>{
+  const cur=localStorage.getItem("eo-theme")||"auto";
+  const next = cur==="auto"?"hell":(cur==="hell"?"dunkel":"auto");
+  localStorage.setItem("eo-theme",next); themaAnwenden();
+};
+if(window.matchMedia){const mm=matchMedia("(prefers-color-scheme: dark)");
+  if(mm.addEventListener)mm.addEventListener("change",()=>{ if((localStorage.getItem("eo-theme")||"auto")==="auto")themaAnwenden(); });}
+themaAnwenden();
+/* Zahlen sanft hochzählen (respektiert „Bewegung reduzieren"). Cache verhindert Flackern. */
+const zaehlCache={};
+function zaehlHoch(el,ziel,fmt,key){
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const from = (zaehlCache[key]!=null)?zaehlCache[key]:0;
+  zaehlCache[key]=ziel;
+  if(reduce || from===ziel){ el.textContent=fmt(ziel); return; }
+  const t0=performance.now(), dur=650;
+  (function tick(t){ const p=Math.min(1,(t-t0)/dur); const e=1-Math.pow(1-p,3);
+    el.textContent=fmt(from+(ziel-from)*e); if(p<1)requestAnimationFrame(tick); })(t0);
+}
+// Ein Element, dessen Text mit einer Zahl beginnt (z. B. "96 kWh", "100%"), hochzählen. Bereiche ("7–22 Uhr") überspringen.
+function zaehlElement(el,key){
+  const txt=(el.textContent||"").trim();
+  if(txt.indexOf("–")>=0) return;
+  const m=txt.match(/^([\d.,]+)(.*)$/); if(!m) return;
+  const dez=(m[1].indexOf(",")>=0||m[1].indexOf(".")>=0)?1:0;
+  const ziel=parseFloat(m[1].replace(",",".")); if(isNaN(ziel)) return;
+  const suffix=m[2];
+  zaehlHoch(el,ziel,v=>(dez?dz(v.toFixed(1)):String(Math.round(v)))+suffix,key+"|"+suffix);
+}
 
 /* Einmalige Voreinstellungen als "Meine Geräte". Jeder Block läuft nur einmal
    (Flag in cfg), fügt nur fehlende hinzu und überschreibt nichts Bestehendes. */
