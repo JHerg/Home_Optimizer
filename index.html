@@ -265,6 +265,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 :root[data-theme="dark"] .sky-tap.sel{background:rgba(255,255,255,.1)}
 .hero-detail{font-family:var(--mono);font-size:11.5px;color:var(--grau);text-align:center;margin-top:9px;min-height:17px;line-height:1.45}
 .hero-detail b{color:var(--tinte)}
+.hero-detail .hd-sonne{color:var(--gruen);font-weight:600}
 .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
 .hs-kachel{display:flex;align-items:center;gap:7px;background:var(--papier);border-radius:13px;padding:10px 9px;overflow:hidden}
 .hs-ic{width:30px;height:30px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(20,31,44,.12);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0}
@@ -1507,7 +1508,12 @@ function renderPlaner(arr){
   chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
     const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
-    $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+(s.voll!=null?' · 💶 Netz '+dz(s.voll.toFixed(1))+' ct/kWh':'');
+    let preisTeil='';
+    if(s.voll!=null){
+      preisTeil=' · 💶 Netz '+dz(s.voll.toFixed(1))+' ct/kWh';
+      if(s.pv>=cfg.schwelle) preisTeil+=' · <span class="hd-sonne">mit Sonne ~0 ct</span>'; // Sonne deckt diese Stunde
+    }
+    $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+preisTeil;
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
   });
   if(!hatBloecke){ rest.innerHTML=erledigtHtml(tagKey); wireErledigt(tagKey); return; }
