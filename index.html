@@ -1429,15 +1429,18 @@ function renderPlaner(arr){
   else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
   else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
   const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
-  // ---- Sonnen-Budget: Energiebedarf des Tages vs. verschiebbare freie Sonne ----
-  const freieSonneKwh = arr.reduce((a,s)=>a+Math.max(0,(s.pv-cfg.schwelle))/1000,0);
+  // ---- Sonnen-Budget: Bedarf vs. noch verschiebbare freie Sonne ----
+  // Heute zählt nur die Sonne AB JETZT (vergangene Stunden sind vorbei); morgen der ganze Tag.
+  const abH = jetztH>=0 ? jetztH : 0;
+  const freieSonneKwh = arr.reduce((a,s,h)=>a+(h>=abH?Math.max(0,(s.pv-cfg.schwelle))/1000:0),0);
   const bedarfKwh = (planGeraete||[]).reduce((a,g)=>a+(g.kwh||0)*(g.anzahl!=null?g.anzahl:1),0);
   const belegtPct = freieSonneKwh>0 ? Math.min(100, bedarfKwh/freieSonneKwh*100) : (bedarfKwh>0?100:0);
   const ueber = Math.max(0, bedarfKwh-freieSonneKwh);
+  const restWort = jetztH>=0 ? 'noch ' : '';
   const budgetHtml='<div class="budget">'+
     '<div class="budget-bar"><span class="budget-fill'+(ueber>0.05?' voll':'')+'" style="width:'+belegtPct.toFixed(0)+'%"></span></div>'+
-    '<div class="budget-tx">☀️ <b>'+dz(bedarfKwh.toFixed(1))+' kWh</b> Bedarf von ~<b>'+dz(freieSonneKwh.toFixed(1))+' kWh</b> freier Sonne · '+
-      (ueber>0.05?'<span class="budget-warn">'+dz(ueber.toFixed(1))+' kWh über → Netz oder sonnigerer Tag</span>'
+    '<div class="budget-tx">☀️ <b>'+dz(bedarfKwh.toFixed(1))+' kWh</b> Bedarf · '+restWort+'~<b>'+dz(freieSonneKwh.toFixed(1))+' kWh</b> freie Sonne · '+
+      (ueber>0.05?'<span class="budget-warn">'+dz(ueber.toFixed(1))+' kWh über → Netz oder anderer Tag</span>'
                  :'<span class="budget-ok">'+dz(Math.max(0,freieSonneKwh-bedarfKwh).toFixed(1))+' kWh frei</span>')+
     '</div></div>';
   chart.innerHTML=
