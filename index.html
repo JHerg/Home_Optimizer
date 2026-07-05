@@ -1507,7 +1507,7 @@ function renderPlaner(arr){
   chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
     const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
-    $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+(s.eff!=null?' · 💶 '+dz(s.eff.toFixed(1))+' ct/kWh':'');
+    $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+(s.voll!=null?' · 💶 Netz '+dz(s.voll.toFixed(1))+' ct/kWh':'');
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
   });
   if(!hatBloecke){ rest.innerHTML=erledigtHtml(tagKey); wireErledigt(tagKey); return; }
