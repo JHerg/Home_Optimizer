@@ -1516,7 +1516,24 @@ function renderPlaner(arr){
     $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+preisTeil;
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
   });
-  if(!hatBloecke){ rest.innerHTML=erledigtHtml(tagKey); wireErledigt(tagKey); return; }
+  if(!hatBloecke){
+    // Nichts mehr geplant – aber schon Gelaufenes trotzdem als Deckung je Stunde zeigen.
+    let deckHtml="";
+    const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
+      const d=Math.max(1,e.e-e.s);
+      return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
+    });
+    if(erlPlatz.length){
+      const st=simuliere(arr,erlPlatz); let dv="";
+      st.per.forEach(p=>{ let inner=""; if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';} dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>'; });
+      deckHtml='<div class="deckung-titel">Deckung der Geräte je Stunde</div><div class="planer-deckung">'+dv+'</div>'+
+        '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
+        '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+st.sonneKwh.toFixed(1)+' kWh</b></div>'+
+        (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+st.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
+        '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+st.netzKwh.toFixed(1)+' kWh</b></div>';
+    }
+    rest.innerHTML=deckHtml+erledigtHtml(tagKey); wireErledigt(tagKey); return;
+  }
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
