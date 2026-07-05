@@ -481,7 +481,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <h2>Was steht an?</h2>
     <button class="alle-loeschen" id="btn-alle-loeschen">Alle löschen</button>
   </div>
-  <div class="untertitel">Anzahl antippen – Gerätename antippen zum Bearbeiten (Verbrauch &amp; Laufzeit).</div>
+  <div class="untertitel" id="geraete-untertitel">Anzahl antippen – Gerätename antippen zum Bearbeiten (Verbrauch &amp; Laufzeit).</div>
   <div class="vorschlag-box" id="vorschlag-box" hidden></div>
   <div class="chips" id="chips"></div>
   <button class="chip-plus" id="btn-geraet">＋ Gerät hinzufügen</button>
@@ -822,15 +822,30 @@ function erledigtGruppen(tagStr){
   return [...map.values()];
 }
 function tagKeyAktuell(){return tag==="morgen"?morgenStr():heuteStr();}
+// Anzahl eines manuellen Geräts an einem bestimmten Tag – getrennt für heute/morgen.
+function tagAnzahl(tagStr,name){ const m=cfg.tagAnzahl&&cfg.tagAnzahl[tagStr]; return (m&&m[name]!=null)?m[name]:0; }
+function setzeTagAnzahl(tagStr,name,n){ cfg.tagAnzahl=cfg.tagAnzahl||{}; const m=(cfg.tagAnzahl[tagStr]=cfg.tagAnzahl[tagStr]||{}); if(n>0)m[name]=n; else delete m[name]; }
 function geraeteFuerTag(tagStr){
   const zaehl={};
   erledigtListe(tagStr).forEach(e=>{zaehl[e.name]=(zaehl[e.name]||0)+1;});
   const out=[];
-  geraete.concat(routinenFuerTag(tagStr)).concat(uebernommeneFuerTag(tagStr)).forEach(g=>{
+  // Manuelle Geräte: Anzahl wird pro Tag geführt (heute ≠ morgen)
+  geraete.forEach(g=>{
+    const rest=tagAnzahl(tagStr,g.name)-(zaehl[g.name]||0);
+    if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
+  });
+  // Routinen + übernommene Vorschläge sind bereits tagesbezogen (Anzahl 1)
+  routinenFuerTag(tagStr).concat(uebernommeneFuerTag(tagStr)).forEach(g=>{
     const rest=(g.anzahl!=null?g.anzahl:1)-(zaehl[g.name]||0);
     if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
   });
   return out;
+}
+// Ein Gerät (Vorlage) dem aktuell gezeigten Tag hinzufügen; Vorlage nur einmal in der Liste halten.
+function geraetAnHeutigenTag(vorlage){
+  if(!geraete.some(g=>g.name===vorlage.name)) geraete.push(Object.assign({anzahl:1},vorlage));
+  const tk=tagKeyAktuell();
+  if(tagAnzahl(tk,vorlage.name)<1) setzeTagAnzahl(tk,vorlage.name,1);
 }
 function deviceKey(g){return (g.typ||"")+"|"+g.name;}
 
@@ -1115,27 +1130,34 @@ function simuliere(arr,bloecke){
 
 /* ---------- Darstellung ---------- */
 function renderChips(){
-  const box=$("chips");box.innerHTML="";
+  const box=$("chips");if(!box)return;box.innerHTML="";
+  const tk=tagKeyAktuell(), woWort=(tag==="morgen"?"morgen":"heute");
+  const ut=$("geraete-untertitel");
+  if(ut)ut.innerHTML='Was soll <b>'+woWort+'</b> laufen? Anzahl antippen (gilt nur für '+woWort+') · Name antippen zum Bearbeiten.';
   geraete.forEach((g,i)=>{
+    const n=tagAnzahl(tk,g.name);
     const c=document.createElement("div");
-    c.className="chip"+(g.anzahl>0?" an":"");
+    c.className="chip"+(n>0?" an":"");
     c.innerHTML='<button class="info" data-e="'+i+'" aria-label="'+g.name+' bearbeiten">'+
       '<span class="cn">'+g.icon+' '+g.name+'</span><br>'+
       '<span class="ck"><u>~'+dz(g.kwh)+' kWh · '+dz(g.dauer)+' h</u> ✎</span></button>'+
       '<span class="mini"><button data-m="'+i+'" aria-label="'+g.name+' weniger">−</button>'+
-      '<span class="z">'+g.anzahl+'</span>'+
+      '<span class="z">'+n+'</span>'+
       '<button data-p="'+i+'" aria-label="'+g.name+' mehr">＋</button></span>'+
       '<button class="weg" data-w="'+i+'" aria-label="'+g.name+' entfernen">✕</button>';
     box.appendChild(c);
   });
   box.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{
-    const g=geraete[+b.dataset.p];if(g.anzahl<5)g.anzahl++;speichern();renderChips();aktualisieren();});
+    const g=geraete[+b.dataset.p];const n=tagAnzahl(tk,g.name);if(n<5){setzeTagAnzahl(tk,g.name,n+1);speichern();aktualisieren();}});
   box.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
-    const g=geraete[+b.dataset.m];if(g.anzahl>0)g.anzahl--;speichern();renderChips();aktualisieren();});
+    const g=geraete[+b.dataset.m];const n=tagAnzahl(tk,g.name);if(n>0){setzeTagAnzahl(tk,g.name,n-1);speichern();aktualisieren();}});
   box.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{
     const i=+b.dataset.w, g=geraete[i]; if(!g)return;
-    if(typeof confirm==="function" && !confirm("Dieses Gerät aus der Liste entfernen?\n\n"+g.icon+" "+g.name))return;
-    geraete.splice(i,1);speichern();renderChips();aktualisieren();});
+    if(typeof confirm==="function" && !confirm("Dieses Gerät ganz aus der Liste entfernen?\n\n"+g.icon+" "+g.name+"\n\n(Es verschwindet dann für heute und morgen.)"))return;
+    const name=g.name; geraete.splice(i,1);
+    // Tages-Anzahlen dieses Geräts überall aufräumen
+    if(cfg.tagAnzahl)Object.keys(cfg.tagAnzahl).forEach(d=>{if(cfg.tagAnzahl[d])delete cfg.tagAnzahl[d][name];});
+    speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
 // Gelernte Vorschläge ("Für heute vorgeschlagen") rendern und verdrahten.
@@ -1438,7 +1460,7 @@ function aktualisieren(){
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
-  sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
+  renderChips();sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>"+trustChip();}
@@ -1678,9 +1700,11 @@ $("btn-fertig").onclick=()=>{
 
 /* Alle löschen */
 $("btn-alle-loeschen").onclick=()=>{
-  if(!geraete.length)return;
-  if(typeof confirm==="function" && !confirm("Wirklich alle Geräte aus der Liste entfernen?"))return;
-  geraete=[];speichern();renderChips();aktualisieren();
+  const tk=tagKeyAktuell(), wo=(tag==="morgen"?"morgen":"heute");
+  if(!geraete.some(g=>tagAnzahl(tk,g.name)>0))return;
+  if(typeof confirm==="function" && !confirm("Für "+wo+" alle Geräte aus dem Plan nehmen?\n\nDie Geräte bleiben in der Liste – nur die Anzahl für "+wo+" wird auf 0 gesetzt."))return;
+  geraete.forEach(g=>setzeTagAnzahl(tk,g.name,0));
+  speichern();renderChips();aktualisieren();
 };
 /* Neuer Auto-Vorschlag: gespeicherten Plan des Tages verwerfen und frisch optimieren */
 $("btn-vorschlag").onclick=()=>{
@@ -1760,7 +1784,7 @@ function renderMeine(){
   });
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
     const m=meineGeraete[+b.dataset.add];
-    geraete.push({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis,anzahl:1});
+    geraetAnHeutigenTag({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis});
     speichern();sheetZu();renderChips();aktualisieren();
   });
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
@@ -1798,8 +1822,8 @@ $("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();renderMe
   $("klasse-abschnitt").hidden=true;$("schaetzung-box").hidden=true;$("btn-g-fertig").hidden=true;
   sheetAuf("sheet-geraet");};
 $("btn-g-fertig").onclick=()=>{
-  geraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,
-    kwh:wahlTyp.klassen[wahlKlasse],dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis,anzahl:1});
+  geraetAnHeutigenTag({typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,
+    kwh:wahlTyp.klassen[wahlKlasse],dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
   speichern();sheetZu();renderChips();aktualisieren();
 };
 
@@ -1861,7 +1885,8 @@ $("btn-b-merken").onclick=async()=>{
 $("btn-b-loeschen").onclick=()=>{
   const g=geraete[bearbIndex]; if(!g)return;
   if(typeof confirm==="function" && !confirm("Dieses Gerät aus der Liste entfernen?\n\n"+g.icon+" "+g.name))return;
-  geraete.splice(bearbIndex,1);
+  const name=g.name; geraete.splice(bearbIndex,1);
+  if(cfg.tagAnzahl)Object.keys(cfg.tagAnzahl).forEach(d=>{if(cfg.tagAnzahl[d])delete cfg.tagAnzahl[d][name];});
   speichern();sheetZu();renderChips();aktualisieren();
 };
 
@@ -2024,6 +2049,14 @@ function seedPresets(){
     if(cfg.verlauf){["Waschmaschine: Handtücher 60°","Waschmaschine: Bettwäsche 60°","Waschmaschine: Eco 40–60"].forEach(n=>{delete cfg.verlauf[n];});}
     cfg.seedVerlaufWeg1=true;geaendert=true;
   }
+  // Umstellung auf tages-getrennte Anzahl: bisher globale Anzahl einmalig auf HEUTE übertragen,
+  // damit bestehende Geräte heute weiterlaufen und morgen bewusst leer startet.
+  if(!cfg.tagAnzahlMig1){
+    cfg.tagAnzahl=cfg.tagAnzahl||{};
+    const hk=heuteStr(); const m=(cfg.tagAnzahl[hk]=cfg.tagAnzahl[hk]||{});
+    geraete.forEach(g=>{ if((g.anzahl||0)>0 && m[g.name]==null) m[g.name]=g.anzahl; });
+    cfg.tagAnzahlMig1=true;geaendert=true;
+  }
   if(geaendert)speichern();
 }
 
@@ -2033,7 +2066,7 @@ seedPresets();
 (function(){const hk=heuteStr(),mk=morgenStr();
   if(cfg.erledigt&&typeof cfg.erledigt==="object")Object.keys(cfg.erledigt).forEach(k=>{if(k!==hk)delete cfg.erledigt[k];});
   if(cfg.plaene&&typeof cfg.plaene==="object")Object.keys(cfg.plaene).forEach(k=>{if(k!==hk&&k!==mk)delete cfg.plaene[k];});
-  ["uebernommen","abgelehnt"].forEach(kk=>{ if(cfg[kk]&&typeof cfg[kk]==="object")Object.keys(cfg[kk]).forEach(d=>{if(d!==hk&&d!==mk)delete cfg[kk][d];}); });
+  ["uebernommen","abgelehnt","tagAnzahl"].forEach(kk=>{ if(cfg[kk]&&typeof cfg[kk]==="object")Object.keys(cfg[kk]).forEach(d=>{if(d!==hk&&d!==mk)delete cfg[kk][d];}); });
 })();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
