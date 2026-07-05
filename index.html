@@ -1597,9 +1597,14 @@ function renderPlaner(arr){
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
       markiereErledigt(tagKey,b.name,b.icon,b.start,b.dauer,b.kwh); // Fenster + kWh
     });
-    // Deckungs-Streifen je Stunde
+    // Deckungs-Streifen je Stunde – auch bereits gelaufene Geräte (mit gespeichertem Fenster) einbeziehen
+    const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
+      const d=Math.max(1,e.e-e.s);
+      return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
+    });
+    const simTag = erlPlatz.length ? simuliere(arr, platzierungen.map(b=>Object.assign({},b)).concat(erlPlatz)) : sim;
     let dv="";
-    sim.per.forEach(p=>{
+    simTag.per.forEach(p=>{
       let inner="";
       if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';}
       dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>';
