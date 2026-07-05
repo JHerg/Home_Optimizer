@@ -428,8 +428,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .vl-lern-tx span{font-size:11.5px;color:var(--grau)}
 .vl-tab-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
 .vl-tab{width:100%;border-collapse:collapse;font-size:12.5px}
-.vl-tab th{text-align:left;font-size:10.5px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border-bottom:1.5px solid var(--linie);white-space:nowrap}
-.vl-tab td{padding:9px 8px;border-bottom:1px solid var(--linie);color:var(--tinte);white-space:nowrap}
+.vl-tab th{text-align:left;font-size:10.5px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.03em;padding:6px 6px;border-bottom:1.5px solid var(--linie);white-space:nowrap}
+.vl-tab td{padding:9px 6px;border-bottom:1px solid var(--linie);color:var(--tinte);white-space:nowrap}
+.vl-tab th:last-child,.vl-tab td:last-child{padding-right:2px}
 .vl-tab .vl-d{font-family:var(--mono);color:var(--grau)}
 .vl-tab .vl-z{font-family:var(--mono);color:var(--grau)}
 .vl-tab .vl-k{font-family:var(--mono);font-weight:600;text-align:right}
@@ -1730,12 +1731,12 @@ function renderVerlauf(){
   // Tabelle (max. 60 jüngste Läufe)
   let rows="";
   alle.slice(0,60).forEach(x=>{
-    const zeit = x.s!=null ? (x.s+"–"+(x.dauer!=null?Math.round(x.s+x.dauer):x.s)+" Uhr") : "–";
-    const kwh = x.k!=null ? dz(x.k)+" kWh" : "–";
+    const zeit = x.s!=null ? (x.s+"–"+(x.dauer!=null?Math.round(x.s+x.dauer):x.s)+" h") : "–";
+    const kwh = x.k!=null ? dz(x.k) : "–";
     rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+kwh+'</td></tr>';
   });
   box.innerHTML=
-    '<div class="vl-bilanz">Letzte 7 Tage: <b>'+woche.length+'</b> Läufe · <b>'+dz(wKwh.toFixed(1))+' kWh</b> in die Sonne verschoben</div>'+
+    '<div class="vl-bilanz">Letzte 7 Tage: <b>'+woche.length+'</b> '+(woche.length===1?'Lauf':'Läufe')+' · <b>'+dz(wKwh.toFixed(1))+' kWh</b> in die Sonne verschoben</div>'+
     (lern?'<div class="vl-titel">Was die App gelernt hat</div>'+lern:'')+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
