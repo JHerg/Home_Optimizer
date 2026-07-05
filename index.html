@@ -182,6 +182,7 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .kopier-knopf:hover{border-color:var(--netz)}
 .kopier-knopf:active{transform:scale(.98)}
 .kopier-knopf.ok{border-color:var(--gruen);color:var(--gruen)}
+.kopier-hint{font-size:11px;color:var(--grau);line-height:1.45;margin-top:7px;text-align:center;padding:0 4px}
 .fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(20,31,44,.5)}
 .fertig:active{transform:scale(.98)}
 .loeschen-knopf{width:100%;padding:13px;border:1.5px solid var(--rot);border-radius:15px;background:transparent;color:var(--rot);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:background var(--schnell)}
@@ -888,9 +889,11 @@ function vorschlaegeFuer(tagStr){
   const geplant=new Set(geraeteFuerTag(tagStr).map(g=>g.name));
   const abg=new Set((cfg.abgelehnt&&cfg.abgelehnt[tagStr])||[]);
   const done=new Set(erledigtListe(tagStr).map(e=>e.name));
+  // Geräte mit fester Routine gehören der Routine – nie als "gelernt" vorschlagen.
+  const routineNamen=new Set((routinen||[]).filter(r=>r.aktiv!==false).map(r=>r.name));
   const out=[];
   Object.keys(cfg.verlauf).forEach(name=>{
-    if(geplant.has(name)||abg.has(name)||done.has(name))return;
+    if(geplant.has(name)||abg.has(name)||done.has(name)||routineNamen.has(name))return;
     const v=findeVorlage(name); if(!v)return;
     const m=analysiereMuster(name); if(!m)return;
     const f=musterFaellig(m,tagStr); if(!f)return;
@@ -1311,7 +1314,8 @@ function renderPlaner(arr){
     '<div class="planer-deckung" id="planer-deckung"></div>'+
     '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
     '<div class="verdikt" id="planer-verdikt"></div>'+
-    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten kopieren</button>'+
+    '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten als Text kopieren</button>'+
+    '<div class="kopier-hint">Kopiert den Plan als Text – zum Einfügen in deine Geräte-Timer, einen Kalender-Eintrag, eine Notiz oder dein EMS (z. B. Bullerbü). Die App steuert selbst nichts.</div>'+
     erledigtHtml(tagKey);
   wireErledigt(tagKey);
   const bl=$("blocks-layer");
@@ -1424,7 +1428,7 @@ function renderPlaner(arr){
       .map(b=>b.name+": "+b.start+"–"+(b.start+b.dauer)+" Uhr");
     const kopf2=(tag==="heute"?"Heute":"Morgen")+" – empfohlene Startzeiten:\n";
     const text=kopf2+zeilen.join("\n");
-    const fertig=()=>{kopf.textContent="✓ Kopiert";kopf.classList.add("ok");setTimeout(()=>{kopf.textContent="📋 Startzeiten kopieren";kopf.classList.remove("ok");},1800);};
+    const fertig=()=>{kopf.textContent="✓ Kopiert";kopf.classList.add("ok");setTimeout(()=>{kopf.textContent="📋 Startzeiten als Text kopieren";kopf.classList.remove("ok");},1800);};
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(fertig).catch(()=>fallbackKopie(text,fertig));
     }else fallbackKopie(text,fertig);
@@ -2040,17 +2044,12 @@ function seedPresets(){
     upd(meineGeraete);upd(routinen);
     cfg.iconFix1=true;geaendert=true;
   }
-  // Kaltstart der Gewohnheits-Engine: plausible Lauf-Historie für die Vorlagen, damit
-  // ab Tag 1 echte Vorschläge kommen. Wird von echten Läufen nach und nach überschrieben.
-  if(!cfg.seedVerlauf1){
-    cfg.verlauf=cfg.verlauf||{};
-    const heute=Date.parse(heuteStr()+"T12:00:00Z");
-    const tage=n=>new Date(heute-n*86400000).toISOString().slice(0,10);
-    const setze=(name,offsets)=>{ if(!cfg.verlauf[name]) cfg.verlauf[name]=offsets.map(tage).sort(); };
-    setze("Waschmaschine: Handtücher 60°",[12,9,6,3]); // alle ~3 Tage -> heute fällig
-    setze("Waschmaschine: Bettwäsche 60°",[21,14,7]);  // wöchentlich -> heute fällig
-    setze("Waschmaschine: Eco 40–60",[9,5,1]);         // alle ~4 Tage, zuletzt gestern -> noch nicht fällig
-    cfg.seedVerlauf1=true;geaendert=true;
+  // Die Gewohnheits-Engine lernt ausschließlich aus echten Läufen (Häkchen "schon gelaufen").
+  // Früher wurde eine Demo-Historie erfunden – die wird hier einmalig wieder entfernt,
+  // damit keine erdachten Vorschläge (v. a. für Geräte mit fester Routine) erscheinen.
+  if(!cfg.seedVerlaufWeg1){
+    if(cfg.verlauf){["Waschmaschine: Handtücher 60°","Waschmaschine: Bettwäsche 60°","Waschmaschine: Eco 40–60"].forEach(n=>{delete cfg.verlauf[n];});}
+    cfg.seedVerlaufWeg1=true;geaendert=true;
   }
   if(geaendert)speichern();
 }
