@@ -243,6 +243,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   font-family:var(--mono);font-size:10px;font-weight:700;color:#7A5A0C;background:rgba(255,255,255,.72);border-radius:6px;padding:2px 6px}
 .lane{position:relative;margin-top:9px}
 .lane .track{position:absolute;inset:0}
+.lane-leer{display:flex;align-items:center;justify-content:center;height:100%;font-size:12.5px;color:var(--grau);text-align:center;padding:0 12px;line-height:1.4}
+.lane-leer b{color:var(--tinte)}
 .p-blk{position:absolute;top:0;height:34px;border-radius:11px;padding:0 8px;display:flex;align-items:center;gap:6px;
   background:var(--karte);border:1px solid var(--linie);box-shadow:0 4px 12px -6px rgba(20,31,44,.4);
   cursor:grab;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
@@ -1105,12 +1107,7 @@ function renderPlaner(arr){
   $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
   if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;}
   warn.innerHTML=ungeplantHtml();wireUngeplant(tagKey);
-  if(!platzierungen.length){
-    const leerText=ungeplant.length
-      ? 'Für heute ist kein Gerät mehr einplanbar – siehe Hinweis oben.'
-      : (erledigtListe(tagKey).length?'Alles für heute erledigt oder eingeplant. 🎉':'Wähle oben mindestens ein Gerät (＋ drücken).');
-    chart.innerHTML='<div class="plan-leer">'+leerText+'</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;
-  }
+  const hatBloecke = platzierungen.length>0;
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
   const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
   // Lane-Zuweisung, damit parallele Bloecke nicht uebereinander liegen
@@ -1120,7 +1117,7 @@ function renderPlaner(arr){
     b._lane=lane; laneEnde[lane]=b.start+b.dauer;
   });
   const lanes=Math.max(1,laneEnde.length);
-  const laneH=lanes*40-6;                 // 34px Block + 6px Reihenabstand
+  const laneH=hatBloecke?lanes*40-6:46;   // 34px Block + 6px Reihenabstand; leer: Hinweiszeile
   const dyn=cfg.tarif!=="fest";
   // ---- Himmels-Koordinaten (SVG 0..100): Horizont unten, Zenit oben ----
   const HOR=86, PEAK=14, X=h=>h/24*100;
@@ -1140,6 +1137,13 @@ function renderPlaner(arr){
   const jetztStr=jetztH>=0?"jetzt · "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"";
   const sunHtml=jetztH>=0?'<div class="nowlab" style="left:'+nowX+'%">'+jetztStr+'</div><div class="hero-sun" style="left:'+nowX+'%;top:'+arcY(jetztH+0.5).toFixed(1)+'%"></div>':'';
   const preisLeg=dyn?'<span><i class="lg-line"></i>💶 Strompreis</span>':'<span><i class="lg-line" style="border-top-style:dotted"></i>💶 Fester Tarif: '+dz((cfg.festpreis||0).toFixed(2))+' €/kWh</span>';
+  const laneInner=hatBloecke
+    ? '<div class="track" id="blocks-layer"></div>'
+    : '<div class="lane-leer">'+(ungeplant.length
+        ? 'Heute nichts mehr einplanbar – siehe Hinweis oben.'
+        : (erledigtListe(tagKey).length
+            ? 'Alles für heute erledigt oder eingeplant. 🎉'
+            : 'Noch keine Geräte für diesen Tag – tippe oben <b>＋ Gerät hinzufügen</b>.'))+'</div>';
   chart.innerHTML=
     '<div class="sky">'+
       '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
@@ -1152,10 +1156,12 @@ function renderPlaner(arr){
         nowLine+
       '</svg>'+sunHtml+
     '</div>'+
-    '<div class="lane" id="planer-leiste" style="height:'+laneH+'px"><div class="track" id="blocks-layer"></div></div>'+
+    '<div class="lane" id="planer-leiste" style="height:'+laneH+'px">'+laneInner+'</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
     '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>';
+  let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
+  if(!hatBloecke){ rest.innerHTML=erledigtHtml(tagKey); wireErledigt(tagKey); return; }
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
     '<div class="deckung-titel">Deckung der Geräte je Stunde</div>'+
@@ -1165,7 +1171,6 @@ function renderPlaner(arr){
     '<button class="kopier-knopf" id="btn-kopieren">📋 Startzeiten kopieren</button>'+
     erledigtHtml(tagKey);
   wireErledigt(tagKey);
-  let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   const bl=$("blocks-layer");
   platzierungen.forEach(b=>{
     const el=document.createElement("div");
