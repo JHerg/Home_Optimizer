@@ -390,6 +390,34 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .routine-banner{display:flex;gap:8px;align-items:flex-start;background:var(--sonne-hell);color:#7A5A0C;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;margin:12px 0 4px;line-height:1.4}
 .routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:6px;transition:border-color var(--schnell),color var(--schnell)}
 .routine-add:hover{border-color:var(--sonne);color:var(--nacht)}
+/* Sonnen-Budget (Bedarf vs. freie Sonne) */
+.budget{margin-top:13px}
+.budget-bar{height:8px;border-radius:99px;background:var(--gruen-hell);overflow:hidden}
+.budget-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#FFCB57,var(--sonne));transition:width var(--weich)}
+.budget-fill.voll{background:linear-gradient(90deg,var(--sonne),var(--rot))}
+.budget-tx{font-size:11.5px;color:var(--grau);margin-top:6px;line-height:1.4}
+.budget-tx b{color:var(--tinte);font-family:var(--mono);font-weight:600}
+.budget-ok{color:var(--gruen);font-weight:600}
+.budget-warn{color:var(--rot);font-weight:600}
+/* Verlaufs-Reiter */
+.vl-leer{font-size:13px;color:var(--grau);line-height:1.6;text-align:center;padding:22px 8px}
+.vl-bilanz{background:var(--gruen-hell);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--tinte);margin-bottom:16px}
+.vl-bilanz b{color:var(--gruen);font-weight:700}
+.vl-titel{font-size:12px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 8px}
+.vl-lern{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
+.vl-lern:last-of-type{border-bottom:none;margin-bottom:8px}
+.vl-ic{font-size:19px;line-height:1;flex-shrink:0}
+.vl-lern-tx{display:flex;flex-direction:column;min-width:0}
+.vl-lern-tx b{font-size:13.5px;color:var(--nacht);font-weight:600}
+.vl-lern-tx span{font-size:11.5px;color:var(--grau)}
+.vl-tab-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
+.vl-tab{width:100%;border-collapse:collapse;font-size:12.5px}
+.vl-tab th{text-align:left;font-size:10.5px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.03em;padding:6px 8px;border-bottom:1.5px solid var(--linie);white-space:nowrap}
+.vl-tab td{padding:9px 8px;border-bottom:1px solid var(--linie);color:var(--tinte);white-space:nowrap}
+.vl-tab .vl-d{font-family:var(--mono);color:var(--grau)}
+.vl-tab .vl-z{font-family:var(--mono);color:var(--grau)}
+.vl-tab .vl-k{font-family:var(--mono);font-weight:600;text-align:right}
+.vl-tab tbody tr:last-child td{border-bottom:none}
 /* Gelernte Vorschläge ("Für heute vorgeschlagen") */
 .vorschlag-box{background:radial-gradient(120% 100% at 100% 0%,rgba(245,168,12,.14),rgba(245,168,12,0) 60%),var(--karte);border:1px solid var(--linie);border-radius:15px;padding:13px 14px;margin-bottom:14px}
 .vs-titel{font-size:13.5px;font-weight:700;color:var(--nacht)}
@@ -462,10 +490,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="claim">Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
 <div class="sonnen-summe" id="sonnen-summe" hidden>☀️ Dein Dach liefert voraussichtlich <b>&nbsp;– kWh</b></div>
 
-<div class="segment" role="group" aria-label="Tag wählen">
+<div class="segment" role="group" aria-label="Ansicht wählen">
   <button id="btn-heute" class="aktiv">Heute</button>
   <button id="btn-morgen">Morgen</button>
   <button id="btn-woche">Woche</button>
+  <button id="btn-verlauf">Verlauf</button>
 </div>
 <div class="status" id="status">Lade Sonnen- und Preisdaten…</div>
 <details class="quellen-details">
@@ -511,6 +540,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div class="untertitel">Feste Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
   <div id="routine-liste"></div>
   <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
+</section>
+
+<section class="karte" id="karte-verlauf" hidden>
+  <div class="karten-kopf"><h2>Verlauf</h2></div>
+  <div class="untertitel">Was tatsächlich gelaufen ist – daraus lernt die App deine Rhythmen. Alles bleibt lokal auf deinem Gerät.</div>
+  <div id="verlauf-inhalt"></div>
 </section>
 
 <!-- Einrichtung -->
@@ -861,11 +896,14 @@ function deviceKey(g){return (g.typ||"")+"|"+g.name;}
 // ===== Gewohnheits-Engine: lernt aus tatsächlichen Läufen und schlägt Fälliges vor =====
 // Einträge sind {d:"YYYY-MM-DD", s:Startstunde|null}; ältere reine Datums-Strings bleiben lesbar.
 function vDatum(e){return typeof e==="string"?e:(e&&e.d);}
-// Ein bestätigter Lauf (Häkchen "schon gelaufen") wird mit Tag + Startzeit + kWh protokolliert.
-function protokolliereLauf(name,tagKey,start,kwh){
+// Ein bestätigter Lauf (Häkchen "schon gelaufen") wird selbstständig protokolliert:
+// Tag, Startstunde, kWh, Icon und Laufzeit – damit der Verlauf auch nach Gerätelöschung vollständig bleibt.
+function protokolliereLauf(name,tagKey,start,kwh,icon,dauer){
   cfg.verlauf=cfg.verlauf||{};
   let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>vDatum(e)!==tagKey); // gleicher Tag: ersetzen
-  l.push({d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)});
+  const e={d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)};
+  if(icon)e.i=icon; if(dauer!=null)e.du=dauer;
+  l.push(e);
   l.sort((a,b)=>vDatum(a)<vDatum(b)?-1:1);
   if(l.length>60)l=l.slice(l.length-60);            // Speicher deckeln
   cfg.verlauf[name]=l;
@@ -1258,7 +1296,7 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   if(start!=null){e.s=start; if(dauer!=null)e.e=start+dauer;} // Laufzeitfenster für Übersicht + Lernen
   if(kwh!=null)e.k=kwh;                       // benötigte Energie des Durchgangs
   cfg.erledigt[tagKey].push(e);              // ein Eintrag = ein erledigter Durchgang
-  protokolliereLauf(name,tagKey,start,kwh); // dauerhaft fürs Lernen (Rhythmus, Uhrzeit, kWh)
+  protokolliereLauf(name,tagKey,start,kwh,icon,dauer); // dauerhaft fürs Lernen (Rhythmus, Uhrzeit, kWh, Icon)
   speichern();platzSig="";aktualisieren();
 }
 function renderPlaner(arr){
@@ -1320,6 +1358,17 @@ function renderPlaner(arr){
   else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
   else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
   const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
+  // ---- Sonnen-Budget: Energiebedarf des Tages vs. verschiebbare freie Sonne ----
+  const freieSonneKwh = arr.reduce((a,s)=>a+Math.max(0,(s.pv-cfg.schwelle))/1000,0);
+  const bedarfKwh = (planGeraete||[]).reduce((a,g)=>a+(g.kwh||0)*(g.anzahl!=null?g.anzahl:1),0);
+  const belegtPct = freieSonneKwh>0 ? Math.min(100, bedarfKwh/freieSonneKwh*100) : (bedarfKwh>0?100:0);
+  const ueber = Math.max(0, bedarfKwh-freieSonneKwh);
+  const budgetHtml='<div class="budget">'+
+    '<div class="budget-bar"><span class="budget-fill'+(ueber>0.05?' voll':'')+'" style="width:'+belegtPct.toFixed(0)+'%"></span></div>'+
+    '<div class="budget-tx">☀️ <b>'+dz(bedarfKwh.toFixed(1))+' kWh</b> Bedarf von ~<b>'+dz(freieSonneKwh.toFixed(1))+' kWh</b> freier Sonne · '+
+      (ueber>0.05?'<span class="budget-warn">'+dz(ueber.toFixed(1))+' kWh über → Netz oder sonnigerer Tag</span>'
+                 :'<span class="budget-ok">'+dz(Math.max(0,freieSonneKwh-bedarfKwh).toFixed(1))+' kWh frei</span>')+
+    '</div></div>';
   chart.innerHTML=
     '<div class="sky">'+
       '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
@@ -1338,7 +1387,7 @@ function renderPlaner(arr){
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
     '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>'+
-    statsHtml;
+    statsHtml+budgetHtml;
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
     const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
@@ -1461,18 +1510,19 @@ function renderPlaner(arr){
   updateSim();
 }
 let aktuelleStunden=null;
-function tageskarten(zeigen){
-  ["karte-geraete","karte-plan"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigen;});
-  $("karte-woche").hidden=zeigen;
+function tageskarten(zeigenTag){
+  ["karte-geraete","karte-plan"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigenTag;});
+  $("karte-woche").hidden=(tag!=="woche");
+  const kv=$("karte-verlauf");if(kv)kv.hidden=(tag!=="verlauf");
 }
 function aktualisieren(){
-  if(tag==="woche"){
+  if(tag==="woche"||tag==="verlauf"){
     tageskarten(false);
     $("sonnen-summe").hidden=true;
     $("routine-banner").hidden=true;
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
-    $("titel").textContent="Deine Woche";
-    renderWoche();
+    if(tag==="woche"){ $("titel").textContent="Deine Woche"; renderWoche(); }
+    else { $("titel").textContent="Verlauf"; renderVerlauf(); }
     return;
   }
   tageskarten(true);
@@ -1546,6 +1596,61 @@ function renderRoutineListe(){
     if(typeof confirm==="function" && !confirm("Diese Routine löschen?\n\n"+r.icon+" "+r.name))return;
     routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
   });
+}
+function kurzDatum(d){ return WOCHENTAG_KURZ[wochentagVonKey(d)]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."; }
+function kurzName(n){ return n.replace(/^[^:]+:\s*/,""); }
+// Verlaufs-Reiter: gelernte Rhythmen + vollständige Lauf-Tabelle (Tag · Gerät · Zeit · kWh).
+function renderVerlauf(){
+  const box=$("verlauf-inhalt"); if(!box)return;
+  const namen=Object.keys(cfg.verlauf||{});
+  // Alle Läufe flach + chronologisch (neueste zuerst)
+  const alle=[];
+  namen.forEach(name=>{
+    const v=findeVorlage(name);
+    (cfg.verlauf[name]||[]).forEach(e=>{
+      const d=vDatum(e); if(!d)return;
+      const obj=(typeof e==="object");
+      const s=obj?e.s:null, k=obj?e.k:null;
+      const icon=(obj&&e.i)?e.i:(v?v.icon:"•");
+      const dauer=(obj&&e.du!=null)?e.du:(v?v.dauer:null);
+      alle.push({name, icon, dauer, d, s, k});
+    });
+  });
+  if(!alle.length){
+    box.innerHTML='<div class="vl-leer">Noch nichts protokolliert.<br>Sobald du ein Gerät als „✓ schon gelaufen" abhakst, erscheint es hier – und die App lernt daraus deinen Rhythmus.</div>';
+    return;
+  }
+  alle.sort((a,b)=> a.d<b.d?1:(a.d>b.d?-1:((b.s||0)-(a.s||0))));
+  // Wochenbilanz (letzte 7 Tage)
+  const heute=Date.parse(heuteStr()+"T12:00:00Z");
+  const woche=alle.filter(x=>(heute-Date.parse(x.d+"T12:00:00Z"))<7*86400000);
+  const wKwh=woche.reduce((a,x)=>a+(x.k||0),0);
+  // Gelernte Muster je Gerät
+  let lern="";
+  namen.map(name=>({name,m:analysiereMuster(name)})).filter(x=>x.m)
+    .sort((a,b)=>b.m.konfidenz-a.m.konfidenz)
+    .forEach(({name,m})=>{
+      const v=findeVorlage(name);
+      const ie=[...(cfg.verlauf[name]||[])].reverse().find(e=>typeof e==="object"&&e.i);
+      const icon=(ie&&ie.i)||(v?v.icon:"•");
+      const ks=(cfg.verlauf[name]||[]).map(e=>typeof e==="object"?e.k:null).filter(x=>x!=null);
+      const avg=ks.length?(ks.reduce((a,b)=>a+b,0)/ks.length):null;
+      const rhy = m.typ==="intervall" ? "alle ~"+m.intervall+" Tage" : "meist "+m.wochentage.map(w=>WOCHENTAG_KURZ[w]).join("/");
+      lern+='<div class="vl-lern"><span class="vl-ic">'+icon+'</span><span class="vl-lern-tx"><b>'+kurzName(name)+'</b>'+
+        '<span>'+rhy+' · zuletzt '+kurzDatum(m.letzter)+(avg!=null?' · ø '+dz(avg.toFixed(1))+' kWh':'')+'</span></span></div>';
+    });
+  // Tabelle (max. 60 jüngste Läufe)
+  let rows="";
+  alle.slice(0,60).forEach(x=>{
+    const zeit = x.s!=null ? (x.s+"–"+(x.dauer!=null?Math.round(x.s+x.dauer):x.s)+" Uhr") : "–";
+    const kwh = x.k!=null ? dz(x.k)+" kWh" : "–";
+    rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+kwh+'</td></tr>';
+  });
+  box.innerHTML=
+    '<div class="vl-bilanz">Letzte 7 Tage: <b>'+woche.length+'</b> Läufe · <b>'+dz(wKwh.toFixed(1))+' kWh</b> in die Sonne verschoben</div>'+
+    (lern?'<div class="vl-titel">Was die App gelernt hat</div>'+lern:'')+
+    '<div class="vl-titel">Alle Läufe</div>'+
+    '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 let letzterLoad=0;
 async function laden(){
@@ -1914,12 +2019,13 @@ $("btn-b-loeschen").onclick=()=>{
 /* Tag-Umschalter (Heute / Morgen / Woche) */
 function setzeTag(t){
   tag=t;
-  [["btn-heute","heute"],["btn-morgen","morgen"],["btn-woche","woche"]].forEach(([id,v])=>$(id).classList.toggle("aktiv",v===t));
+  [["btn-heute","heute"],["btn-morgen","morgen"],["btn-woche","woche"],["btn-verlauf","verlauf"]].forEach(([id,v])=>{const b=$(id);if(b)b.classList.toggle("aktiv",v===t);});
   aktualisieren();
 }
 $("btn-heute").onclick=()=>setzeTag("heute");
 $("btn-morgen").onclick=()=>setzeTag("morgen");
 $("btn-woche").onclick=()=>setzeTag("woche");
+$("btn-verlauf").onclick=()=>setzeTag("verlauf");
 
 /* Routinen anlegen / bearbeiten */
 function routineTypenRender(){
