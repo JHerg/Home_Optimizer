@@ -819,7 +819,15 @@ function routinenFuerTag(tagStr){
 function erledigtListe(tagStr){return (cfg.erledigt&&cfg.erledigt[tagStr])||[];}
 function erledigtGruppen(tagStr){
   const map=new Map();
-  erledigtListe(tagStr).forEach(e=>{const g=map.get(e.name)||{name:e.name,icon:e.icon,n:0,zeiten:[]};g.n++;if(e.s!=null&&e.e!=null)g.zeiten.push(e.s+"–"+e.e+" Uhr");map.set(e.name,g);});
+  erledigtListe(tagStr).forEach(e=>{
+    const g=map.get(e.name)||{name:e.name,icon:e.icon,n:0,det:[]};
+    g.n++;
+    const teile=[];
+    if(e.s!=null&&e.e!=null)teile.push(e.s+"–"+e.e+" Uhr");
+    if(e.k!=null)teile.push(dz(e.k)+" kWh");
+    if(teile.length)g.det.push(teile.join(" · "));
+    map.set(e.name,g);
+  });
   return [...map.values()];
 }
 function tagKeyAktuell(){return tag==="morgen"?morgenStr():heuteStr();}
@@ -853,11 +861,11 @@ function deviceKey(g){return (g.typ||"")+"|"+g.name;}
 // ===== Gewohnheits-Engine: lernt aus tatsächlichen Läufen und schlägt Fälliges vor =====
 // Einträge sind {d:"YYYY-MM-DD", s:Startstunde|null}; ältere reine Datums-Strings bleiben lesbar.
 function vDatum(e){return typeof e==="string"?e:(e&&e.d);}
-// Ein bestätigter Lauf (Häkchen "schon gelaufen") wird mit Tag + Startzeit protokolliert.
-function protokolliereLauf(name,tagKey,start){
+// Ein bestätigter Lauf (Häkchen "schon gelaufen") wird mit Tag + Startzeit + kWh protokolliert.
+function protokolliereLauf(name,tagKey,start,kwh){
   cfg.verlauf=cfg.verlauf||{};
   let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>vDatum(e)!==tagKey); // gleicher Tag: ersetzen
-  l.push({d:tagKey, s:(start!=null?start:null)});
+  l.push({d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)});
   l.sort((a,b)=>vDatum(a)<vDatum(b)?-1:1);
   if(l.length>60)l=l.slice(l.length-60);            // Speicher deckeln
   cfg.verlauf[name]=l;
@@ -1081,7 +1089,7 @@ function autoPlatzierung(arr){
     }
     if(n<g.anzahl){
       const jetzt=(tag==="heute")?berlinTeile(new Date()).stunde:0;
-      ungeplant.push({icon:g.icon,name:g.name,fehlend:g.anzahl-n,
+      ungeplant.push({icon:g.icon,name:g.name,kwh:g.kwh,fehlend:g.anzahl-n,
         abStart:Math.max(naechsterStart,jetzt),dauer,bis:Math.min(24,g.bis)});
     }
   });
@@ -1216,7 +1224,7 @@ function ungeplantHtml(){
 function wireUngeplant(tagKey){
   document.querySelectorAll('#planer-warnung [data-ungeplant]').forEach(b=>b.onclick=()=>{
     const u=ungeplant[+b.dataset.ungeplant];if(!u)return;
-    markiereErledigt(tagKey,u.name,u.icon);
+    markiereErledigt(tagKey,u.name,u.icon,undefined,undefined,u.kwh);
   });
 }
 // "Heute schon gelaufen"-Liste (nach Gerät gruppiert, mit Anzahl)
@@ -1225,7 +1233,7 @@ function erledigtHtml(tagKey){
   if(!gruppen.length)return "";
   return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
     gruppen.map(g=>{
-      const zeit = g.zeiten.length ? '<span class="erl-zeit">'+g.zeiten.join(' · ')+'</span>' : (g.n>1?'<span class="erl-zeit">'+g.n+'×</span>':'');
+      const zeit = g.det.length ? '<span class="erl-zeit">'+g.det.join(' | ')+'</span>' : (g.n>1?'<span class="erl-zeit">'+g.n+'×</span>':'');
       return '<div class="erledigt-zeile"><span>'+g.icon+' '+g.name+zeit+'</span><button data-undo-name="'+encodeURIComponent(g.name)+'">zurück</button></div>';
     }).join("")+
     '</div>';
@@ -1243,13 +1251,14 @@ function wireErledigt(tagKey){
     speichern();platzSig="";aktualisieren();
   });
 }
-function markiereErledigt(tagKey,name,icon,start,dauer){
+function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   cfg.erledigt=cfg.erledigt||{};
   (cfg.erledigt[tagKey]=cfg.erledigt[tagKey]||[]);
   const e={name,icon};
   if(start!=null){e.s=start; if(dauer!=null)e.e=start+dauer;} // Laufzeitfenster für Übersicht + Lernen
-  cfg.erledigt[tagKey].push(e);           // ein Eintrag = ein erledigter Durchgang
-  protokolliereLauf(name,tagKey,start);   // dauerhaft fürs Lernen der Rhythmen (mit Startzeit)
+  if(kwh!=null)e.k=kwh;                       // benötigte Energie des Durchgangs
+  cfg.erledigt[tagKey].push(e);              // ein Eintrag = ein erledigter Durchgang
+  protokolliereLauf(name,tagKey,start,kwh); // dauerhaft fürs Lernen (Rhythmus, Uhrzeit, kWh)
   speichern();platzSig="";aktualisieren();
 }
 function renderPlaner(arr){
@@ -1415,7 +1424,7 @@ function renderPlaner(arr){
     });
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
-      markiereErledigt(tagKey,b.name,b.icon,b.start,b.dauer); // mit geplantem Laufzeitfenster
+      markiereErledigt(tagKey,b.name,b.icon,b.start,b.dauer,b.kwh); // Fenster + kWh
     });
     // Deckungs-Streifen je Stunde
     let dv="";
