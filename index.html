@@ -34,6 +34,7 @@
   --schnell:.16s cubic-bezier(.32,.72,.34,1); --weich:.28s cubic-bezier(.32,.72,.34,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;
   padding-bottom:calc(48px + env(safe-area-inset-bottom));padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));
   background:
@@ -73,10 +74,15 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 .segment button.aktiv{background:var(--karte);color:var(--nacht);box-shadow:0 1px 3px rgba(20,31,44,.12),0 2px 8px -2px rgba(20,31,44,.14)}
 .status{font-family:var(--mono);font-size:12px;color:var(--grau);padding:4px 2px 10px;min-height:20px}
 .status .fehler{color:var(--rot)}
-.quellen-info{font-size:11px;color:var(--grau);padding:0 2px 14px;line-height:1.55}
+.quellen-details{padding:0 2px 14px}
+.quellen-details summary{display:inline-flex;align-items:center;font-size:11px;color:var(--grau);cursor:pointer;list-style:none;user-select:none;padding:2px 0;width:fit-content}
+.quellen-details summary::-webkit-details-marker{display:none}
+.quellen-details[open] summary{color:var(--tinte);font-weight:600}
+.quellen-info{font-size:11px;color:var(--grau);line-height:1.55;padding-top:4px}
 .quellen-info b{color:var(--tinte);font-weight:600}
 
 .karte{background:var(--karte);border-radius:var(--radius);padding:20px;box-shadow:var(--hairline),var(--schatten);margin-bottom:14px}
+#karte-geraete{background:radial-gradient(130% 100% at 100% 0%,rgba(245,168,12,.11),rgba(245,168,12,0) 58%),var(--karte)}
 h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .untertitel{font-size:12.5px;color:var(--grau);margin-bottom:14px;line-height:1.5}
 .karten-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
@@ -245,6 +251,19 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .lane .track{position:absolute;inset:0}
 .lane-leer{display:flex;align-items:center;justify-content:center;height:100%;font-size:12.5px;color:var(--grau);text-align:center;padding:0 12px;line-height:1.4}
 .lane-leer b{color:var(--tinte)}
+/* Antippbarer Verlauf + Kennzahlen (2.0 Politur) */
+.sky-taps{position:absolute;inset:0;z-index:4}
+.sky-tap{position:absolute;top:0;bottom:0;border:none;background:transparent;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sky-tap.sel{background:rgba(255,255,255,.26);box-shadow:inset 1.2px 0 0 rgba(122,90,12,.4),inset -1.2px 0 0 rgba(122,90,12,.4)}
+@media (prefers-color-scheme: dark){.sky-tap.sel{background:rgba(255,255,255,.1)}}
+.hero-detail{font-family:var(--mono);font-size:11.5px;color:var(--grau);text-align:center;margin-top:9px;min-height:17px;line-height:1.45}
+.hero-detail b{color:var(--tinte)}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
+.hs-kachel{display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:13px;padding:10px 10px;overflow:hidden}
+.hs-ic{font-size:17px;line-height:1;flex-shrink:0}
+.hs-tx{display:flex;flex-direction:column;min-width:0}
+.hs-tx b{font-size:14px;font-weight:700;color:var(--nacht);letter-spacing:-.01em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-tx span{font-size:9.5px;color:var(--grau);line-height:1.2;overflow:hidden}
 .p-blk{position:absolute;top:0;height:34px;border-radius:11px;padding:0 8px;display:flex;align-items:center;gap:6px;
   background:var(--karte);border:1px solid var(--linie);box-shadow:0 4px 12px -6px rgba(20,31,44,.4);
   cursor:grab;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
@@ -438,9 +457,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button id="btn-woche">Woche</button>
 </div>
 <div class="status" id="status">Lade Sonnen- und Preisdaten…</div>
-<div class="quellen-info">
-  Datenquellen: Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b>
-</div>
+<details class="quellen-details">
+  <summary>ⓘ Datenquellen</summary>
+  <div class="quellen-info">
+    Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b>
+  </div>
+</details>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
 
@@ -464,19 +486,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div id="planer-warnung"></div>
     <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
     <div id="planer-rest"></div>
-  </div>
-</section>
-
-<section class="karte" id="karte-band">
-  <h2>Tagesüberblick</h2>
-  <div class="untertitel">Oben: wie viel Sonne dein Dach liefert. Unten: die Preis-Ampel.</div>
-  <div class="band-scroll"><div class="band" id="band"></div></div>
-  <div class="detail" id="detail">Stunde antippen für Details.</div>
-  <div class="legende">
-    <span><span class="punkt" style="background:var(--gruen)"></span>Sonnenstrom – fast gratis</span>
-    <span><span class="punkt" style="background:var(--gelb)"></span>Netz günstig</span>
-    <span><span class="punkt" style="background:#BDC8D0"></span>normal</span>
-    <span><span class="punkt" style="background:var(--rot)"></span>teuer</span>
   </div>
 </section>
 
@@ -1144,6 +1153,20 @@ function renderPlaner(arr){
         : (erledigtListe(tagKey).length
             ? 'Alles für heute erledigt oder eingeplant. 🎉'
             : 'Noch keine Geräte für diesen Tag – tippe oben <b>＋ Gerät hinzufügen</b>.'))+'</div>';
+  // ---- Antippbarer Verlauf: 24 unsichtbare Stunden-Flächen über dem Himmel ----
+  let tapsHtml=""; for(let h=0;h<24;h++){ tapsHtml+='<button class="sky-tap" data-h="'+h+'" style="left:'+(h/24*100).toFixed(4)+'%;width:'+(100/24).toFixed(4)+'%" aria-label="'+h+' Uhr"></button>'; }
+  // ---- Kennzahlen-Kacheln (Tageswerte, unabhängig von der Geräteauswahl) ----
+  const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
+  let fSun=-1,lSun=-1; for(let h=0;h<24;h++){ if((arr[h].pv-cfg.schwelle)>0){ if(fSun<0)fSun=h; lSun=h; } }
+  const sunWin = fSun>=0 ? fSun+'–'+(lSun+1)+' Uhr' : '–';
+  const maxKW = Math.max(0,...arr.map(s=>s.pv||0))/1000;
+  let vollMin=null; arr.forEach(s=>{ if(s.voll!=null && (vollMin==null||s.voll<vollMin)) vollMin=s.voll; });
+  const kachel=(ic,wert,label)=>'<div class="hs-kachel"><span class="hs-ic">'+ic+'</span><span class="hs-tx"><b>'+wert+'</b><span>'+label+'</span></span></div>';
+  let k3;
+  if(hatBloecke){ const sm=simuliere(arr,platzierungen); const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; const ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; k3=kachel('🔋',ev+'%','Eigenverbrauch'); }
+  else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
+  else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
+  const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
   chart.innerHTML=
     '<div class="sky">'+
       '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
@@ -1155,12 +1178,20 @@ function renderPlaner(arr){
         (priceD?'<path d="'+priceD+'" fill="none" stroke="var(--preis-linie)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>':'')+
         nowLine+
       '</svg>'+sunHtml+
+      '<div class="sky-taps">'+tapsHtml+'</div>'+
     '</div>'+
+    '<div class="hero-detail" id="hero-detail">Tippe eine Stunde im Verlauf für Sonne &amp; Preis.</div>'+
     '<div class="lane" id="planer-leiste" style="height:'+laneH+'px">'+laneInner+'</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>';
+    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>'+
+    statsHtml;
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
+  chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
+    const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
+    $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+(s.eff!=null?' · 💶 '+dz(s.eff.toFixed(1))+' ct/kWh':'');
+    chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
+  });
   if(!hatBloecke){ rest.innerHTML=erledigtHtml(tagKey); wireErledigt(tagKey); return; }
   rest.innerHTML=
     '<div class="planer-liste" id="planer-liste"></div>'+
@@ -1297,25 +1328,9 @@ function fallbackKopie(text,fertig){
     fertig();
   }catch(e){/* Kopieren nicht möglich – still ignorieren */}
 }
-function renderBand(arr,tagStr){
-  const band=$("band");band.innerHTML="";
-  const maxPV=Math.max(1,...arr.map(s=>s.pv));
-  const jetztH=berlinTeile(new Date()).stunde,istHeute=tagStr===heuteStr();
-  const klasseText={pv:"Sonnenstrom",guenstig:"günstig",mittel:"normal",teuer:"teuer"};
-  arr.forEach(s=>{
-    const b=document.createElement("button");
-    b.className="zelle k-"+s.klasse+((istHeute&&s.h===jetztH)?" jetzt":"");
-    b.setAttribute("aria-label",s.h+" Uhr – "+(klasseText[s.klasse]||s.klasse));
-    b.innerHTML='<span class="pv-balken"><span class="pv-fill" style="height:'+Math.round(s.pv/maxPV*100)+'%"></span></span>'+
-      '<span class="kachel"></span><span class="std">'+(s.h%3===0?s.h:'')+'</span>';
-    b.onclick=()=>{$("detail").textContent=s.h+"–"+(s.h+1)+" Uhr · Sonne ≈ "+(s.pv/1000).toFixed(1)+" kW · Netz "+
-      (s.voll==null?"–":s.voll.toFixed(1)+" ct")+" · effektiv "+(s.eff==null?"–":s.eff.toFixed(1)+" ct/kWh");};
-    band.appendChild(b);
-  });
-}
 let aktuelleStunden=null;
 function tageskarten(zeigen){
-  ["karte-geraete","karte-plan","karte-band"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigen;});
+  ["karte-geraete","karte-plan"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigen;});
   $("karte-woche").hidden=zeigen;
 }
 function aktualisieren(){
@@ -1333,7 +1348,7 @@ function aktualisieren(){
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
   aktuelleStunden=arr;
   syncRegler();
-  sichereVorschlag(arr);renderPlaner(arr);renderBand(arr,tagStr);
+  sichereVorschlag(arr);renderPlaner(arr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;ss.innerHTML="☀️ Dein Dach liefert voraussichtlich <b>&nbsp;"+Math.round(kwhTag)+" kWh</b>"+trustChip();}
