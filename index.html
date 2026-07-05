@@ -1038,7 +1038,9 @@ function renderChips(){
   box.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
     const g=geraete[+b.dataset.m];if(g.anzahl>0)g.anzahl--;speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{
-    geraete.splice(+b.dataset.w,1);speichern();renderChips();aktualisieren();});
+    const i=+b.dataset.w, g=geraete[i]; if(!g)return;
+    if(typeof confirm==="function" && !confirm("Dieses Gerät aus der Liste entfernen?\n\n"+g.icon+" "+g.name))return;
+    geraete.splice(i,1);speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
 function planSignatur(){
@@ -1387,6 +1389,8 @@ function renderRoutineListe(){
   }).join("");
   box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
   box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=()=>{
+    const r=routinen[+b.dataset.rdel]; if(!r)return;
+    if(typeof confirm==="function" && !confirm("Diese Routine löschen?\n\n"+r.icon+" "+r.name))return;
     routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
   });
 }
@@ -1650,6 +1654,8 @@ function renderMeine(){
     speichern();sheetZu();renderChips();aktualisieren();
   });
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const m=meineGeraete[+b.dataset.del]; if(!m)return;
+    if(typeof confirm==="function" && !confirm("Diese gespeicherte Vorlage löschen?\n\n"+m.icon+" "+m.name))return;
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeine();
   });
 }
@@ -1673,6 +1679,8 @@ function renderMeineVerwaltung(){
     if(neu){meineGeraete[i].name=neu;speichern();renderMeineVerwaltung();renderChips();}
   });
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const m=meineGeraete[+b.dataset.del]; if(!m)return;
+    if(typeof confirm==="function" && !confirm("Diese gespeicherte Vorlage löschen?\n\n"+m.icon+" "+m.name))return;
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeineVerwaltung();
   });
 }
@@ -1741,6 +1749,8 @@ $("btn-b-merken").onclick=async()=>{
   $("modell-ergebnis").innerHTML='<div class="such-ergebnis">★ „'+name+'" ist jetzt unter „Meine Geräte" gespeichert – beim nächsten „＋ Gerät hinzufügen" direkt wählbar.</div>';
 };
 $("btn-b-loeschen").onclick=()=>{
+  const g=geraete[bearbIndex]; if(!g)return;
+  if(typeof confirm==="function" && !confirm("Dieses Gerät aus der Liste entfernen?\n\n"+g.icon+" "+g.name))return;
   geraete.splice(bearbIndex,1);
   speichern();sheetZu();renderChips();aktualisieren();
 };
