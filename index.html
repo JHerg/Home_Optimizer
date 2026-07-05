@@ -163,6 +163,19 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 .abschnitt{margin-bottom:22px}
 .abschnitt .frage{font-size:14.5px;font-weight:600;margin-bottom:3px}
 .abschnitt .hilfe{font-size:12px;color:var(--grau);margin-bottom:10px;line-height:1.5}
+/* Hilfe / "So funktioniert's" */
+.hilfe-abschnitt{margin-bottom:20px}
+.hilfe-abschnitt h4{font-size:14px;font-weight:700;color:var(--nacht);margin-bottom:9px}
+.hilfe-text{font-size:13px;color:var(--tinte);line-height:1.55}
+.hilfe-text b,.hilfe-schritte b,.hilfe-glossar b{color:var(--nacht);font-weight:600}
+.hilfe-schritte{list-style:none;display:flex;flex-direction:column;gap:11px}
+.hilfe-schritte li{display:flex;gap:11px;font-size:13px;color:var(--tinte);line-height:1.5}
+.hilfe-schritte .num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--sonne-hell);color:#7A5A0C;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+@media (prefers-color-scheme: dark){.hilfe-schritte .num{color:#FFCF6B}}
+.hilfe-glossar{display:flex;flex-direction:column;gap:11px}
+.hilfe-glossar div{font-size:13px;color:var(--tinte);line-height:1.5}
+.hilfe-fertig{width:100%;padding:14px;border:none;border-radius:14px;background:var(--knopf);color:var(--knopf-fg);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform var(--schnell)}
+.hilfe-fertig:active{transform:scale(.98)}
 .adresse-zeile{display:flex;gap:8px}
 .adresse-zeile input{flex:1;padding:13px;border:1.5px solid var(--linie);border-radius:13px;font-size:16px;font-family:var(--sans);min-width:0;transition:border-color var(--schnell),box-shadow var(--schnell)}
 .adresse-zeile input:focus{outline:none;border-color:var(--netz);box-shadow:0 0 0 3px rgba(59,111,212,.15)}
@@ -483,6 +496,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="unterzeile" id="standort-zeile">Altbaumburgweg, Köln</div>
   </div>
   <div class="kopf-aktionen">
+    <button class="knopf-aktualisieren" id="btn-hilfe" aria-label="So funktioniert's" title="So funktioniert's">?</button>
     <button class="knopf-aktualisieren" id="btn-aktualisieren" aria-label="Daten aktualisieren" title="Preise & Sonnenprognose neu laden">↻</button>
     <button class="knopf-einrichten" id="btn-einrichten">⚙️ Einrichten</button>
   </div>
@@ -550,6 +564,63 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 <!-- Einrichtung -->
 <div class="schleier" id="schleier"></div>
+
+<!-- ============================================================================
+     HILFE / "So funktioniert's"  —  BITTE BEI ÄNDERUNGEN AKTUELL HALTEN!
+     Wenn Funktionen dazukommen oder sich ändern, diese Erklärung mitpflegen.
+     Ziel: einfach & knapp, nicht zu detailliert.
+     ============================================================================ -->
+<div class="sheet" id="sheet-hilfe" role="dialog" aria-label="So funktioniert's">
+  <button class="sheet-schliessen" data-zu>✕</button>
+  <h3>So funktioniert's ☀️</h3>
+  <div class="sub">In einer Minute erklärt, was das Tool für dich macht.</div>
+
+  <div class="hilfe-abschnitt">
+    <h4>🎯 Die Idee</h4>
+    <div class="hilfe-text">Dein Dach produziert tagsüber Sonnenstrom. Am meisten sparst du, wenn du diesen Strom <b>selbst verbrauchst</b>, statt ihn günstig einzuspeisen. Das Tool sagt dir, <b>wann du welche Geräte laufen lassen solltest</b>, damit sie möglichst aus deiner eigenen Sonne laufen – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
+  </div>
+
+  <div class="hilfe-abschnitt">
+    <h4>⚙️ So arbeitet es</h4>
+    <ul class="hilfe-schritte">
+      <li><span class="num">1</span><span>Es holt die <b>Sonnenprognose</b> für dein Dach und die aktuellen <b>Strompreise</b>.</span></li>
+      <li><span class="num">2</span><span>Es rechnet die <b>freie Sonne</b> aus: Produktion <b>minus deiner Grundlast</b> (Kühlschrank, Router & Co. – das läuft ohnehin). Nur dieser Überschuss ist „gratis" für deine Geräte.</span></li>
+      <li><span class="num">3</span><span>Du wählst, <b>was laufen soll</b> – das Tool legt die Geräte automatisch in die <b>sonnigsten und günstigsten Stunden</b>.</span></li>
+      <li><span class="num">4</span><span>Es merkt sich, was tatsächlich lief, <b>lernt deine Rhythmen</b> und schlägt Fälliges von selbst vor.</span></li>
+    </ul>
+  </div>
+
+  <div class="hilfe-abschnitt">
+    <h4>📖 Die wichtigsten Begriffe</h4>
+    <div class="hilfe-glossar">
+      <div><b>Dein Dach liefert</b> – die gesamte Tagesproduktion (brutto).</div>
+      <div><b>Freie Sonne</b> – der Überschuss über deiner Grundlast; das, was du auf Geräte verschieben kannst.</div>
+      <div><b>Sonnen-Budget</b> – wie viel Energie deine geplanten Geräte brauchen im Vergleich zur freien Sonne des Tages.</div>
+      <div><b>Eigenverbrauch</b> – der Anteil deiner Geräte, der aus Sonne (und Speicher) läuft statt aus dem Netz.</div>
+      <div><b>Grundlast</b> – der Dauerverbrauch im Haus, der immer mitläuft.</div>
+    </div>
+  </div>
+
+  <div class="hilfe-abschnitt">
+    <h4>🗂️ Die Reiter</h4>
+    <div class="hilfe-glossar">
+      <div><b>Heute / Morgen</b> – dein Tagesplan mit Sonnenkurve und Geräten.</div>
+      <div><b>Woche</b> – wiederkehrende Routinen der nächsten 7 Tage.</div>
+      <div><b>Verlauf</b> – was schon gelaufen ist und was die App über deine Rhythmen gelernt hat.</div>
+    </div>
+  </div>
+
+  <div class="hilfe-abschnitt">
+    <h4>✋ Gut zu wissen</h4>
+    <div class="hilfe-glossar">
+      <div>Die App <b>steuert nichts selbst</b> – sie berät. Starten musst du (oder dein Energiemanager) die Geräte.</div>
+      <div>Alles bleibt <b>lokal auf deinem Gerät</b> – keine Cloud, kein Konto.</div>
+    </div>
+  </div>
+
+  <button class="hilfe-fertig" data-zu>Verstanden – los geht's</button>
+</div>
+
 <div class="sheet" id="sheet-einrichten" role="dialog" aria-label="Einrichtung">
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Einrichten</h3>
@@ -1776,6 +1847,7 @@ $("btn-kalib").onclick=()=>{
   $("f-kalib-real").value="";
   speichern();aktualisieren();kalibUI();
 };
+$("btn-hilfe").onclick=()=>sheetAuf("sheet-hilfe");
 $("btn-einrichten").onclick=()=>{
   $("f-adresse").value=cfg.adresse;
   $("f-aufschlag").value=dz(cfg.aufschlag);
@@ -2198,6 +2270,8 @@ seedPresets();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
 laden();
+// Beim allerersten Start die Kurzanleitung zeigen (danach jederzeit über „?" im Kopf).
+if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; speichern(); }
 })();
 </script>
 </body>
