@@ -41,9 +41,9 @@
 body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;
   padding-bottom:calc(104px + env(safe-area-inset-bottom));padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));
   background:
-    radial-gradient(120% 82% at 82% -8%, var(--amb-glow) 0%, transparent 46%),
-    radial-gradient(120% 70% at 0% -6%, rgba(59,111,212,.12) 0%, rgba(59,111,212,0) 40%),
-    linear-gradient(180deg,var(--amb-sky) 0%,var(--papier) 300px);
+    radial-gradient(130% 60% at 84% -6%, var(--amb-glow) 0%, transparent 52%),
+    radial-gradient(120% 46% at 4% -4%, rgba(59,111,212,.14) 0%, transparent 46%),
+    linear-gradient(180deg,var(--amb-sky) 0%, var(--amb-sky) 120px, var(--papier) 480px);
   background-attachment:fixed;transition:background-color var(--weich);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 button{font-family:var(--sans);-webkit-tap-highlight-color:transparent}
 button:active{transform:translateY(.5px)}
@@ -62,8 +62,16 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
 @keyframes dreh{to{transform:rotate(360deg)}}
-.sonnen-summe{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#FFF6E2,#FFE9BE);color:#7A5A0C;border-radius:var(--radius-pill);padding:8px 16px;font-size:13px;font-weight:600;margin:12px 0 4px;box-shadow:0 1px 2px rgba(245,168,12,.18),0 8px 20px -10px rgba(245,168,12,.5)}
-.sonnen-summe b{color:#5E4408}
+.sonnen-summe{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;
+  background:linear-gradient(135deg,rgba(255,246,226,.92),rgba(255,231,187,.86));
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);
+  color:#7A5A0C;border-radius:20px;padding:14px 18px;margin:14px 0 4px;
+  box-shadow:0 1px 2px rgba(245,168,12,.16),0 12px 26px -14px rgba(245,168,12,.5)}
+.sonnen-summe .ss-body{display:flex;flex-direction:column;gap:2px}
+.sonnen-summe .ss-label{font-size:12.5px;font-weight:600;opacity:.9}
+.sonnen-summe .ss-big{font-size:30px;font-weight:700;letter-spacing:-.03em;color:#5E4408;line-height:1;font-variant-numeric:tabular-nums}
+.sonnen-summe .ss-big .zahl{font-variant-numeric:tabular-nums}
+:root[data-theme="dark"] .sonnen-summe .ss-big{color:#FFE9B8}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
@@ -1701,7 +1709,8 @@ function aktualisieren(){
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
   const ss=$("sonnen-summe");
   if(kwhTag>0.1){ss.hidden=false;
-    ss.innerHTML='☀️ Dein Dach liefert voraussichtlich <b>&nbsp;<span class="zahl">'+Math.round(kwhTag)+'</span> kWh</b>'+trustChip();
+    ss.innerHTML='<span class="ss-body"><span class="ss-label">☀️ Dein Dach liefert voraussichtlich</span>'+
+      '<span class="ss-big"><span class="zahl">'+Math.round(kwhTag)+'</span> kWh</span></span>'+trustChip();
     const z=ss.querySelector(".zahl"); if(z)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
   }
   else ss.hidden=true;
@@ -2316,10 +2325,10 @@ function ambienteAnwenden(){
   const dark = document.documentElement.dataset.theme==="dark";
   let h; try{h=berlinTeile(new Date()).stunde;}catch(e){h=new Date().getHours();}
   let glow, sky;
-  if(h>=5&&h<8){        glow=dark?"rgba(255,120,90,.17)":"rgba(255,150,110,.22)";  sky=dark?"#241826":"#FBE6DC"; } // Morgenrot
-  else if(h>=8&&h<17){  glow=dark?"rgba(245,168,12,.12)":"rgba(245,168,12,.15)";   sky=dark?"#14232F":"#E4EDF4"; } // Tag
-  else if(h>=17&&h<21){ glow=dark?"rgba(255,130,40,.20)":"rgba(255,150,40,.26)";   sky=dark?"#2A1C18":"#FCEBD6"; } // Sonnenuntergang
-  else {                glow=dark?"rgba(90,110,200,.15)":"rgba(90,110,200,.13)";   sky=dark?"#0F1826":"#DDE6F0"; } // Nacht
+  if(h>=5&&h<8){        glow=dark?"rgba(255,120,90,.24)":"rgba(255,146,104,.34)";  sky=dark?"#2A1826":"#FBDCCB"; } // Morgenrot
+  else if(h>=8&&h<17){  glow=dark?"rgba(245,168,12,.16)":"rgba(245,168,12,.22)";   sky=dark?"#12283E":"#C9E2F6"; } // Tag (klares Blau)
+  else if(h>=17&&h<21){ glow=dark?"rgba(255,130,40,.28)":"rgba(255,146,40,.38)";   sky=dark?"#301E15":"#FBDFB4"; } // Sonnenuntergang
+  else {                glow=dark?"rgba(90,110,200,.20)":"rgba(96,120,205,.20)";   sky=dark?"#0C1626":"#D3DEEE"; } // Nacht
   const r=document.documentElement.style; r.setProperty("--amb-glow",glow); r.setProperty("--amb-sky",sky);
 }
 function themaAnwenden(){
