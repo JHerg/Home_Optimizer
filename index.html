@@ -435,6 +435,48 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .budget-tx b{color:var(--tinte);font-family:var(--mono);font-weight:600}
 .budget-ok{color:var(--gruen);font-weight:600}
 .budget-warn{color:var(--rot);font-weight:600}
+/* ---- Kompakte Startseite (Dashboard – wie das Mockup, alles auf einen Blick) ---- */
+#dashboard{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.dash-curve{position:relative;display:block;width:100%;height:134px;border:none;padding:0;margin:0;cursor:pointer;background:transparent;border-radius:18px;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:transform var(--schnell)}
+.dash-curve svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.dash-curve:active{transform:scale(.994)}
+.dc-sun{position:absolute;width:34px;height:34px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;background:radial-gradient(circle at 38% 34%,#FFF3D2,#FFC24D 46%,var(--sonne) 82%);box-shadow:0 0 0 6px rgba(245,160,12,.20),0 0 34px 9px rgba(245,160,12,.34)}
+.dc-now{position:absolute;z-index:4;top:5px;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:#8A5A06;background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-variant-numeric:tabular-nums;white-space:nowrap}
+.dc-hint{position:absolute;z-index:4;right:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--grau);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:3px}
+:root[data-theme="dark"] .dc-now{color:#FFD489}
+.dash-hero{display:flex;align-items:center;gap:14px;padding:16px 18px}
+.dh-big{flex:1;min-width:0}
+.dh-lbl{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
+.dh-num{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:6px;font-variant-numeric:tabular-nums;color:var(--tinte)}
+.dh-num small{font-size:19px;font-weight:600;color:var(--grau);letter-spacing:-.01em}
+.dh-num .trust-chip{display:inline-block;vertical-align:middle;margin-left:2px}
+.dh-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
+.dash-ring{position:relative;width:74px;height:74px}
+.dash-ring svg{width:74px;height:74px;display:block}
+.dash-ring-tx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.dash-ring-tx b{font-size:21px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--tinte)}
+.dh-ring-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--grau)}
+.dash-plan-card{padding:14px 12px}
+.dash-plan-h{display:flex;justify-content:space-between;align-items:center;padding:0 6px 8px}
+.dash-plan-h h2{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--tinte)}
+.dash-plan-h button{border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--sonne);cursor:pointer;padding:3px 4px}
+.dash-plan-h button:active{opacity:.6}
+.dash-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:14px;cursor:pointer;transition:background var(--schnell)}
+.dash-row:active{background:var(--papier)}
+.dash-row+.dash-row{border-top:.5px solid var(--linie)}
+.dash-ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:19px;background:var(--papier)}
+.dash-info{flex:1;min-width:0}
+.dash-nm{font-size:14.5px;font-weight:600;letter-spacing:-.01em;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.dash-sub{font-size:12px;color:var(--grau);margin-top:1px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block}
+.dash-pct{font-size:12px;font-weight:700;color:var(--grau);display:flex;align-items:center;gap:7px;flex-shrink:0}
+.dash-pct.gut{color:var(--gruen)}
+.dash-cov{width:34px;height:6px;border-radius:99px;overflow:hidden;display:flex;background:rgba(120,140,160,.25)}
+.dash-cov i{height:100%}
+.dash-leer{padding:14px 8px 6px;text-align:center;color:var(--grau);font-size:13px;line-height:1.5}
+.dash-leer .dash-leer-btn{margin-top:11px;display:inline-block;border:none;border-radius:100px;background:var(--sonne);color:#3A2600;font-family:var(--sans);font-size:13.5px;font-weight:700;padding:9px 18px;cursor:pointer}
+.dash-leer .dash-leer-btn:active{transform:scale(.96)}
+/* Sektionen, die jetzt in Sheets wohnen, ohne eigenen Glas-Rahmen */
+.sheet .karte{background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;margin:0}
 /* Verlaufs-Reiter */
 .vl-leer{font-size:13px;color:var(--grau);line-height:1.6;text-align:center;padding:22px 8px}
 .vl-bilanz{background:var(--gruen-hell);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--tinte);margin-bottom:16px}
@@ -529,8 +571,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <button class="knopf-aktualisieren" id="btn-einrichten" aria-label="Einrichten" title="Einrichten">⚙️</button>
   </div>
 </div>
-<div class="claim">Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
-<div class="sonnen-summe" id="sonnen-summe" hidden>☀️ Dein Dach liefert voraussichtlich <b>&nbsp;– kWh</b></div>
+<div class="claim" hidden>Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
+<div class="sonnen-summe" id="sonnen-summe" hidden></div>
 
 <div class="segment" role="group" aria-label="Ansicht wählen">
   <button id="btn-heute" class="aktiv">Heute</button>
@@ -538,39 +580,23 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button id="btn-woche">Woche</button>
   <button id="btn-verlauf">Verlauf</button>
 </div>
-<div class="status" id="status">Lade Sonnen- und Preisdaten…</div>
-<details class="quellen-details">
-  <summary>ⓘ Datenquellen</summary>
-  <div class="quellen-info">
-    Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b>
-  </div>
-</details>
+<div class="status" id="status" hidden>Lade Sonnen- und Preisdaten…</div>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
 
-<section class="karte" id="karte-geraete">
-  <div class="karten-kopf">
-    <h2>Was steht an?</h2>
-    <button class="alle-loeschen" id="btn-alle-loeschen">Alle löschen</button>
-  </div>
-  <div class="untertitel" id="geraete-untertitel">Anzahl antippen – Gerätename antippen zum Bearbeiten (Verbrauch &amp; Laufzeit).</div>
-  <div class="vorschlag-box" id="vorschlag-box" hidden></div>
-  <div class="chips" id="chips"></div>
-  <button class="chip-plus" id="btn-geraet">＋ Gerät hinzufügen</button>
-</section>
+<!-- Kompakte Startseite: alles Wichtige auf einen Blick (wie das Mockup). Details in Sheets. -->
+<div id="dashboard" hidden>
+  <div id="dash-curve-wrap"></div>
+  <div class="karte dash-hero" id="dash-hero"></div>
+  <div class="karte dash-plan-card" id="dash-plan-card"></div>
+</div>
 
-<section class="karte" id="karte-plan">
-  <div class="karten-kopf">
-    <h2>Dein Tagesplan</h2>
-    <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
+<details class="quellen-details">
+  <summary>ⓘ Datenquellen &amp; Stand</summary>
+  <div class="quellen-info">
+    Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b> · <span id="quelle-stand">–</span>
   </div>
-  <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
-  <div id="planer">
-    <div id="planer-warnung"></div>
-    <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
-    <div id="planer-rest"></div>
-  </div>
-</section>
+</details>
 
 <section class="karte" id="karte-woche" hidden>
   <div class="karten-kopf">
@@ -600,6 +626,38 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 <!-- Einrichtung -->
 <div class="schleier" id="schleier"></div>
+
+<!-- Geräte-Sheet: Auswahl, Anlegen, Bearbeiten (vom Dashboard per ＋ geöffnet) -->
+<div class="sheet" id="sheet-geraete" role="dialog" aria-label="Geräte">
+  <button class="sheet-schliessen" data-zu>✕</button>
+  <section class="karte" id="karte-geraete">
+    <div class="karten-kopf">
+      <h2>Was steht an?</h2>
+      <button class="alle-loeschen" id="btn-alle-loeschen">Alle löschen</button>
+    </div>
+    <div class="untertitel" id="geraete-untertitel">Anzahl antippen – Gerätename antippen zum Bearbeiten (Verbrauch &amp; Laufzeit).</div>
+    <div class="vorschlag-box" id="vorschlag-box" hidden></div>
+    <div class="chips" id="chips"></div>
+    <button class="chip-plus" id="btn-geraet">＋ Gerät hinzufügen</button>
+  </section>
+</div>
+
+<!-- Tagesplan-Sheet: interaktives Verschieben, Deckung je Stunde, Feintuning -->
+<div class="sheet" id="sheet-tagesplan" role="dialog" aria-label="Tagesplan">
+  <button class="sheet-schliessen" data-zu>✕</button>
+  <section class="karte" id="karte-plan">
+    <div class="karten-kopf">
+      <h2>Dein Tagesplan</h2>
+      <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
+    </div>
+    <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
+    <div id="planer">
+      <div id="planer-warnung"></div>
+      <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
+      <div id="planer-rest"></div>
+    </div>
+  </section>
+</div>
 
 <!-- ============================================================================
      HILFE / "So funktioniert's"  —  BITTE BEI ÄNDERUNGEN AKTUELL HALTEN!
@@ -634,6 +692,15 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div><b>Sonnen-Budget</b> – wie viel Energie deine geplanten Geräte brauchen im Vergleich zur freien Sonne des Tages.</div>
       <div><b>Eigenverbrauch</b> – der Anteil deiner Geräte, der aus Sonne (und Speicher) läuft statt aus dem Netz.</div>
       <div><b>Grundlast</b> – der Dauerverbrauch im Haus, der immer mitläuft.</div>
+    </div>
+  </div>
+
+  <div class="hilfe-abschnitt">
+    <h4>📱 So bedienst du die Startseite</h4>
+    <div class="hilfe-glossar">
+      <div>Die <b>Startseite</b> zeigt alles Wichtige auf einen Blick: Sonnenkurve, Tagesertrag, dein Eigenverbrauch und die geplanten Geräte – ohne Scrollen.</div>
+      <div>Tippe auf die <b>Sonnenkurve</b> oder ein <b>geplantes Gerät</b>, um den <b>Tagesplan</b> zu öffnen – dort ziehst du Geräte auf die Zeitleiste und siehst die Deckung je Stunde.</div>
+      <div>Über <b>＋ Geräte</b> wählst du, was heute laufen soll, und legst neue Geräte an.</div>
     </div>
   </div>
 
@@ -1437,6 +1504,100 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   protokolliereLauf(name,tagKey,start,kwh,icon,dauer); // dauerhaft fürs Lernen (Rhythmus, Uhrzeit, kWh, Icon)
   speichern();platzSig="";aktualisieren();
 }
+// Gemeinsame Himmels-Geometrie (SVG 0..100) für Tagesplan-Chart UND kompakte Startseiten-Kurve.
+function himmelGeometrie(arr){
+  const HOR=86, PEAK=14, X=h=>h/24*100;
+  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
+  let hs=24,he=0; for(let h=0;h<24;h++){ if(arr[h].pv>60){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
+  if(hs>=he){hs=6;he=21;}
+  const arcY=h=>{ if(h<=hs||h>=he)return HOR; return HOR-(HOR-PEAK)*Math.sin(Math.PI*(h-hs)/(he-hs)); };
+  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000); return HOR-(su/maxSurplus)*(HOR-24); };
+  const preise=arr.map(s=>s.voll).filter(v=>v!=null);
+  const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
+  const priceY=h=>{ const v=arr[h].voll; if(v==null)return null; return 44-((v-minP)/spanP)*24; };
+  const dyn=cfg.tarif!=="fest";
+  let arcD=""; for(let h=hs;h<=he;h+=0.5){ arcD+=(arcD?"L":"M")+X(h).toFixed(2)+" "+arcY(h).toFixed(2)+" "; }
+  let surfD="M0 "+HOR; for(let h=0;h<24;h++){ surfD+=" L"+X(h+0.5).toFixed(2)+" "+surfTop(h).toFixed(2); } surfD+=" L100 "+HOR+" Z";
+  let priceD=""; if(dyn){let off=false;for(let h=0;h<24;h++){const y=priceY(h);if(y==null){off=false;continue;}priceD+=(off?" L":" M")+X(h+0.5).toFixed(2)+" "+y.toFixed(2);off=true;}}
+  let gridD=""; for(let k=0;k<=24;k+=3){gridD+='<line x1="'+X(k)+'" y1="6" x2="'+X(k)+'" y2="'+HOR+'"/>';} gridD+='<line x1="0" y1="'+HOR+'" x2="100" y2="'+HOR+'" stroke-width=".7"/>';
+  return {HOR,PEAK,X,maxSurplus,hs,he,arcY,surfTop,arcD,surfD,priceD,gridD,dyn};
+}
+// Aktivitätsring für die Hero-Karte (Eigenverbrauch in %). pct==null -> leerer Ring.
+function dashRing(pct){
+  const p=pct==null?0:Math.max(0,Math.min(100,pct));
+  const dash=(p/100*201).toFixed(1);
+  return '<div class="dash-ring"><svg viewBox="0 0 78 78" aria-hidden="true">'+
+    '<circle cx="39" cy="39" r="32" fill="none" stroke="var(--linie)" stroke-width="8.5"/>'+
+    (pct!=null?'<circle cx="39" cy="39" r="32" fill="none" stroke="var(--gruen)" stroke-width="8.5" stroke-linecap="round" stroke-dasharray="'+dash+' 201" transform="rotate(-90 39 39)"/>':'')+
+    '</svg><div class="dash-ring-tx"><b>'+(pct!=null?pct+'%':'–')+'</b></div></div>';
+}
+// Kompakte Startseite (Dashboard): Sonnenkurve + Hero (kWh & Eigenverbrauch-Ring) + geplante Geräte.
+// Zeigt nur eine Übersicht; das Feintuning lebt im Tagesplan-Sheet, die Geräteauswahl im Geräte-Sheet.
+function renderDashboard(arr){
+  const dash=$("dashboard"); if(!dash)return;
+  const tagKey = tag==="morgen"?morgenStr():heuteStr();
+  const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
+  const G=himmelGeometrie(arr),{HOR,X,arcY,arcD,surfD,priceD,gridD}=G;
+  const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
+  // --- Sonnenkurve (antippen öffnet den Tagesplan) ---
+  const nowX=jetztH>=0?X(jetztH+0.5):-1;
+  const jetztStr=jetztH>=0?"jetzt · "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"";
+  const sunHtml=jetztH>=0
+    ? '<div class="dc-now" style="left:'+nowX+'%">'+jetztStr+'</div><div class="dc-sun" style="left:'+nowX+'%;top:'+arcY(jetztH+0.5).toFixed(1)+'%"></div>'
+    : '';
+  const curveHtml='<button class="dash-curve" id="dash-curve" aria-label="Tagesplan öffnen – Geräte verschieben und feinjustieren">'+
+    '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
+      '<defs><linearGradient id="dc-surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--sonne)" stop-opacity=".32"/><stop offset="100%" stop-color="var(--sonne)" stop-opacity="0"/></linearGradient></defs>'+
+      '<g stroke="var(--linie)" stroke-width=".4" opacity=".5">'+gridD+'</g>'+
+      '<path d="'+surfD+'" fill="url(#dc-surf)"></path>'+
+      '<path d="'+arcD+'" fill="none" stroke="var(--sonne)" stroke-width="1" stroke-dasharray="1.6 2.2" stroke-linecap="round" opacity=".9" vector-effect="non-scaling-stroke"></path>'+
+      (priceD?'<path d="'+priceD+'" fill="none" stroke="var(--preis-linie)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>':'')+
+    '</svg>'+sunHtml+
+    '<span class="dc-hint">Tagesplan öffnen ›</span></button>';
+  $("dash-curve-wrap").innerHTML=curveHtml;
+  // --- Hero: großer Tagesertrag + Eigenverbrauch-Ring ---
+  const sm = platzierungen.length ? simuliere(arr,platzierungen) : null;
+  let ev=null;
+  if(sm){ const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; }
+  $("dash-hero").innerHTML=
+    '<div class="dh-big"><div class="dh-lbl">Sonnenertrag '+(tag==="morgen"?"morgen":"heute")+'</div>'+
+      '<div class="dh-num"><span class="zahl">'+Math.round(kwhTag)+'</span> <small>kWh</small>'+trustChip()+'</div></div>'+
+    '<div class="dh-ring-wrap">'+dashRing(ev)+'<div class="dh-ring-lbl">Eigenverbrauch</div></div>';
+  const z=$("dash-hero").querySelector(".zahl"); if(z&&kwhTag>0.1)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
+  // --- Geplante Geräte (kompakte Liste) ---
+  const sorted=platzierungen.slice().sort((a,b)=>a.start-b.start);
+  const kannPlanen = !arr.every(s=>s.eff==null);
+  let rows="";
+  if(sorted.length){
+    sorted.forEach(b=>{
+      const selbst=(b._sun||0)+(b._batt||0), g=b.kwh>0?Math.round(selbst/b.kwh*100):0, netz=Math.max(0,100-g);
+      rows+='<div class="dash-row" data-plan>'+
+        '<span class="dash-ic">'+b.icon+'</span>'+
+        '<span class="dash-info"><span class="dash-nm">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
+          '<span class="dash-sub">'+b.start+'–'+(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh</span></span>'+
+        '<span class="dash-pct'+(g>=50?" gut":"")+'"><span class="dash-cov"><i style="width:'+g+'%;background:var(--gruen)"></i><i style="width:'+netz+'%;background:var(--rot)"></i></span>'+g+'%</span>'+
+        '</div>';
+    });
+  } else {
+    const erl=erledigtListe(tagKey);
+    rows='<div class="dash-leer">'+
+      (!kannPlanen ? 'Noch keine Preisdaten für diesen Tag.'
+        : erl.length ? '✓ Für heute alles erledigt oder nichts weiter geplant.'
+        : 'Noch keine Geräte eingeplant.<br>Wähle, was heute laufen soll.')+
+      '<br><button class="dash-leer-btn" id="dash-add">＋ Gerät wählen</button></div>';
+  }
+  $("dash-plan-card").innerHTML=
+    '<div class="dash-plan-h"><h2>'+(tag==="morgen"?"Morgen":"Heute")+' geplant</h2>'+
+      '<button id="dash-geraete-btn">＋ Geräte</button></div>'+
+    '<div class="dash-plan">'+rows+'</div>';
+  // --- Verdrahtung: Kurve & Zeilen -> Tagesplan-Sheet; ＋ -> Geräte-Sheet ---
+  const oeffnePlan=()=>sheetAuf("sheet-tagesplan");
+  const oeffneGeraete=()=>sheetAuf("sheet-geraete");
+  const cv=$("dash-curve"); if(cv)cv.onclick=oeffnePlan;
+  dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>r.onclick=oeffnePlan);
+  const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
+  const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
+}
 function renderPlaner(arr){
   const chart=$("planer-chart"),rest=$("planer-rest"),warn=$("planer-warnung");
   const akkuAn=cfg.akku_an;
@@ -1447,7 +1608,7 @@ function renderPlaner(arr){
   warn.innerHTML=ungeplantHtml();wireUngeplant(tagKey);
   const hatBloecke = platzierungen.length>0;
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
-  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
+  const G=himmelGeometrie(arr),{HOR,X,maxSurplus,hs,he,arcY,arcD,surfD,priceD,gridD,dyn}=G;
   // Lane-Zuweisung, damit parallele Bloecke nicht uebereinander liegen
   const laneEnde=[];
   platzierungen.slice().sort((a,b)=>a.start-b.start).forEach(b=>{
@@ -1456,20 +1617,6 @@ function renderPlaner(arr){
   });
   const lanes=Math.max(1,laneEnde.length);
   const laneH=hatBloecke?lanes*40-6:46;   // 34px Block + 6px Reihenabstand; leer: Hinweiszeile
-  const dyn=cfg.tarif!=="fest";
-  // ---- Himmels-Koordinaten (SVG 0..100): Horizont unten, Zenit oben ----
-  const HOR=86, PEAK=14, X=h=>h/24*100;
-  let hs=24,he=0; for(let h=0;h<24;h++){ if(arr[h].pv>60){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
-  if(hs>=he){hs=6;he=21;}
-  const arcY=h=>{ if(h<=hs||h>=he)return HOR; return HOR-(HOR-PEAK)*Math.sin(Math.PI*(h-hs)/(he-hs)); };
-  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000); return HOR-(su/maxSurplus)*(HOR-24); };
-  const preise=arr.map(s=>s.voll).filter(v=>v!=null);
-  const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
-  const priceY=h=>{ const v=arr[h].voll; if(v==null)return null; return 44-((v-minP)/spanP)*24; };
-  let arcD=""; for(let h=hs;h<=he;h+=0.5){ arcD+=(arcD?"L":"M")+X(h).toFixed(2)+" "+arcY(h).toFixed(2)+" "; }
-  let surfD="M0 "+HOR; for(let h=0;h<24;h++){ surfD+=" L"+X(h+0.5).toFixed(2)+" "+surfTop(h).toFixed(2); } surfD+=" L100 "+HOR+" Z";
-  let priceD=""; if(dyn){let off=false;for(let h=0;h<24;h++){const y=priceY(h);if(y==null){off=false;continue;}priceD+=(off?" L":" M")+X(h+0.5).toFixed(2)+" "+y.toFixed(2);off=true;}}
-  let gridD=""; for(let k=0;k<=24;k+=3){gridD+='<line x1="'+X(k)+'" y1="6" x2="'+X(k)+'" y2="'+HOR+'"/>';} gridD+='<line x1="0" y1="'+HOR+'" x2="100" y2="'+HOR+'" stroke-width=".7"/>';
   const nowX=jetztH>=0?X(jetztH+0.5):-1;
   const nowLine=jetztH>=0?'<line x1="'+nowX+'" y1="'+arcY(jetztH+0.5).toFixed(1)+'" x2="'+nowX+'" y2="'+HOR+'" stroke="var(--nacht)" stroke-width=".5" stroke-dasharray="1.4 1.6" opacity=".4"/>':'';
   const jetztStr=jetztH>=0?"jetzt · "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"";
@@ -1684,7 +1831,8 @@ function renderPlaner(arr){
 }
 let aktuelleStunden=null;
 function tageskarten(zeigenTag){
-  ["karte-geraete","karte-plan"].forEach(id=>{const el=$(id);if(el)el.hidden=!zeigenTag;});
+  const d=$("dashboard"); if(d)d.hidden=!zeigenTag;
+  const qd=document.querySelector(".quellen-details"); if(qd)qd.hidden=!zeigenTag;
   $("karte-woche").hidden=(tag!=="woche");
   const kv=$("karte-verlauf");if(kv)kv.hidden=(tag!=="verlauf");
 }
@@ -1699,6 +1847,7 @@ function aktualisieren(){
     return;
   }
   tageskarten(true);
+  $("status").hidden=true; // Standardfall: Startseite bleibt aufgeräumt (nur Fehler/Hinweise blenden sie ein)
   const tagStr=tag==="heute"?heuteStr():morgenStr();
   planGeraete=geraeteFuerTag(tagStr); // manuelle Geraete + faellige Routinen
   const arr=stunden(tagStr),kwhTag=arr.reduce((a,s)=>a+s.pv,0)/1000;
@@ -1707,16 +1856,13 @@ function aktualisieren(){
   if(typeof ambienteAnwenden==="function")ambienteAnwenden();
   renderChips();sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
   $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
-  const ss=$("sonnen-summe");
-  if(kwhTag>0.1){ss.hidden=false;
-    ss.innerHTML='<span class="ss-body"><span class="ss-label">☀️ Dein Dach liefert voraussichtlich</span>'+
-      '<span class="ss-big"><span class="zahl">'+Math.round(kwhTag)+'</span> kWh</span></span>'+trustChip();
-    const z=ss.querySelector(".zahl"); if(z)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
-  }
-  else ss.hidden=true;
+  $("sonnen-summe").hidden=true;
+  renderDashboard(arr);
   routineBanner(tagStr);
-  if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null))
+  if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null)){
+    $("status").hidden=false;
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
+  }
 }
 // Erinnerungs-Banner: an einem Routine-Tag (nur "heute") zeigen, was ansteht + geplantes Fenster.
 function routineBanner(tagStr){
@@ -1833,20 +1979,23 @@ function renderVerlauf(){
 }
 let letzterLoad=0;
 async function laden(force){
-  $("status").textContent="Lade Sonnen- und Preisdaten…";
+  $("status").hidden=false; $("status").textContent="Lade Sonnen- und Preisdaten…";
   try{
     const jobs=[ladePV(force)];
     if(cfg.tarif!=="fest")jobs.push(ladePreise()); // fester Tarif braucht keine Börsendaten
     const res=await Promise.all(jobs);
     const r0=res[0]||{label:"–",warnung:false};
     letzterLoad=Date.now();
-    $("status").textContent="Stand: " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    // Erfolgreich geladen: Statuszeile auf der Startseite ausblenden (Stand steht unter „ⓘ Datenquellen").
+    const st=$("status"); st.textContent=""; st.hidden=true;
+    const qs=$("quelle-stand"); if(qs)qs.textContent="Stand "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
     aktualisieren();
     $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : cfg.anbieter;
     $("quelle-sonne").textContent = r0.label;
     $("pv-fallback-hinweis").hidden = !r0.warnung;
   }catch(e){
-    $("status").innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
+    const st=$("status"); st.hidden=false;
+    st.innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
   }
 }
 
@@ -1854,8 +2003,12 @@ async function laden(force){
 function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");}
 function sheetZu(){
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
+  const warPlanOderGeraete=document.querySelector("#sheet-tagesplan.offen,#sheet-geraete.offen")!=null;
   $("schleier").classList.remove("offen");
-  document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));}
+  document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));
+  // Änderungen aus Tagesplan/Geräte-Sheet auf der kompakten Startseite spiegeln
+  if(warPlanOderGeraete && (tag==="heute"||tag==="morgen") && aktuelleStunden) renderDashboard(aktuelleStunden);
+}
 $("schleier").onclick=sheetZu;
 document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
 
