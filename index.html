@@ -14,25 +14,27 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --nacht:#141F2C; --tinte:#2A3B4C; --papier:#EDF2F6; --karte:#FFFFFF;
-  --sonne:#F5A80C; --sonne-hell:#FFF3DA;
-  --netz:#3B6FD4; --gruen:#178A50; --gruen-hell:#E0F4E9;
-  --gelb:#DDA000; --gelb-hell:#FBF1D3;
-  --rot:#CF4436; --rot-hell:#FAE4E1;
-  --grau:#63727E; --linie:#E4EAF0;
-  --knopf:#141F2C; --knopf-fg:#FFFFFF; --preis-linie:#8B5CF6;
-  --sky-top:#CFE3F4; --sky-hor:#FCEECB; --sun-glow:rgba(245,168,12,.45);
-  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
-  --radius:20px; --radius-sm:13px; --radius-pill:999px;
-  --schatten:0 1px 2px rgba(20,31,44,.04), 0 10px 26px -12px rgba(20,31,44,.14);
-  --schatten-lg:0 2px 6px rgba(20,31,44,.05), 0 24px 48px -16px rgba(20,31,44,.22);
-  --hairline:0 0 0 1px rgba(20,31,44,.05);
-  --schnell:.16s cubic-bezier(.32,.72,.34,1); --weich:.28s cubic-bezier(.32,.72,.34,1);
-  --amb-glow:rgba(245,168,12,.15); --amb-sky:#E4EDF4;   /* Tageszeit-Ambiente (per JS gesetzt) */
+  --nacht:#10233A; --tinte:#374A5E; --papier:#EDF1F6; --karte:#FFFFFF;
+  --sonne:#F5A00C; --sonne-hell:#FFF3DA;
+  --netz:#0A84FF; --gruen:#34C759; --gruen-hell:#E4F7EA;
+  --gelb:#FF9F0A; --gelb-hell:#FBF1D3;
+  --rot:#FF3B30; --rot-hell:#FDE7E5;
+  --grau:#6E7A88; --linie:#E3E9F0;
+  --knopf:#10233A; --knopf-fg:#FFFFFF; --preis-linie:#AF52DE;
+  --sky-top:#CFE3F4; --sky-hor:#FCEECB; --sun-glow:rgba(245,160,12,.45);
+  /* Liquid Glass */
+  --glass:rgba(255,255,255,.62); --glass-2:rgba(255,255,255,.34); --glass-rand:rgba(255,255,255,.7);
+  --blur:blur(22px) saturate(180%);
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --sans:-apple-system,"SF Pro Text","SF Pro Display",system-ui,"Segoe UI",Roboto,sans-serif;
+  --radius:22px; --radius-sm:14px; --radius-pill:999px;
+  --schatten:0 1px 2px rgba(16,35,58,.05), 0 12px 30px -14px rgba(16,35,58,.20);
+  --schatten-lg:0 2px 6px rgba(16,35,58,.06), 0 26px 52px -18px rgba(16,35,58,.26);
+  --hairline:0 0 0 .5px rgba(16,35,58,.06);
+  --schnell:.18s cubic-bezier(.32,.72,.34,1); --weich:.34s cubic-bezier(.32,.72,.34,1);
+  --amb-glow:rgba(245,160,12,.15); --amb-sky:#E4EDF4;   /* Tageszeit-Ambiente (per JS gesetzt) */
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
@@ -49,13 +51,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-o
 @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 .kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
-.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sonne);font-weight:600}
-h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-height:1.08}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sonne);font-weight:700}
+h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-height:1.03}
 .unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
 .kopf-aktionen{display:flex;gap:6px;flex-shrink:0}
 .claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
-.knopf-aktualisieren{border:none;background:var(--karte);box-shadow:var(--schatten);border-radius:13px;width:42px;height:42px;font-size:17px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:transform var(--schnell),box-shadow var(--schnell)}
+.knopf-aktualisieren{border:.5px solid var(--glass-rand);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--schatten);border-radius:50%;width:42px;height:42px;font-size:17px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:transform var(--schnell),box-shadow var(--schnell)}
 .knopf-aktualisieren:hover{box-shadow:var(--schatten-lg)}
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
@@ -67,9 +69,9 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
 :root[data-theme="light"] .trust-chip{background:rgba(255,255,255,.55);color:#5E4408}
 
-.segment{display:flex;background:rgba(20,31,44,.055);border-radius:15px;padding:4px;margin:14px 0 8px;gap:2px}
-.segment button{flex:1;padding:11px;border:none;background:transparent;border-radius:11px;font-size:14px;font-weight:600;color:var(--grau);cursor:pointer;transition:color var(--schnell)}
-.segment button.aktiv{background:var(--karte);color:var(--nacht);box-shadow:0 1px 3px rgba(20,31,44,.12),0 2px 8px -2px rgba(20,31,44,.14)}
+.segment{display:flex;background:var(--glass-2);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:16px;padding:3px;margin:14px 0 8px;gap:2px}
+.segment button{flex:1;padding:10px 4px;border:none;background:transparent;border-radius:13px;font-size:14px;font-weight:590;letter-spacing:-.01em;color:var(--grau);cursor:pointer;transition:color var(--schnell),background var(--schnell)}
+.segment button.aktiv{background:var(--glass);color:var(--nacht);box-shadow:0 1px 3px rgba(16,35,58,.14),0 2px 8px -3px rgba(16,35,58,.16);border:.5px solid var(--glass-rand)}
 .status{font-family:var(--mono);font-size:12px;color:var(--grau);padding:4px 2px 10px;min-height:20px}
 .status .fehler{color:var(--rot)}
 .quellen-details{padding:0 2px 14px}
@@ -79,9 +81,9 @@ h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:3px 0;line-heigh
 .quellen-info{font-size:11px;color:var(--grau);line-height:1.55;padding-top:4px}
 .quellen-info b{color:var(--tinte);font-weight:600}
 
-.karte{background:var(--karte);border-radius:var(--radius);padding:20px;box-shadow:var(--hairline),var(--schatten);margin-bottom:14px}
-#karte-geraete{background:radial-gradient(130% 100% at 100% 0%,rgba(245,168,12,.11),rgba(245,168,12,0) 58%),var(--karte)}
-h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
+.karte{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:var(--radius);padding:20px;box-shadow:var(--schatten);margin-bottom:14px}
+#karte-geraete{background:radial-gradient(130% 100% at 100% 0%,rgba(245,160,12,.13),rgba(245,160,12,0) 58%),var(--glass)}
+h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .untertitel{font-size:12.5px;color:var(--grau);margin-bottom:14px;line-height:1.5}
 .karten-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .alle-loeschen{border:none;background:none;font-size:12px;font-weight:600;color:var(--rot);cursor:pointer;padding:4px}
@@ -150,7 +152,7 @@ h2{font-size:16px;font-weight:700;margin-bottom:4px;letter-spacing:-.01em}
 /* Sheets */
 .schleier{position:fixed;inset:0;background:rgba(16,24,34,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:none;z-index:10;opacity:0;transition:opacity var(--weich)}
 .schleier.offen{display:block;opacity:1}
-.sheet{position:fixed;left:0;right:0;bottom:0;max-height:90vh;overflow-y:auto;background:var(--karte);border-radius:26px 26px 0 0;padding:26px 20px calc(28px + env(safe-area-inset-bottom));z-index:11;display:none;max-width:760px;margin:0 auto;box-shadow:0 -12px 40px -12px rgba(16,24,34,.35)}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow-y:auto;background:var(--karte);border:.5px solid var(--glass-rand);border-bottom:none;border-radius:34px 34px 0 0;padding:26px 20px calc(28px + env(safe-area-inset-bottom));z-index:11;display:none;max-width:760px;margin:0 auto;box-shadow:0 -14px 44px -12px rgba(16,24,34,.38)}
 .sheet.offen{display:block;animation:sheet-auf var(--weich)}
 @keyframes sheet-auf{from{transform:translateY(24px);opacity:.6}to{transform:translateY(0);opacity:1}}
 .sheet::before{content:"";position:absolute;top:10px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:99px;background:var(--linie)}
@@ -267,15 +269,15 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .hero-detail b{color:var(--tinte)}
 .hero-detail .hd-sonne{color:var(--gruen);font-weight:600}
 .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
-.hs-kachel{display:flex;align-items:center;gap:7px;background:var(--papier);border-radius:13px;padding:10px 9px;overflow:hidden}
-.hs-ic{width:30px;height:30px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(20,31,44,.12);display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;flex-shrink:0}
-.hs-ring{position:relative;width:30px;height:30px;flex-shrink:0}
-.hs-ring svg{width:30px;height:30px;transform:rotate(-90deg)}
+.hs-kachel{display:flex;align-items:center;gap:6px;background:var(--papier);border-radius:14px;padding:10px 8px;overflow:hidden}
+.hs-ic{width:27px;height:27px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(16,35,58,.12);display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;flex-shrink:0}
+.hs-ring{position:relative;width:27px;height:27px;flex-shrink:0}
+.hs-ring svg{width:27px;height:27px;transform:rotate(-90deg)}
 .hs-ring-bg{fill:none;stroke:var(--linie);stroke-width:3.2}
 .hs-ring-fg{fill:none;stroke:var(--gruen);stroke-width:3.2;stroke-linecap:round;transition:stroke-dasharray var(--weich)}
 .hs-ring-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
 .hs-tx{display:flex;flex-direction:column;min-width:0}
-.hs-tx b{font-size:14px;font-weight:700;color:var(--nacht);letter-spacing:-.01em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-tx b{font-size:13.5px;font-weight:700;color:var(--nacht);letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hs-tx span{font-size:9.5px;color:var(--grau);line-height:1.2;overflow:hidden}
 .p-blk{position:absolute;top:0;height:34px;border-radius:11px;padding:0 8px;display:flex;align-items:center;gap:6px;
   background:var(--karte);border:1px solid var(--linie);box-shadow:0 4px 12px -6px rgba(20,31,44,.4);
@@ -453,14 +455,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 /* Dark Mode – folgt der Systemeinstellung */
 :root[data-theme="dark"]{
-  --nacht:#E9EFF4; --tinte:#B9C6D2; --papier:#0F1A24; --karte:#182736;
-  --grau:#8A99A6; --linie:#28394B; --knopf:#2E4864; --preis-linie:#A78BFA;
+  --nacht:#EAF1FA; --tinte:#B7C4D2; --papier:#0A1420; --karte:#18242F;
+  --grau:#8A98A6; --linie:#293848; --knopf:#2E4864; --preis-linie:#BF5AF2;
+  --netz:#0A84FF; --gruen:#30D158; --rot:#FF453A; --gelb:#FFD60A;
   --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
-  --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,168,12,.32);
-  --schatten:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
-  --schatten-lg:0 2px 6px rgba(0,0,0,.35), 0 26px 50px -18px rgba(0,0,0,.7);
-  --hairline:0 0 0 1px rgba(255,255,255,.05);
-  --amb-glow:rgba(245,168,12,.12); --amb-sky:#14232F;
+  --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,160,12,.32);
+  --glass:rgba(30,42,56,.52); --glass-2:rgba(30,42,56,.34); --glass-rand:rgba(255,255,255,.12);
+  --schatten:0 1px 2px rgba(0,0,0,.32), 0 14px 32px -16px rgba(0,0,0,.66);
+  --schatten-lg:0 2px 6px rgba(0,0,0,.38), 0 28px 54px -18px rgba(0,0,0,.72);
+  --hairline:0 0 0 .5px rgba(255,255,255,.06);
+  --amb-glow:rgba(245,160,12,.12); --amb-sky:#0E1E2E;
 }
 :root[data-theme="dark"] .segment{background:rgba(255,255,255,.06)}
 :root[data-theme="dark"] .chip.an{box-shadow:0 0 0 1.5px var(--nacht),0 6px 16px -8px rgba(0,0,0,.6)}
