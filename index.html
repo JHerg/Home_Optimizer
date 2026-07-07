@@ -140,6 +140,9 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 .quellen-details[open] summary{color:var(--tinte);font-weight:600}
 .quellen-info{font-size:11px;color:var(--grau);line-height:1.55;padding-top:4px}
 .quellen-info b{color:var(--tinte);font-weight:600}
+.quellen-info a{color:var(--netz);text-decoration:none}
+.qi-block{margin-top:9px;padding-top:9px;border-top:.5px solid var(--linie)}
+.qi-titel{font-size:9.5px;font-weight:700;color:var(--tinte);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
 
 .karte{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:var(--radius);padding:20px;box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.5);margin-bottom:14px}
 #karte-geraete{background:radial-gradient(130% 100% at 100% 0%,rgba(245,160,12,.13),rgba(245,160,12,0) 58%),var(--glass)}
@@ -701,9 +704,23 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </div>
 
 <details class="quellen-details">
-  <summary>ⓘ Datenquellen &amp; Stand</summary>
+  <summary>ⓘ Datenquellen &amp; Rechtliches</summary>
   <div class="quellen-info">
-    Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · Adresssuche <b id="quelle-adresse">OpenStreetMap</b> · <span id="quelle-stand">–</span>
+    <div class="qi-zeile">Strompreis <b id="quelle-preis">–</b> · Sonnenprognose <b id="quelle-sonne">–</b> · <span id="quelle-stand">–</span></div>
+    <div class="qi-block">
+      <div class="qi-titel">📡 Datenquellen</div>
+      <div>Wetter &amp; Sonnenprognose: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo.com</a> (CC-BY 4.0)</div>
+      <div>Börsenstrompreise: <a href="https://www.awattar.de" target="_blank" rel="noopener">aWATTar</a> · alternativ <a href="https://forecast.solar" target="_blank" rel="noopener">Forecast.Solar</a></div>
+      <div>Adresssuche: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL)</div>
+    </div>
+    <div class="qi-block">
+      <div class="qi-titel">🔒 Datenschutz</div>
+      <div>Alle deine Angaben bleiben <b>lokal auf deinem Gerät</b> – keine Konten, kein Tracking, keine Weitergabe an uns. Für die Prognosen werden nur dein <b>Standort bzw. deine Adresse</b> an die oben genannten Dienste gesendet.</div>
+    </div>
+    <div class="qi-block">
+      <div class="qi-titel">⚖️ Haftung</div>
+      <div>Beratendes Werkzeug: Prognose, Preise und Ersparnis sind <b>Schätzungen ohne Gewähr</b>. Die App <b>steuert keine Geräte</b> – Nutzung auf eigene Verantwortung.</div>
+    </div>
   </div>
 </details>
 
@@ -1051,7 +1068,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"fs",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
