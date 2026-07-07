@@ -59,33 +59,21 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 .unterzeile::before{flex-shrink:0}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
 .kopf-aktionen{display:flex;gap:5px;flex-shrink:0}
-.claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
-.knopf-aktualisieren{border:.5px solid var(--glass-rand);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--schatten);border-radius:50%;width:39px;height:39px;font-size:16px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;transition:transform var(--schnell),box-shadow var(--schnell)}
+.knopf-aktualisieren{border:.5px solid var(--glass-rand);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.55);border-radius:50%;width:39px;height:39px;font-size:16px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;transition:transform var(--schnell),box-shadow var(--schnell)}
 .knopf-aktualisieren:hover{box-shadow:var(--schatten-lg)}
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
 @keyframes dreh{to{transform:rotate(360deg)}}
-.sonnen-summe{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;
-  background:linear-gradient(135deg,rgba(255,246,226,.92),rgba(255,231,187,.86));
-  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);
-  color:#7A5A0C;border-radius:20px;padding:14px 18px;margin:14px 0 4px;
-  box-shadow:0 1px 2px rgba(245,168,12,.16),0 12px 26px -14px rgba(245,168,12,.5)}
-.sonnen-summe .ss-body{display:flex;flex-direction:column;gap:2px}
-.sonnen-summe .ss-label{font-size:12.5px;font-weight:600;opacity:.9}
-.sonnen-summe .ss-big{font-size:30px;font-weight:700;letter-spacing:-.03em;color:#5E4408;line-height:1;font-variant-numeric:tabular-nums}
-.sonnen-summe .ss-big .zahl{font-variant-numeric:tabular-nums}
-:root[data-theme="dark"] .sonnen-summe .ss-big{color:#FFE9B8}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
 :root[data-theme="light"] .trust-chip{background:rgba(255,255,255,.55);color:#5E4408}
 
-.segment{display:none} /* durch die schwebende Tab-Leiste unten ersetzt */
 /* Schwebende Glas-Tab-Leiste (iOS-Stil) */
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:9;
   display:flex;gap:2px;width:min(430px,calc(100% - 24px));
   background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
-  border:.5px solid var(--glass-rand);border-radius:26px;padding:9px 8px;box-shadow:var(--schatten-lg)}
+  border:.5px solid var(--glass-rand);border-radius:26px;padding:9px 8px;box-shadow:var(--schatten-lg),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -1px 1px rgba(255,255,255,.15)}
 .tabbar .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;
   color:var(--grau);font-size:10.5px;font-weight:600;letter-spacing:-.01em;padding:2px 0;
   transition:color var(--schnell),transform var(--schnell)}
@@ -101,7 +89,7 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 .quellen-info{font-size:11px;color:var(--grau);line-height:1.55;padding-top:4px}
 .quellen-info b{color:var(--tinte);font-weight:600}
 
-.karte{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:var(--radius);padding:20px;box-shadow:var(--schatten);margin-bottom:14px}
+.karte{background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:var(--radius);padding:20px;box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.5);margin-bottom:14px}
 #karte-geraete{background:radial-gradient(130% 100% at 100% 0%,rgba(245,160,12,.13),rgba(245,160,12,0) 58%),var(--glass)}
 h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .untertitel{font-size:12.5px;color:var(--grau);margin-bottom:14px;line-height:1.5}
@@ -111,7 +99,7 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 /* Geräte-Chips */
 .chips{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px}
 .chip{position:relative;display:flex;align-items:center;gap:9px;border:1px solid var(--linie);border-radius:16px;padding:9px 9px 9px 14px;background:var(--karte);transition:border-color var(--schnell),background var(--schnell),box-shadow var(--schnell)}
-.chip.an{border-color:transparent;background:var(--karte);box-shadow:0 0 0 1.5px var(--nacht),0 6px 16px -8px rgba(20,31,44,.25)}
+.chip.an{border-color:transparent;background:var(--karte);box-shadow:0 0 0 1.5px var(--sonne),0 6px 16px -8px rgba(245,160,12,.3)}
 .chip .info{border:none;background:none;text-align:left;cursor:pointer;padding:0}
 .chip .cn{font-size:13.5px;font-weight:600;color:var(--nacht)}
 .chip .ck{font-size:11px;color:var(--grau)}
@@ -125,49 +113,7 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .chip-plus{border:1.5px dashed #C4D0DA;border-radius:var(--radius-pill);padding:10px 17px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;transition:border-color var(--schnell),background var(--schnell),color var(--schnell)}
 .chip-plus:hover{border-color:var(--sonne);color:var(--nacht);background:var(--sonne-hell)}
 
-/* Plan */
-.plan-eintrag{display:flex;align-items:center;gap:13px;padding:14px 15px;border-radius:16px;margin-bottom:9px;border-left:4px solid var(--linie);transition:box-shadow var(--schnell)}
-.plan-eintrag.k-pv{background:var(--gruen-hell);border-left-color:var(--gruen)}
-.plan-eintrag.k-guenstig{background:var(--gelb-hell);border-left-color:var(--gelb)}
-.plan-eintrag.k-mittel{background:var(--papier);border-left-color:#B8C4CC}
-.plan-eintrag.k-teuer{background:var(--rot-hell);border-left-color:var(--rot)}
-.p-zeit{font-family:var(--mono);font-size:16px;font-weight:600;min-width:82px;letter-spacing:-.02em}
-.p-was{flex:1;min-width:0}
-.p-was .n{font-size:14px;font-weight:600}
-.p-was .warum{font-size:12px;color:var(--grau)}
-.p-kosten{text-align:right;min-width:78px}
-.p-sonne{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:14px;font-weight:700;color:var(--grau)}
-.p-sonne.hoch{color:var(--gruen)}
-.sonne-meter{height:5px;border-radius:99px;background:rgba(20,31,44,.09);margin:5px 0 3px;overflow:hidden}
-.sonne-meter span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#FFCB57,#F5A80C)}
-.p-euro{display:block;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--grau)}
-.plan-eintrag.naechste{box-shadow:0 0 0 2px var(--nacht),0 10px 24px -12px rgba(20,31,44,.3)}
-.badge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:7px;margin-bottom:5px}
-.badge.jetzt{background:var(--knopf);color:var(--knopf-fg)}
-.badge.next{background:var(--sonne);color:#fff}
-.plan-summe{display:flex;justify-content:space-between;align-items:center;padding-top:13px;margin-top:6px;border-top:1px solid var(--linie);font-size:14px}
-.plan-summe b{font-family:var(--mono);font-size:15px}
 .plan-leer{font-size:13.5px;color:var(--grau);padding:10px 0;text-align:center}
-
-/* Tagesband */
-.band-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.band{display:flex;gap:3px;padding-bottom:4px}
-.zelle{flex:1 1 0;min-width:0;border-radius:6px;cursor:pointer;border:none;padding:0;font-family:var(--mono);background:transparent;-webkit-tap-highlight-color:transparent;transition:transform var(--schnell)}
-.zelle:active{transform:scale(.92)}
-.zelle .pv-balken{display:block;height:34px;position:relative}
-.zelle .pv-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,#FFCB57,#F5A80C);border-radius:4px 4px 2px 2px}
-.zelle .kachel{display:block;height:22px;border-radius:6px;margin-top:3px;transition:transform var(--schnell)}
-.zelle.k-pv .kachel{background:var(--gruen)}
-.zelle.k-guenstig .kachel{background:var(--gelb)}
-.zelle.k-mittel .kachel{background:#C2CDD6}
-.zelle.k-teuer .kachel{background:var(--rot)}
-.zelle .std{display:block;font-size:9px;color:var(--grau);margin-top:4px;text-align:center}
-.zelle.jetzt .kachel{box-shadow:0 0 0 2px var(--karte),0 0 0 4px var(--nacht)}
-.zelle.jetzt .std{color:var(--nacht);font-weight:600}
-.legende{display:flex;flex-wrap:wrap;gap:9px 14px;margin-top:14px;font-size:11.5px;color:var(--grau)}
-.legende span{display:flex;align-items:center;gap:6px}
-.punkt{width:10px;height:10px;border-radius:4px;display:inline-block}
-.detail{font-family:var(--mono);font-size:12px;padding:12px 0 0;min-height:18px;color:var(--tinte)}
 
 /* Sheets */
 .schleier{position:fixed;inset:0;background:rgba(16,24,34,.5);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);display:none;z-index:10;opacity:0;transition:opacity var(--weich)}
@@ -206,7 +152,12 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .wahl{display:flex;flex-wrap:wrap;gap:8px}
 .wahl button{padding:10px 14px;border:1.5px solid var(--linie);border-radius:12px;background:var(--karte);font-size:13px;font-weight:600;cursor:pointer;color:var(--tinte);transition:border-color var(--schnell),background var(--schnell),color var(--schnell),transform var(--schnell)}
 .wahl button:active{transform:scale(.95)}
-.wahl button.aktiv{border-color:var(--knopf);background:var(--knopf);color:var(--knopf-fg)}
+.wahl button.aktiv{border-color:var(--sonne);background:var(--sonne-hell);color:var(--nacht);box-shadow:0 0 0 1px var(--sonne)}
+/* iOS-Segmented-Control für binäre Auswahl (Tarif, Rhythmus): grauer Track, weißer Knopf */
+.wahl.segmented{flex-wrap:nowrap;gap:0;background:var(--papier);border:.5px solid var(--linie);border-radius:11px;padding:3px}
+.wahl.segmented button{flex:1;border:none;border-radius:8px;background:transparent;box-shadow:none;color:var(--grau);padding:9px 10px}
+.wahl.segmented button.aktiv{background:var(--karte);color:var(--nacht);box-shadow:0 1px 3px rgba(20,31,44,.16),0 0 0 .5px rgba(20,31,44,.05)}
+:root[data-theme="dark"] .wahl.segmented button.aktiv{background:#3A4757;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .zahl-feld{display:flex;align-items:center;gap:9px}
 .zahl-feld input{width:100px;padding:12px;border:1.5px solid var(--linie);border-radius:12px;font-family:var(--mono);font-size:16px;text-align:right;transition:border-color var(--schnell),box-shadow var(--schnell)}
 .zahl-feld input:focus{outline:none;border-color:var(--netz);box-shadow:0 0 0 3px rgba(59,111,212,.15)}
@@ -225,13 +176,13 @@ details.experte[open] summary::after{transform:rotate(180deg)}
 .g-typen{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:9px}
 .g-typen button{border:1.5px solid var(--linie);border-radius:15px;background:var(--karte);padding:14px 6px;cursor:pointer;text-align:center;transition:border-color var(--schnell),background var(--schnell),transform var(--schnell)}
 .g-typen button:active{transform:scale(.95)}
-.g-typen button.aktiv{border-color:var(--nacht);background:var(--sonne-hell)}
+.g-typen button.aktiv{border-color:var(--sonne);background:var(--sonne-hell);box-shadow:0 0 0 1px var(--sonne)}
 .g-typen .ic{font-size:26px;display:block}
 .g-typen .tn{font-size:11.5px;font-weight:600;margin-top:5px;display:block;color:var(--tinte)}
 .g-icons{display:flex;flex-wrap:wrap;gap:8px}
 .icon-btn{width:46px;height:46px;border:1.5px solid var(--linie);border-radius:12px;background:var(--karte);font-size:23px;line-height:1;cursor:pointer;transition:border-color var(--schnell),background var(--schnell),transform var(--schnell)}
 .icon-btn:active{transform:scale(.9)}
-.icon-btn.aktiv{border-color:var(--nacht);background:var(--sonne-hell);box-shadow:0 0 0 1.5px var(--nacht)}
+.icon-btn.aktiv{border-color:var(--sonne);background:var(--sonne-hell);box-shadow:0 0 0 1.5px var(--sonne)}
 .schaetzung{background:linear-gradient(135deg,#FFF6E2,#FFEFCF);border-radius:14px;padding:14px 16px;font-size:13px;margin-top:14px;line-height:1.5}
 .schaetzung b{font-family:var(--mono)}
 .such-ergebnis{background:var(--gruen-hell);border-radius:14px;padding:14px 16px;font-size:13px;margin-top:10px;line-height:1.5}
@@ -406,13 +357,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .meine-chip{position:relative;display:flex;align-items:stretch}
 .mc-add{flex:1;display:flex;align-items:center;gap:11px;text-align:left;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);padding:11px 13px;cursor:pointer;transition:border-color var(--schnell),background var(--schnell)}
 .mc-add:hover{border-color:var(--sonne);background:var(--sonne-hell)}
-.meine-chip.gewaehlt .mc-add{border-color:var(--nacht);box-shadow:0 0 0 1.5px var(--nacht)}
+.meine-chip.gewaehlt .mc-add{border-color:var(--sonne);box-shadow:0 0 0 1.5px var(--sonne)}
 .mc-ic{font-size:22px}
 .mc-t{display:flex;flex-direction:column}
 .mc-n{font-size:14px;font-weight:600;color:var(--nacht)}
 .mc-k{font-size:11.5px;color:var(--grau);font-family:var(--mono)}
-.mc-weg{margin-left:8px;width:38px;border:1.5px solid var(--linie);border-radius:13px;background:var(--karte);color:var(--grau);font-size:14px;cursor:pointer;flex-shrink:0}
-.mc-weg:active{background:var(--rot-hell);color:var(--rot)}
 /* Meine Geräte – Verwaltung (Einstellungen) */
 .mv-zeile{display:flex;align-items:center;gap:10px;background:var(--papier);border-radius:12px;padding:9px 11px;margin-bottom:8px}
 .mv-ic{font-size:20px;flex-shrink:0}
@@ -556,15 +505,13 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   --hairline:0 0 0 .5px rgba(255,255,255,.06);
   --amb-glow:rgba(245,160,12,.12); --amb-sky:#0E1E2E;
 }
-:root[data-theme="dark"] .segment{background:rgba(255,255,255,.06)}
-:root[data-theme="dark"] .chip.an{box-shadow:0 0 0 1.5px var(--nacht),0 6px 16px -8px rgba(0,0,0,.6)}
+/* Liquid-Glass-Glanzkante im Dunkelmodus dezenter */
+:root[data-theme="dark"] .karte{box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.1)}
+:root[data-theme="dark"] .tabbar{box-shadow:var(--schatten-lg),inset 0 1px 0 rgba(255,255,255,.12)}
+:root[data-theme="dark"] .knopf-aktualisieren{box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.1)}
+:root[data-theme="dark"] .chip.an{box-shadow:0 0 0 1.5px var(--sonne),0 6px 16px -8px rgba(0,0,0,.6)}
 :root[data-theme="dark"] .g-typen button.aktiv{background:var(--sonne-hell);border-color:var(--sonne)}
 :root[data-theme="dark"] input{background:var(--papier);color:var(--nacht)}
-:root[data-theme="dark"] .zelle.k-mittel .kachel{background:#5A6A78}
-:root[data-theme="dark"] .plan-eintrag.k-mittel{border-left-color:#5A6A78}
-:root[data-theme="dark"] .sonne-meter{background:rgba(255,255,255,.1)}
-:root[data-theme="dark"] .sonnen-summe{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
-:root[data-theme="dark"] .sonnen-summe b{color:#FFE9B8}
 :root[data-theme="dark"] .routine-banner{background:linear-gradient(135deg,#3A2D12,#4A3A16);color:#FFD98A}
 :root[data-theme="dark"] .routine-add{border-color:#3A4C5E}
 :root[data-theme="dark"] .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
@@ -602,15 +549,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <button class="knopf-aktualisieren" id="btn-einrichten" aria-label="Einrichten" title="Einrichten">⚙️</button>
   </div>
 </div>
-<div class="claim" hidden>Lege deine Geräte in die Sonnenstunden – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
-<div class="sonnen-summe" id="sonnen-summe" hidden></div>
-
-<div class="segment" role="group" aria-label="Ansicht wählen">
-  <button id="btn-heute" class="aktiv">Heute</button>
-  <button id="btn-morgen">Morgen</button>
-  <button id="btn-woche">Woche</button>
-  <button id="btn-verlauf">Verlauf</button>
-</div>
 <div class="status" id="status" hidden>Lade Sonnen- und Preisdaten…</div>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
@@ -630,10 +568,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </details>
 
 <section class="karte" id="karte-woche" hidden>
-  <div class="karten-kopf">
-    <h2>Deine Woche</h2>
-  </div>
-  <div class="untertitel">Wiederkehrende Routinen für die nächsten 7 Tage. Heute &amp; morgen werden im Tagesplan sonnenoptimiert – spätere Tage folgen, sobald sie im Prognosefenster sind.</div>
+  <div class="untertitel" style="margin-top:2px">Wiederkehrende Routinen für die nächsten 7 Tage. Heute &amp; morgen werden im Tagesplan sonnenoptimiert – spätere Tage folgen, sobald sie im Prognosefenster sind.</div>
   <div id="woche-liste"></div>
   <div class="karten-kopf" style="margin-top:18px"><h2 style="font-size:15px">🔁 Routinen</h2></div>
   <div class="untertitel">Feste Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
@@ -642,8 +577,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </section>
 
 <section class="karte" id="karte-verlauf" hidden>
-  <div class="karten-kopf"><h2>Verlauf</h2></div>
-  <div class="untertitel">Was tatsächlich gelaufen ist – daraus lernt die App deine Rhythmen. Alles bleibt lokal auf deinem Gerät.</div>
+  <div class="untertitel" style="margin-top:2px">Was tatsächlich gelaufen ist – daraus lernt die App deine Rhythmen. Alles bleibt lokal auf deinem Gerät.</div>
   <div id="verlauf-inhalt"></div>
 </section>
 
@@ -718,7 +652,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div class="hilfe-abschnitt">
     <h4>📖 Die wichtigsten Begriffe</h4>
     <div class="hilfe-glossar">
-      <div><b>Dein Dach liefert</b> – die gesamte Tagesproduktion (brutto).</div>
+      <div><b>Sonnenertrag heute</b> – die gesamte Tagesproduktion deines Dachs (brutto).</div>
       <div><b>Freie Sonne</b> – der Überschuss über deiner Grundlast; das, was du auf Geräte verschieben kannst.</div>
       <div><b>Sonnen-Budget</b> – wie viel Energie deine geplanten Geräte brauchen im Vergleich zur freien Sonne des Tages.</div>
       <div><b>Eigenverbrauch</b> – der Anteil deiner Geräte, der aus Sonne (und Speicher) läuft statt aus dem Netz.</div>
@@ -778,7 +712,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div class="abschnitt">
     <div class="frage">3 · Dein Stromtarif</div>
     <div class="hilfe">Hast du einen dynamischen (stündlich wechselnden) Börsentarif oder einen festen Arbeitspreis?</div>
-    <div class="wahl" id="w-tarif" style="margin-bottom:14px"></div>
+    <div class="wahl segmented" id="w-tarif" style="margin-bottom:14px"></div>
     <div id="tarif-dynamisch">
       <div class="frage" style="font-size:13px">Dein dynamischer Stromanbieter</div>
       <div class="hilfe">Alle dynamischen Tarife rechnen mit demselben Börsenpreis (EPEX-Spot). Die Auswahl dient der Anzeige – die Börsendaten kommen über die aWATTar-Schnittstelle.</div>
@@ -943,7 +877,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt">
     <div class="frage">Wie oft?</div>
-    <div class="wahl" id="routine-rhythmus"></div>
+    <div class="wahl segmented" id="routine-rhythmus"></div>
     <div id="routine-start-box" hidden style="margin-top:12px">
       <div class="frage" style="font-size:13px">Ab wann?</div>
       <div class="wahl" id="routine-start"></div>
@@ -1469,9 +1403,9 @@ function renderChips(){
     const g=geraete[+b.dataset.p];const n=tagAnzahl(tk,g.name);if(n<5){setzeTagAnzahl(tk,g.name,n+1);speichern();aktualisieren();}});
   box.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{
     const g=geraete[+b.dataset.m];const n=tagAnzahl(tk,g.name);if(n>0){setzeTagAnzahl(tk,g.name,n-1);speichern();aktualisieren();}});
-  box.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{
+  box.querySelectorAll("[data-w]").forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.w, g=geraete[i]; if(!g)return;
-    if(typeof confirm==="function" && !confirm("Dieses Gerät ganz aus der Liste entfernen?\n\n"+g.icon+" "+g.name+"\n\n(Es verschwindet dann für heute und morgen.)"))return;
+    if(!(await frageJaNein(g.icon+" "+g.name+" ganz löschen?","Das Gerät verschwindet komplett aus deiner Liste – für heute und morgen.","Löschen")))return;
     const name=g.name; geraete.splice(i,1);
     // Tages-Anzahlen dieses Geräts überall aufräumen
     if(cfg.tagAnzahl)Object.keys(cfg.tagAnzahl).forEach(d=>{if(cfg.tagAnzahl[d])delete cfg.tagAnzahl[d][name];});
@@ -1951,11 +1885,10 @@ function tageskarten(zeigenTag){
 function aktualisieren(){
   if(tag==="woche"||tag==="verlauf"){
     tageskarten(false);
-    $("sonnen-summe").hidden=true;
     $("routine-banner").hidden=true;
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
     const eb=$("kopf-eyebrow"); if(eb)eb.textContent="Energie-Optimierer";
-    if(tag==="woche"){ $("titel").textContent="Deine Woche"; renderWoche(); }
+    if(tag==="woche"){ $("titel").textContent="Woche"; renderWoche(); }
     else { $("titel").textContent="Verlauf"; renderVerlauf(); }
     return;
   }
@@ -1970,7 +1903,6 @@ function aktualisieren(){
   renderChips();sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
   $("titel").textContent=(tag==="heute"?"Heute":"Morgen");
   const eb=$("kopf-eyebrow"); if(eb){ const d=new Date(tagStr+"T12:00:00"); eb.textContent=d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}); }
-  $("sonnen-summe").hidden=true;
   renderDashboard(arr);
   routineBanner(tagStr);
   if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null)){
@@ -2029,9 +1961,9 @@ function renderRoutineListe(){
       '<button class="mv-btn" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>';
   }).join("");
   box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
-  box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=()=>{
+  box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=async()=>{
     const r=routinen[+b.dataset.rdel]; if(!r)return;
-    if(typeof confirm==="function" && !confirm("Diese Routine löschen?\n\n"+r.icon+" "+r.name))return;
+    if(!(await frageJaNein(r.icon+" "+r.name+" löschen?","Die Routine wird dauerhaft entfernt – auch aus künftigen Wochen.","Löschen")))return;
     routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
   });
 }
@@ -2293,10 +2225,10 @@ $("btn-fertig").onclick=()=>{
 };
 
 /* Alle löschen */
-$("btn-alle-loeschen").onclick=()=>{
+$("btn-alle-loeschen").onclick=async()=>{
   const tk=tagKeyAktuell(), wo=(tag==="morgen"?"morgen":"heute");
   if(!geraete.some(g=>tagAnzahl(tk,g.name)>0))return;
-  if(typeof confirm==="function" && !confirm("Für "+wo+" alle Geräte aus dem Plan nehmen?\n\nDie Geräte bleiben in der Liste – nur die Anzahl für "+wo+" wird auf 0 gesetzt."))return;
+  if(!(await frageJaNein("Für "+wo+" alle aus dem Plan nehmen?","Die Geräte bleiben in deiner Liste – nur die Anzahl für "+wo+" wird auf 0 gesetzt.","Alle entfernen")))return;
   geraete.forEach(g=>setzeTagAnzahl(tk,g.name,0));
   speichern();renderChips();aktualisieren();
 };
@@ -2372,8 +2304,7 @@ function renderMeine(){
   meineGeraete.forEach((m,i)=>{
     const c=document.createElement("div");
     c.className="meine-chip";
-    c.innerHTML='<button class="mc-add" data-add="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+m.name+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>'+
-      '<button class="mc-weg" data-del="'+i+'" aria-label="'+m.name+' aus Meine Geräte löschen">✕</button>';
+    c.innerHTML='<button class="mc-add" data-add="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+m.name+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>';
     box.appendChild(c);
   });
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
@@ -2381,11 +2312,7 @@ function renderMeine(){
     geraetAnHeutigenTag({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis});
     speichern();sheetZu();renderChips();aktualisieren();
   });
-  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-    const m=meineGeraete[+b.dataset.del]; if(!m)return;
-    if(typeof confirm==="function" && !confirm("Diese gespeicherte Vorlage löschen?\n\n"+m.icon+" "+m.name))return;
-    meineGeraete.splice(+b.dataset.del,1);speichern();renderMeine();
-  });
+  // Verwalten (Umbenennen/Löschen) gebündelt unter „Einrichten → Meine Geräte" – hier nur Antippen zum Hinzufügen.
 }
 function renderMeineVerwaltung(){
   const box=$("meine-verwaltung"),sec=$("meine-verwaltung-abschnitt");
@@ -2406,9 +2333,9 @@ function renderMeineVerwaltung(){
     const neu=((await frageText("Gerät umbenennen",meineGeraete[i].name))||"").trim();
     if(neu){meineGeraete[i].name=neu;speichern();renderMeineVerwaltung();renderChips();}
   });
-  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
     const m=meineGeraete[+b.dataset.del]; if(!m)return;
-    if(typeof confirm==="function" && !confirm("Diese gespeicherte Vorlage löschen?\n\n"+m.icon+" "+m.name))return;
+    if(!(await frageJaNein(m.icon+" "+m.name+" löschen?","Diese gespeicherte Vorlage wird aus deinen Geräten entfernt.","Löschen")))return;
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeineVerwaltung();
   });
 }
@@ -2476,9 +2403,9 @@ $("btn-b-merken").onclick=async()=>{
   speichern();renderChips();aktualisieren();
   $("modell-ergebnis").innerHTML='<div class="such-ergebnis">★ „'+name+'" ist jetzt unter „Meine Geräte" gespeichert – beim nächsten „＋ Gerät hinzufügen" direkt wählbar.</div>';
 };
-$("btn-b-loeschen").onclick=()=>{
+$("btn-b-loeschen").onclick=async()=>{
   const g=geraete[bearbIndex]; if(!g)return;
-  if(typeof confirm==="function" && !confirm("Dieses Gerät aus der Liste entfernen?\n\n"+g.icon+" "+g.name))return;
+  if(!(await frageJaNein(g.icon+" "+g.name+" löschen?","Das Gerät wird komplett aus deiner Liste entfernt.","Löschen")))return;
   const name=g.name; geraete.splice(bearbIndex,1);
   if(cfg.tagAnzahl)Object.keys(cfg.tagAnzahl).forEach(d=>{if(cfg.tagAnzahl[d])delete cfg.tagAnzahl[d][name];});
   speichern();sheetZu();renderChips();aktualisieren();
@@ -2487,14 +2414,9 @@ $("btn-b-loeschen").onclick=()=>{
 /* Tag-Umschalter (Heute / Morgen / Woche) */
 function setzeTag(t){
   tag=t;
-  [["btn-heute","heute"],["btn-morgen","morgen"],["btn-woche","woche"],["btn-verlauf","verlauf"]].forEach(([id,v])=>{const b=$(id);if(b)b.classList.toggle("aktiv",v===t);});
-  document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===t)); // untere Tab-Leiste
+  document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===t)); // schwebende Tab-Leiste
   aktualisieren();
 }
-$("btn-heute").onclick=()=>setzeTag("heute");
-$("btn-morgen").onclick=()=>setzeTag("morgen");
-$("btn-woche").onclick=()=>setzeTag("woche");
-$("btn-verlauf").onclick=()=>setzeTag("verlauf");
 document.querySelectorAll(".tabbar .tab").forEach(b=>b.onclick=()=>setzeTag(b.dataset.tag));
 document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag)); // Startzustand markieren
 
