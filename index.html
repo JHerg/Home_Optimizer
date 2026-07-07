@@ -2293,7 +2293,7 @@ function renderRoutineListe(){
                 : dz(r.kwh)+' kWh · '+dz(r.dauer)+' h';
     }
     return '<div class="rh-block"><div class="rh-head">'+
-      '<span class="rh-ic">'+r.icon+'</span><span class="rh-nm">'+r.name+'</span>'+
+      '<span class="rh-ic">'+r.icon+'</span><span class="rh-nm">'+kurzName(r.name)+'</span>'+
       '<span class="rh-badge">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+'</span>'+
       '<button class="rh-mini" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
       '<button class="rh-mini" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>'+
