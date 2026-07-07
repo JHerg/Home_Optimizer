@@ -187,6 +187,16 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .abschnitt{margin-bottom:22px}
 .abschnitt .frage{font-size:14.5px;font-weight:600;margin-bottom:3px}
 .abschnitt .hilfe{font-size:12px;color:var(--grau);margin-bottom:10px;line-height:1.5}
+/* Einheitliche Abschnitts-Kopfzeile mit Icon-Kachel (Apple-Look, wie im Hilfe-Sheet) */
+.frage-kopf{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.fk-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+.fk-ic.sonne{background:var(--sonne-hell)}
+.fk-ic.gruen{background:var(--gruen-hell)}
+.fk-ic.blau{background:rgba(10,132,255,.14)}
+.fk-ic.grau{background:rgba(20,31,44,.06)}
+:root[data-theme="dark"] .fk-ic.grau{background:rgba(255,255,255,.08)}
+.fk-titel{font-size:15px;font-weight:700;color:var(--nacht);letter-spacing:-.01em;line-height:1.2}
+.fk-titel .fk-opt{font-weight:600;color:var(--grau);font-size:12px;margin-left:4px}
 /* Hilfe / "So funktioniert's" */
 /* Hilfe: Apple-Onboarding-Stil – Icon-Kacheln + knappe Zeilen */
 .hilfe-features{margin:16px 0 4px}
@@ -807,7 +817,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <h3>Einrichten</h3>
   <div class="sub">Ein paar kurze Angaben – mehr braucht die App nicht.</div>
   <div class="abschnitt">
-    <div class="frage">1 · Wo wohnst du?</div>
+    <div class="frage-kopf"><span class="fk-ic blau">📍</span><span class="fk-titel">Wo wohnst du?</span></div>
     <div class="hilfe">Die Adresse bestimmt, wie viel Sonne bei dir ankommt.</div>
     <div class="adresse-zeile">
       <input id="f-adresse" value="Altbaumburgweg 2, 50739 Köln" aria-label="Adresse">
@@ -816,14 +826,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div id="adresse-info" class="adresse-ok">✓ Position gesetzt (Köln-Bilderstöckchen)</div>
   </div>
   <div class="abschnitt">
-    <div class="frage">2 · Wohin zeigen deine Solarmodule?</div>
+    <div class="frage-kopf"><span class="fk-ic sonne">☀️</span><span class="fk-titel">Wohin zeigen deine Module?</span></div>
     <div class="hilfe">Einfach die Himmelsrichtung wählen, in die das Pultdach abfällt.</div>
     <div class="wahl" id="w-richtung"></div>
     <div class="frage" style="margin-top:14px">Wie steil ist das Dach?</div>
     <div class="wahl" id="w-neigung"></div>
   </div>
   <div class="abschnitt">
-    <div class="frage">3 · Dein Stromtarif</div>
+    <div class="frage-kopf"><span class="fk-ic gruen">💶</span><span class="fk-titel">Dein Stromtarif</span></div>
     <div class="hilfe">Hast du einen dynamischen (stündlich wechselnden) Börsentarif oder einen festen Arbeitspreis?</div>
     <div class="wahl segmented" id="w-tarif" style="margin-bottom:14px"></div>
     <div id="tarif-dynamisch">
@@ -840,7 +850,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     </div>
   </div>
   <div class="abschnitt">
-    <div class="frage">4 · 🔋 Dein Stromspeicher (optional)</div>
+    <div class="frage-kopf"><span class="fk-ic grau">🔋</span><span class="fk-titel">Dein Stromspeicher<span class="fk-opt">optional</span></span></div>
     <label class="switch-zeile">
       <span>Speicher berücksichtigen</span>
       <span class="switch"><input type="checkbox" id="rg-akku-an"><span class="switch-ui"></span></span>
@@ -855,7 +865,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     </div>
   </div>
   <div class="abschnitt">
-    <div class="frage">5 · 🏠 Grundlast (Ø Dauerverbrauch)</div>
+    <div class="frage-kopf"><span class="fk-ic sonne">🏠</span><span class="fk-titel">Grundlast<span class="fk-opt">Ø Dauerverbrauch</span></span></div>
     <div class="hilfe">Der ständige Hintergrundverbrauch (Kühlschrank, Standby, Wärmepumpe …). Er wird zuerst aus der Sonne gedeckt – erst darüber bleibt Überschuss für deine Geräte. <b>Stark saisonal:</b> im Sommer heizt die Wärmepumpe kaum (nur Warmwasser) → oft nahe null; im Winter heizt sie durch → hoch.</div>
     <div class="regler-kopf"><span>Aktueller Wert</span><b id="rg-last-val">400 W</b></div>
     <input type="range" id="rg-last" min="0" max="3000" step="50" value="400" aria-label="Grundlast in Watt">
@@ -868,18 +878,18 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe" id="gl-hinweis" style="margin-top:8px"></div>
   </div>
   <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
-    <div class="frage">★ Meine Geräte</div>
+    <div class="frage-kopf"><span class="fk-ic sonne">★</span><span class="fk-titel">Meine Geräte</span></div>
     <div class="hilfe">Deine gespeicherten Geräte – umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
     <div class="meine-verwaltung" id="meine-verwaltung"></div>
   </div>
   <div class="abschnitt">
-    <div class="frage">🛰️ Datenquelle Sonnenprognose</div>
+    <div class="frage-kopf"><span class="fk-ic blau">🛰️</span><span class="fk-titel">Datenquelle Sonnenprognose</span></div>
     <div class="hilfe">Forecast.Solar rechnet im kostenlosen Tarif oft zu niedrig. <b>Open-Meteo</b> (DWD-Modell ICON-D2) ist ebenfalls kostenlos, braucht <b>kein Konto</b> und trifft in Deutschland häufig besser. Beim Wechsel wird die Kalibrierung zurückgesetzt – sie gilt je Quelle.</div>
     <div class="wahl" id="w-pvquelle"></div>
     <div class="hilfe" id="pvquelle-hinweis" style="margin-top:8px"></div>
   </div>
   <div class="abschnitt">
-    <div class="frage">☀️ Prognose kalibrieren</div>
+    <div class="frage-kopf"><span class="fk-ic gruen">📊</span><span class="fk-titel">Prognose kalibrieren</span></div>
     <div class="hilfe">Die kostenlose Sonnenprognose rechnet meist zu niedrig. Trag an ein paar Abenden deinen <b>echten</b> Tagesertrag aus deinem EMS/Wechselrichter ein – die App vergleicht ihn mit ihrer eigenen Prognose und korrigiert sich dann automatisch. Je mehr Tage, desto genauer.</div>
     <div class="hilfe" id="kalib-prognose" style="color:var(--tinte);font-weight:600">Heutige Prognose: – kWh</div>
     <div class="zahl-feld"><input id="f-kalib-real" inputmode="decimal" placeholder="z. B. 41"><span class="einheit">kWh echter Ertrag heute</span></div>
