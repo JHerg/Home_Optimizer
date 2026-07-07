@@ -84,6 +84,36 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 #toast .toast-txt{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #toast .toast-undo{flex-shrink:0;border:none;background:none;color:#FFC24D;font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:10px}
 #toast .toast-undo:active{background:rgba(255,255,255,.1)}
+/* Einführungs-Popup „Wischen" */
+#wisch-hint{position:fixed;inset:0;z-index:13;display:none;align-items:center;justify-content:center;padding:24px;
+  background:rgba(16,24,34,.5);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;transition:opacity .25s}
+#wisch-hint.an{display:flex;opacity:1}
+.wh-card{width:100%;max-width:330px;background:var(--karte);border:.5px solid var(--glass-rand);border-radius:24px;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 22px 54px -14px rgba(0,0,0,.55);text-align:center;transform:translateY(10px) scale(.97);transition:transform .25s}
+#wisch-hint.an .wh-card{transform:none}
+.wh-titel{font-size:18px;font-weight:700;letter-spacing:-.02em;color:var(--tinte)}
+.wh-sub{font-size:12.5px;color:var(--grau);margin-top:5px}
+.wh-demo{position:relative;height:52px;margin:18px 0 0;border-radius:12px;overflow:hidden}
+.wh-bg-del,.wh-bg-pin{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;font-weight:700;font-size:13px;opacity:0}
+.wh-bg-del{background:var(--rot);justify-content:flex-end;padding-right:14px;color:#fff}
+.wh-bg-pin{background:var(--sonne);justify-content:flex-start;padding-left:14px;color:#3A2600}
+.wh-row{position:relative;height:52px;display:flex;align-items:center;gap:10px;background:var(--papier);border-radius:12px;padding:0 12px}
+.wh-row .wh-ic{font-size:20px}
+.wh-row .wh-tx{display:flex;flex-direction:column;text-align:left}
+.wh-row .wh-tx b{font-size:14px;color:var(--tinte)} .wh-row .wh-tx span{font-size:11px;color:var(--grau);font-family:var(--mono)}
+.wh-legende{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;margin:9px 2px 0}
+.wh-legende .l{color:var(--rot)} .wh-legende .r{color:#B4780A}
+.wh-check{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tinte);margin:18px 0 2px;cursor:pointer;user-select:none}
+.wh-check input{width:18px;height:18px;accent-color:var(--sonne)}
+.wh-ok{width:100%;margin-top:12px;border:none;border-radius:14px;background:var(--sonne);color:#3A2600;font-family:var(--sans);font-size:15px;font-weight:700;padding:13px;cursor:pointer;transition:transform var(--schnell)}
+.wh-ok:active{transform:scale(.98)}
+@media (prefers-reduced-motion:no-preference){
+  .wh-row{animation:wh-swipe 3.6s ease-in-out infinite}
+  .wh-bg-del{animation:wh-del 3.6s ease-in-out infinite}
+  .wh-bg-pin{animation:wh-pin 3.6s ease-in-out infinite}
+}
+@keyframes wh-swipe{0%,8%{transform:translateX(0)}22%,31%{transform:translateX(-66px)}44%{transform:translateX(0)}60%,69%{transform:translateX(66px)}82%,100%{transform:translateX(0)}}
+@keyframes wh-del{0%,12%{opacity:0}22%,31%{opacity:1}42%,100%{opacity:0}}
+@keyframes wh-pin{0%,50%{opacity:0}60%,69%{opacity:1}80%,100%{opacity:0}}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
@@ -570,6 +600,21 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <body>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg></div>
 <div id="toast" role="status" aria-live="polite"><span class="toast-txt"></span><button class="toast-undo">Rückgängig</button></div>
+<!-- Einführung: Wischgesten im Tagesplan (Anfänger-Hilfe, bis „nicht mehr anzeigen") -->
+<div id="wisch-hint" role="dialog" aria-label="Wischgesten">
+  <div class="wh-card">
+    <div class="wh-titel">Wischen statt tippen 👆</div>
+    <div class="wh-sub">So verwaltest du geplante Geräte in der Liste:</div>
+    <div class="wh-demo">
+      <div class="wh-bg-del"><span>🗑 Entfernen</span></div>
+      <div class="wh-bg-pin"><span>📌 Verankern</span></div>
+      <div class="wh-row"><span class="wh-ic">🧺</span><span class="wh-tx"><b>Waschmaschine</b><span>11–14 Uhr</span></span></div>
+    </div>
+    <div class="wh-legende"><span class="l">◀ links: entfernen</span><span class="r">rechts: 📌 verankern ▶</span></div>
+    <label class="wh-check"><input type="checkbox" id="wh-nichtmehr"> Nicht mehr anzeigen</label>
+    <button class="wh-ok" id="wh-ok">Verstanden</button>
+  </div>
+</div>
 
 <div class="kopf">
   <div>
@@ -1137,6 +1182,27 @@ function swipeGesten(zeile,tagKey){
   zeile.addEventListener("touchend",ende,{passive:true});
   zeile.addEventListener("touchcancel",ende,{passive:true});
 }
+// Einführungs-Popup „Wischen": beim ersten Öffnen des Tagesplans pro App-Start, bis dauerhaft ausgeblendet.
+let wischHintSession=false;
+function vielleichtWischHint(){
+  if(cfg.wischHintWeg || wischHintSession) return;
+  if(!platzierungen.length) return;                      // ohne Geräte nichts zu demonstrieren
+  setTimeout(()=>{ if($("sheet-tagesplan").classList.contains("offen")) zeigeWischHint(); }, 450);
+}
+function zeigeWischHint(){
+  const h=$("wisch-hint"); if(!h)return;
+  wischHintSession=true;
+  const cb=$("wh-nichtmehr"); if(cb)cb.checked=false;
+  h.classList.add("an");
+}
+function wischHintZu(){
+  const h=$("wisch-hint"); if(!h)return;
+  const cb=$("wh-nichtmehr");
+  if(cb&&cb.checked){ cfg.wischHintWeg=true; speichern(); }
+  h.classList.remove("an");
+}
+if($("wh-ok"))$("wh-ok").onclick=wischHintZu;
+if($("wisch-hint"))$("wisch-hint").addEventListener("click",e=>{ if(e.target.id==="wisch-hint") wischHintZu(); });
 // Als "heute schon gelaufen" abgehakte Durchgänge (verhindert das Weiterschieben).
 // Zählbasiert: ein Eintrag = ein erledigter Durchgang (auch bei Geräten mit Anzahl>1).
 function erledigtListe(tagStr){return (cfg.erledigt&&cfg.erledigt[tagStr])||[];}
@@ -1755,7 +1821,7 @@ function renderDashboard(arr){
       '<button id="dash-geraete-btn">＋ Geräte</button></div>'+
     '<div class="dash-plan">'+rows+'</div>'+resHtml;
   // --- Verdrahtung: Kurve & Zeilen -> Tagesplan-Sheet; ＋ -> Geräte-Sheet ---
-  const oeffnePlan=()=>{ausTagesplan=false;sheetAuf("sheet-tagesplan");};
+  const oeffnePlan=()=>{ausTagesplan=false;sheetAuf("sheet-tagesplan");vielleichtWischHint();};
   const oeffneGeraete=()=>{ausTagesplan=false;sheetAuf("sheet-geraete");};
   const cv=$("dash-curve"); if(cv)cv.onclick=oeffnePlan;
   dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>r.onclick=oeffnePlan);
