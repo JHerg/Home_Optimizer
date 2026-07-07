@@ -38,7 +38,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;
+html{overflow-x:hidden}
+body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;overflow-x:hidden;
   padding-bottom:calc(104px + env(safe-area-inset-bottom));padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));
   background:
     radial-gradient(130% 60% at 84% -6%, var(--amb-glow) 0%, transparent 52%),
@@ -51,14 +52,15 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-o
 @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 .kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
-.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sonne);font-weight:700}
+.kopf>div:first-child{min-width:0;flex:1 1 auto} /* Titelspalte darf schrumpfen, damit die Knöpfe nie über den Rand rutschen */
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sonne);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-height:1.03}
 .unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px;max-width:74vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .unterzeile::before{flex-shrink:0}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
-.kopf-aktionen{display:flex;gap:6px;flex-shrink:0}
+.kopf-aktionen{display:flex;gap:5px;flex-shrink:0}
 .claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
-.knopf-aktualisieren{border:.5px solid var(--glass-rand);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--schatten);border-radius:50%;width:42px;height:42px;font-size:17px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:transform var(--schnell),box-shadow var(--schnell)}
+.knopf-aktualisieren{border:.5px solid var(--glass-rand);background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);box-shadow:var(--schatten);border-radius:50%;width:39px;height:39px;font-size:16px;cursor:pointer;color:var(--nacht);display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;transition:transform var(--schnell),box-shadow var(--schnell)}
 .knopf-aktualisieren:hover{box-shadow:var(--schatten-lg)}
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
