@@ -618,9 +618,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
     <div id="planer">
       <div id="planer-warnung"></div>
-      <div id="planer-chart"><div class="plan-leer">Wähle oben mindestens ein Gerät.</div></div>
+      <div id="planer-chart"><div class="plan-leer">Wähle mindestens ein Gerät.</div></div>
       <div id="planer-rest"></div>
     </div>
+    <button class="chip-plus" id="btn-plan-geraet" style="width:100%;margin-top:12px">＋ Gerät hinzufügen</button>
   </section>
 </div>
 
@@ -1672,7 +1673,7 @@ function renderPlaner(arr){
         ? 'Heute nichts mehr einplanbar – siehe Hinweis oben.'
         : (erledigtListe(tagKey).length
             ? 'Alles für heute erledigt oder eingeplant. 🎉'
-            : 'Noch keine Geräte für diesen Tag – tippe oben <b>＋ Gerät hinzufügen</b>.'))+'</div>';
+            : 'Noch keine Geräte für diesen Tag – tippe unten <b>＋ Gerät hinzufügen</b>.'))+'</div>';
   // ---- Antippbarer Verlauf: 24 unsichtbare Stunden-Flächen über dem Himmel ----
   let tapsHtml=""; for(let h=0;h<24;h++){ tapsHtml+='<button class="sky-tap" data-h="'+h+'" style="left:'+(h/24*100).toFixed(4)+'%;width:'+(100/24).toFixed(4)+'%" aria-label="'+h+' Uhr"></button>'; }
   // ---- Kennzahlen-Kacheln (Tageswerte, unabhängig von der Geräteauswahl) ----
@@ -2056,6 +2057,11 @@ async function laden(force){
 
 /* ---------- Sheets ---------- */
 function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");}
+// Aus einem Sheet in ein anderes wechseln (statt stapeln): erst alle schließen, dann öffnen.
+function wechsleZuSheet(id){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));sheetAuf(id);}
+// „＋ Gerät hinzufügen" im Tagesplan öffnet dieselbe Geräteauswahl wie auf der Startseite.
+if($("btn-plan-geraet"))$("btn-plan-geraet").onclick=()=>wechsleZuSheet("sheet-geraete");
+
 function sheetZu(){
   if(frageResolve){const r=frageResolve;frageResolve=null;r(false);} // offener Ja/Nein-Dialog = Abbruch
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
