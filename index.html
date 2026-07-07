@@ -434,21 +434,30 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .mv-btn{border:none;background:var(--karte);border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer;flex-shrink:0;box-shadow:var(--hairline);transition:transform var(--schnell)}
 .mv-btn:active{transform:scale(.9)}
 
-/* Woche + Routinen */
-.woche-tagzeile{display:flex;gap:12px;padding:11px 12px;border-radius:14px;background:var(--papier);margin-bottom:8px}
-.woche-tagzeile.im-horizont{background:var(--gruen-hell)}
-.woche-kopf{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--tinte);min-width:104px;flex-shrink:0}
-.woche-inhalt{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}
-.woche-item{font-size:13px;color:var(--nacht);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.woche-item b{font-family:var(--mono);font-weight:600}
-.woche-tag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:6px;background:rgba(20,31,44,.09);color:var(--grau)}
-.woche-tag.opt{background:var(--gruen);color:#fff}
-.woche-tag.erl{background:var(--gruen-hell);color:var(--gruen)}
-.ung-hak{border:none;background:rgba(255,255,255,.5);color:#7A5A0C;border-radius:7px;font-size:11px;font-weight:700;padding:2px 8px;margin-left:4px;cursor:pointer}
-:root[data-theme="dark"] .ung-hak{background:rgba(0,0,0,.25);color:#FFCF6B}
-.woche-leer{color:var(--grau);font-size:13px}
-.routine-banner{display:flex;gap:8px;align-items:flex-start;background:var(--sonne-hell);color:#7A5A0C;border-radius:14px;padding:11px 14px;font-size:13px;font-weight:600;margin:12px 0 4px;line-height:1.4}
-.routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:6px;transition:border-color var(--schnell),color var(--schnell)}
+/* Woche: Rhythmus-Timeline (rollende 7 Tage bis heute) */
+.rh-block{padding:12px 2px;border-top:.5px solid var(--linie)}
+.rh-block:first-child{border-top:none;padding-top:2px}
+.rh-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.rh-ic{font-size:20px;line-height:1;flex-shrink:0}
+.rh-nm{font-size:14.5px;font-weight:700;color:var(--nacht);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rh-badge{margin-left:auto;font-size:11px;font-weight:700;color:#B4780A;background:var(--papier);border-radius:99px;padding:3px 10px;flex-shrink:0}
+.rh-mini{border:none;background:transparent;font-size:15px;line-height:1;padding:4px;cursor:pointer;flex-shrink:0;opacity:.8}
+.rh-mini:active{transform:scale(.9)}
+.rh-line{display:flex;align-items:center;gap:0}
+.rh-cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.rh-dot{width:15px;height:15px;border-radius:50%;background:var(--linie)}
+.rh-dot.run{background:var(--gruen)}
+.rh-dot.next{background:transparent;border:2.5px solid var(--sonne)}
+.rh-cell span{font-size:9.5px;color:var(--grau);font-family:var(--mono)}
+.rh-cell.next span{color:#B4780A;font-weight:800}
+.rh-note{font-size:11.5px;color:var(--grau);margin-top:9px;line-height:1.4}
+.rh-note b{color:#B4780A}
+.rh-uebernehmen{border:1.5px dashed #C4D0DA;background:transparent;color:var(--tinte);border-radius:11px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:9px;transition:border-color var(--schnell),color var(--schnell)}
+.rh-uebernehmen:hover{border-color:var(--sonne);color:var(--nacht)}
+.rh-uebernehmen:active{transform:scale(.98)}
+:root[data-theme="dark"] .rh-uebernehmen{border-color:#3A4C5E}
+.rh-leer{color:var(--grau);font-size:13px;line-height:1.5;padding:6px 2px}
+.routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:10px;transition:border-color var(--schnell),color var(--schnell)}
 .routine-add:hover{border-color:var(--sonne);color:var(--nacht)}
 /* Sonnen-Budget (Bedarf vs. freie Sonne) */
 .budget{margin-top:13px}
@@ -669,12 +678,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </details>
 
 <section class="karte" id="karte-woche" hidden>
-  <div class="untertitel" style="margin-top:2px">Wiederkehrende Routinen für die nächsten 7 Tage. Heute &amp; morgen werden im Tagesplan sonnenoptimiert – spätere Tage folgen, sobald sie im Prognosefenster sind.</div>
-  <div id="woche-liste"></div>
-  <div class="karten-kopf" style="margin-top:18px"><h2 style="font-size:15px">🔁 Routinen</h2></div>
-  <div class="untertitel">Feste Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
+  <div class="karten-kopf" style="margin-top:2px"><h2 style="font-size:15px">🔁 Feste Routinen</h2></div>
+  <div class="untertitel">Was du selbst festgelegt hast – läuft im Wochenrhythmus und wird automatisch in den Tagesplan gelegt.</div>
   <div id="routine-liste"></div>
   <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
+
+  <div class="karten-kopf" style="margin-top:22px"><h2 style="font-size:15px">🤖 Erkannte Rhythmen</h2></div>
+  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat – gefüllter Punkt = gelaufen, Ring = nächster fälliger Lauf.</div>
+  <div id="rhythmus-liste"></div>
 </section>
 
 <section class="karte" id="karte-verlauf" hidden>
@@ -1124,13 +1135,13 @@ function entferneGeraetVomTag(tagKey,name,routine){
     const n=tagAnzahl(tagKey,name);
     setzeTagAnzahl(tagKey,name,Math.max(0,n-1)); // einen Durchgang entfernen
   } else {
+    // Übernommener Vorschlag: nur aus dem Plan nehmen. NICHT ablehnen –
+    // so erscheint er (z. B. nach versehentlichem Löschen) wieder als Vorschlag.
+    // „Nicht heute" passiert ausschließlich über das ✕ am Vorschlags-Chip.
     if(cfg.uebernommen&&cfg.uebernommen[tagKey]){
       cfg.uebernommen[tagKey]=cfg.uebernommen[tagKey].filter(x=>x!==name);
       if(!cfg.uebernommen[tagKey].length)delete cfg.uebernommen[tagKey];
     }
-    cfg.abgelehnt=cfg.abgelehnt||{};
-    const a=(cfg.abgelehnt[tagKey]=cfg.abgelehnt[tagKey]||[]);
-    if(!a.includes(name))a.push(name); // heute nicht erneut vorschlagen
   }
   speichern();platzSig="";aktualisieren();
 }
@@ -2210,41 +2221,62 @@ function routineBanner(tagStr){
   el.innerHTML="🔁 Heute geplant: "+teile.join(" · ");
 }
 function renderWoche(){
-  const heuteK=heuteStr(),morgenK=morgenStr();
-  const doneHeute=new Set(erledigtListe(heuteK).map(e=>e.name));
-  // Morgen ist bei dynamischem Tarif erst optimierbar, wenn Börsenpreise vorliegen (ab ~14 Uhr)
-  const preiseMorgen=Object.keys(daten.preise).some(k=>k.indexOf(morgenK+"-")===0);
-  const morgenOptimierbar=(cfg.tarif==="fest")||preiseMorgen;
-  let html="";
-  for(let i=0;i<7;i++){
-    const key=new Date(Date.parse(heuteK+"T12:00:00Z")+i*86400000).toISOString().slice(0,10);
-    const wd=wochentagVonKey(key);
-    const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,key));
-    const istHeute=(key===heuteK), istMorgen=(key===morgenK);
-    const imHorizont=istHeute||istMorgen;
-    const tagLabel=(i===0?"Heute":i===1?"Morgen":WOCHENTAG_KURZ[wd])+" · "+key.slice(8,10)+"."+key.slice(5,7)+".";
-    const inner=!faellig.length
-      ? '<span class="woche-leer">– keine Routine</span>'
-      : faellig.map(r=>{
-          let stat="geplant",cls="";
-          if(istHeute){ if(doneHeute.has(r.name)){stat="✓ erledigt";cls=" erl";} else {stat="im Tagesplan";cls=" opt";} }
-          else if(istMorgen){ if(morgenOptimierbar){stat="im Tagesplan";cls=" opt";} else {stat="ab 14 Uhr";} }
-          return '<span class="woche-item">'+r.icon+' '+r.name+' <b>'+dz(r.kwh)+' kWh</b> <span class="woche-tag'+cls+'">'+stat+'</span></span>';
-        }).join("");
-    html+='<div class="woche-tagzeile'+(imHorizont?' im-horizont':'')+'"><div class="woche-kopf">'+tagLabel+'</div><div class="woche-inhalt">'+inner+'</div></div>';
-  }
-  $("woche-liste").innerHTML=html;
   renderRoutineListe();
+  renderRhythmen();
+}
+// Rollende 7-Tage-Achse (heute-6 … heute): Punkte für „lief" (grün) bzw. „nächster fälliger Lauf" (Ring heute).
+function rhythmusZeile(lief,ringHeute){
+  const h=Date.parse(heuteStr()+"T12:00:00Z");
+  let cells="";
+  for(let i=6;i>=0;i--){
+    const key=new Date(h-i*86400000).toISOString().slice(0,10);
+    const wd=WOCHENTAG_KURZ[wochentagVonKey(key)];
+    const istHeute=(i===0);
+    let cellCls="",dotCls="";
+    if(istHeute&&ringHeute){cellCls=" next";dotCls=" next";}
+    else if(lief(key)){dotCls=" run";}
+    cells+='<div class="rh-cell'+cellCls+'"><div class="rh-dot'+dotCls+'"></div><span>'+wd+'</span></div>';
+  }
+  return '<div class="rh-line">'+cells+'</div>';
+}
+// Nächster fälliger Tag eines gelernten Musters ab heute (0..14), sonst null.
+function naechsteFaelligkeit(m){
+  const h=Date.parse(heuteStr()+"T12:00:00Z");
+  for(let i=0;i<=14;i++){
+    const key=new Date(h+i*86400000).toISOString().slice(0,10);
+    if(musterFaellig(m,key))return {key,offset:i};
+  }
+  return null;
+}
+function relTag(offset,key){
+  if(offset===0)return "heute";
+  if(offset===1)return "morgen";
+  return WOCHENTAG_KURZ[wochentagVonKey(key)];
 }
 function renderRoutineListe(){
   const box=$("routine-liste");
-  if(!routinen.length){box.innerHTML='<div class="plan-leer" style="text-align:left">Noch keine Routine. Lege z. B. „Handtücher jeden Samstag" an.</div>';return;}
+  if(!routinen.length){box.innerHTML='<div class="rh-leer">Noch keine feste Routine. Lege z. B. „Handtücher jeden Samstag" an – sie läuft dann automatisch im Wochenrhythmus.</div>';return;}
+  const h=Date.parse(heuteStr()+"T12:00:00Z");
   box.innerHTML=routinen.map((r,i)=>{
+    const aktiv=r.aktiv!==false;
     const rhy=r.rhythmus===2?"alle 2 Wochen":"jede Woche";
-    return '<div class="mv-zeile"><span class="mv-ic">'+r.icon+'</span>'+
-      '<span class="mv-info"><span class="mv-name">'+r.name+'</span><span class="mv-k">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+' · ~'+dz(r.kwh)+' kWh · '+dz(r.dauer)+' h</span></span>'+
-      '<button class="mv-btn" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
-      '<button class="mv-btn" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>';
+    const lief=key=>aktiv&&routineFaelligAn(r,key)&&key!==heuteStr(); // vergangene geplante Tage grün
+    const ringHeute=aktiv&&routineFaelligAn(r,heuteStr());
+    // nächster geplanter Lauf ab morgen (heute steckt schon im Ring)
+    let note='<span style="opacity:.7">pausiert</span>';
+    if(aktiv){
+      let nx=null;
+      for(let d=0;d<=14;d++){const key=new Date(h+d*86400000).toISOString().slice(0,10);if(routineFaelligAn(r,key)){nx={offset:d,key};break;}}
+      note = nx ? 'Nächster Lauf: <b>'+relTag(nx.offset,nx.key)+'</b> · '+dz(r.kwh)+' kWh · '+dz(r.dauer)+' h'
+                : dz(r.kwh)+' kWh · '+dz(r.dauer)+' h';
+    }
+    return '<div class="rh-block"><div class="rh-head">'+
+      '<span class="rh-ic">'+r.icon+'</span><span class="rh-nm">'+r.name+'</span>'+
+      '<span class="rh-badge">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+'</span>'+
+      '<button class="rh-mini" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
+      '<button class="rh-mini" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>'+
+      rhythmusZeile(lief,ringHeute)+
+      '<div class="rh-note">'+note+'</div></div>';
   }).join("");
   box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
   box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=async()=>{
@@ -2252,6 +2284,62 @@ function renderRoutineListe(){
     if(!(await frageJaNein(r.icon+" "+r.name+" löschen?","Die Routine wird dauerhaft entfernt – auch aus künftigen Wochen.","Löschen")))return;
     routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
   });
+}
+// Erkannte Rhythmen: gelernte Muster (nicht bereits als feste Routine angelegt), nach Konfidenz sortiert.
+function renderRhythmen(){
+  const box=$("rhythmus-liste");
+  const routineNamen=new Set((routinen||[]).map(r=>r.name));
+  const heuteK=heuteStr();
+  const liste=Object.keys(cfg.verlauf||{})
+    .filter(name=>!routineNamen.has(name))
+    .map(name=>({name,m:analysiereMuster(name)}))
+    .filter(x=>x.m)
+    .sort((a,b)=>b.m.konfidenz-a.m.konfidenz);
+  if(!liste.length){
+    box.innerHTML='<div class="rh-leer">Noch kein Muster erkannt. Sobald ein Gerät ein paar Mal gelaufen ist, zeigt die App hier seinen Rhythmus – und schlägt fällige Läufe auf der Startseite vor.</div>';
+    return;
+  }
+  const runDates=name=>{const s=new Set(((cfg.verlauf&&cfg.verlauf[name])||[]).map(vDatum).filter(Boolean));return key=>s.has(key);};
+  box.innerHTML=liste.map(({name,m})=>{
+    const v=findeVorlage(name);
+    const ie=[...(cfg.verlauf[name]||[])].reverse().find(e=>typeof e==="object"&&e.i);
+    const icon=(ie&&ie.i)||(v?v.icon:"•");
+    const badge = m.typ==="intervall" ? "alle ~"+m.intervall+" Tag"+(m.intervall===1?"":"e") : "meist "+m.wochentage.map(w=>WOCHENTAG_KURZ[w]).join("/");
+    const faelligHeute=!!musterFaellig(m,heuteK);
+    const nx=naechsteFaelligkeit(m);
+    let note;
+    if(faelligHeute){note='<b>Nächster fälliger Lauf: heute</b> – liegt schon als Vorschlag auf der Startseite.';}
+    else if(nx){note='Nächster fälliger Lauf: <b>'+relTag(nx.offset,nx.key)+'</b>.';}
+    else {note='Zuletzt '+kurzDatum(m.letzter)+'.';}
+    return '<div class="rh-block"><div class="rh-head">'+
+      '<span class="rh-ic">'+icon+'</span><span class="rh-nm">'+kurzName(name)+'</span>'+
+      '<span class="rh-badge">'+badge+'</span></div>'+
+      rhythmusZeile(runDates(name),faelligHeute)+
+      '<div class="rh-note">'+note+'</div>'+
+      '<button class="rh-uebernehmen" data-uebernehmen="'+encodeURIComponent(name)+'">＋ Als feste Routine übernehmen</button></div>';
+  }).join("");
+  box.querySelectorAll("[data-uebernehmen]").forEach(b=>b.onclick=()=>alsRoutineUebernehmen(decodeURIComponent(b.dataset.uebernehmen)));
+}
+// Gelernten Rhythmus in eine feste Routine überführen: Routine-Sheet vorbelegt öffnen,
+// damit der/die Nutzer:in Wochentag & Rhythmus bestätigt (das Routine-Modell ist wochentagbasiert).
+function alsRoutineUebernehmen(name){
+  const v=findeVorlage(name), m=analysiereMuster(name);
+  const ks=((cfg.verlauf&&cfg.verlauf[name])||[]).map(e=>typeof e==="object"?e.k:null).filter(x=>x!=null);
+  const avgK=ks.length?Math.round((ks.reduce((a,b)=>a+b,0)/ks.length)*100)/100:null;
+  const dus=((cfg.verlauf&&cfg.verlauf[name])||[]).map(e=>typeof e==="object"?e.du:null).filter(x=>x!=null);
+  const avgDu=dus.length?Math.round((dus.reduce((a,b)=>a+b,0)/dus.length)*10)/10:null;
+  const wd=(m&&m.typ==="wochentag")?m.wochentage[0]:wochentagVonKey(heuteStr());
+  routineEdit=null;
+  routineEntwurf={typ:(v&&v.typ)||"so",icon:(v&&v.icon)||"🔁",name:name,
+    von:(v&&v.von!=null)?v.von:6,bis:(v&&v.bis!=null)?v.bis:22,
+    wochentag:wd,rhythmus:1,startOffset:0,meineIdx:null};
+  $("routine-titel").textContent="Als feste Routine";
+  $("routine-name").value=name;
+  $("routine-kwh").value=(v&&v.kwh!=null)?dz(v.kwh):(avgK!=null?dz(avgK):"");
+  $("routine-dauer").value=(v&&v.dauer!=null)?dz(v.dauer):(avgDu!=null?dz(avgDu):"");
+  $("routine-loeschen").hidden=true;
+  routineMeineRender();routineTypenRender();routineChipsAlle();
+  sheetAuf("sheet-routine");
 }
 function kurzDatum(d){ return WOCHENTAG_KURZ[wochentagVonKey(d)]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."; }
 function kurzName(n){ return n.replace(/^[^:]+:\s*/,""); }
@@ -2281,20 +2369,6 @@ function renderVerlauf(){
   const heute=Date.parse(heuteStr()+"T12:00:00Z");
   const woche=alle.filter(x=>(heute-Date.parse(x.d+"T12:00:00Z"))<7*86400000);
   const wKwh=woche.reduce((a,x)=>a+(x.k||0),0);
-  // Gelernte Muster je Gerät
-  let lern="";
-  namen.map(name=>({name,m:analysiereMuster(name)})).filter(x=>x.m)
-    .sort((a,b)=>b.m.konfidenz-a.m.konfidenz)
-    .forEach(({name,m})=>{
-      const v=findeVorlage(name);
-      const ie=[...(cfg.verlauf[name]||[])].reverse().find(e=>typeof e==="object"&&e.i);
-      const icon=(ie&&ie.i)||(v?v.icon:"•");
-      const ks=(cfg.verlauf[name]||[]).map(e=>typeof e==="object"?e.k:null).filter(x=>x!=null);
-      const avg=ks.length?(ks.reduce((a,b)=>a+b,0)/ks.length):null;
-      const rhy = m.typ==="intervall" ? "alle ~"+m.intervall+" Tage" : "meist "+m.wochentage.map(w=>WOCHENTAG_KURZ[w]).join("/");
-      lern+='<div class="vl-lern"><span class="vl-ic">'+icon+'</span><span class="vl-lern-tx"><b>'+kurzName(name)+'</b>'+
-        '<span>'+rhy+' · zuletzt '+kurzDatum(m.letzter)+(avg!=null?' · ø '+dz(avg.toFixed(1))+' kWh':'')+'</span></span></div>';
-    });
   // Tabelle (max. 60 jüngste Läufe)
   let rows="";
   alle.slice(0,60).forEach(x=>{
@@ -2304,7 +2378,6 @@ function renderVerlauf(){
   });
   box.innerHTML=
     '<div class="vl-bilanz">Letzte 7 Tage: <b>'+woche.length+'</b> '+(woche.length===1?'Lauf':'Läufe')+' · <b>'+dz(wKwh.toFixed(1))+' kWh</b> in die Sonne verschoben</div>'+
-    (lern?'<div class="vl-titel">Was die App gelernt hat</div>'+lern:'')+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   box.querySelectorAll(".vl-bilanz b").forEach((b,i)=>zaehlElement(b,"vlbil"+i));
