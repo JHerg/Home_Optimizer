@@ -74,7 +74,7 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 #ptr.spin svg{animation:dreh .8s linear infinite}
 .sheet{will-change:transform}
 /* Undo-Toast (iOS-Stil, dunkle Glas-Pille über der Tab-Leiste) */
-#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));z-index:12;
+#toast{position:fixed;left:50%;bottom:calc(114px + env(safe-area-inset-bottom));z-index:12;
   display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);
   background:rgba(38,42,50,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   color:#fff;border-radius:16px;padding:11px 8px 11px 16px;border:.5px solid rgba(255,255,255,.14);
@@ -485,9 +485,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-plan-h h2{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--tinte)}
 .dash-plan-h button{border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--sonne);cursor:pointer;padding:3px 4px}
 .dash-plan-h button:active{opacity:.6}
-.dash-row{display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:14px;cursor:pointer;transition:background var(--schnell)}
+.dash-swipe{position:relative;overflow:hidden;border-radius:12px}
+.dash-swipe+.dash-swipe{border-top:.5px solid var(--linie)}
+.dash-del-bg,.dash-pin-bg{position:absolute;inset:0;display:flex;align-items:center;font-size:16px;opacity:0}
+.dash-del-bg{background:var(--rot);justify-content:flex-end;padding-right:16px}
+.dash-pin-bg{background:var(--sonne);justify-content:flex-start;padding-left:16px}
+.dash-row{position:relative;display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:12px;cursor:pointer;transition:background var(--schnell)}
 .dash-row:active{background:var(--papier)}
-.dash-row+.dash-row{border-top:.5px solid var(--linie)}
+.dash-row.wischt{background:var(--karte)}
 .dash-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;background:var(--papier)}
 .dash-info{flex:1;min-width:0}
 .dash-nm{font-size:14.5px;font-weight:600;letter-spacing:-.01em;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
@@ -1139,7 +1144,7 @@ function zeigeToast(text,undoFn){
 function entferneMitUndo(tagKey,b){
   const snap=zustandSnapshot();
   entferneGeraetVomTag(tagKey,b.name,b.routine);
-  zeigeToast((b.routine?"🔁 ":"")+b.icon+" "+b.name+" entfernt", ()=>zustandWiederherstellen(snap));
+  zeigeToast((b.routine?"🔁 ":"")+b.icon+" "+kurzName(b.name)+" entfernt", ()=>zustandWiederherstellen(snap));
 }
 // Nach links wischen auf einer Tagesplan-Zeile = entfernen (mit Rückgängig).
 // Wischgesten auf einer Tagesplan-Zeile: links = entfernen (mit Rückgängig), rechts = Zeit verankern/lösen.
@@ -1178,6 +1183,43 @@ function swipeGesten(zeile,tagKey){
     }
     if(del)del.style.opacity=0; if(pin)pin.style.opacity=0;
     modus="off";
+  }
+  zeile.addEventListener("touchend",ende,{passive:true});
+  zeile.addEventListener("touchcancel",ende,{passive:true});
+}
+// Dieselben Wischgesten auf der Startseiten-Geräteliste (links = entfernen, rechts = verankern).
+function swipeDash(zeile,tagKey){
+  const wrap=zeile.parentNode, del=wrap.querySelector(".dash-del-bg"), pin=wrap.querySelector(".dash-pin-bg");
+  let x0=0,y0=0,modus="off",dx=0;
+  zeile.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){modus="off";return;}
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; modus="pending"; dx=0; zeile.style.transition="none";
+  },{passive:true});
+  zeile.addEventListener("touchmove",e=>{
+    if(modus==="off")return;
+    const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
+    if(modus==="pending"){
+      if(Math.abs(cx)>8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";zeile.classList.add("wischt");}
+      else if(Math.abs(cy)>8){modus="off";return;}
+      else return;
+    }
+    dx=cx;
+    zeile.style.transform="translateX("+dx+"px)";
+    if(del)del.style.opacity=dx<0?1:0;
+    if(pin)pin.style.opacity=dx>0?1:0;
+    if(e.cancelable)e.preventDefault();
+  },{passive:false});
+  function ende(){
+    const b=platzierungen[+zeile.dataset.idx];
+    if(modus==="swipe"){
+      zeile.style.transition="transform .2s ease";
+      if(dx<-90 && b){ zeile.style.transform="translateX(-100%)"; setTimeout(()=>entferneMitUndo(tagKey,b),150); modus="off"; return; }
+      if(dx>90 && b){ b._fix=!b._fix; speicherePlan();
+        zeigeToast((b._fix?"📌 ":"")+b.icon+" "+kurzName(b.name)+(b._fix?" verankert":" – Verankerung gelöst"),null);
+        renderDashboard(aktuelleStunden); return; }
+      zeile.style.transform="";
+    }
+    if(del)del.style.opacity=0; if(pin)pin.style.opacity=0; zeile.classList.remove("wischt"); modus="off";
   }
   zeile.addEventListener("touchend",ende,{passive:true});
   zeile.addEventListener("touchcancel",ende,{passive:true});
@@ -1767,7 +1809,7 @@ function renderDashboard(arr){
   const items=[];
   platzierungen.forEach(b=>{
     const selbst=(b._sun||0)+(b._batt||0), g=b.kwh>0?Math.round(selbst/b.kwh*100):0;
-    items.push({icon:b.icon,name:b.name,routine:b.routine,start:b.start,ende:b.start+b.dauer,kwh:b.kwh,g,done:false});
+    items.push({icon:b.icon,name:b.name,routine:b.routine,start:b.start,ende:b.start+b.dauer,kwh:b.kwh,g,done:false,_fix:!!b._fix,pidx:platzierungen.indexOf(b)});
   });
   erl.forEach(e=>{
     const st=(e.s!=null?e.s:99), en=(e.e!=null?e.e:(e.s!=null?e.s+1:null));
@@ -1789,11 +1831,15 @@ function renderDashboard(arr){
       if(it.done) right='<span class="dash-check">✓</span>';
       else { const g=it.g||0, netz=Math.max(0,100-g);
         right='<span class="dash-pct'+(g>=50?" gut":"")+'"><span class="dash-cov"><i style="width:'+g+'%;background:var(--gruen)"></i><i style="width:'+netz+'%;background:var(--rot)"></i></span>'+g+'%</span>'; }
-      rows+='<div class="dash-row"'+(it.done?"":" data-plan")+'>'+
+      const nm=(it._fix?"📌 ":"")+(it.routine?"🔁 ":"")+kurzName(it.name);
+      const zeileHtml='<div class="dash-row"'+(it.done?"":' data-plan data-idx="'+it.pidx+'"')+'>'+
         '<span class="dash-ic">'+it.icon+'</span>'+
-        '<span class="dash-info"><span class="dash-nm">'+(it.routine?"🔁 ":"")+it.name+'</span>'+
+        '<span class="dash-info"><span class="dash-nm">'+nm+'</span>'+
           '<span class="dash-sub">'+zeit+kwhStr+badge+'</span></span>'+
         right+'</div>';
+      rows+='<div class="dash-swipe">'+
+        (it.done?"":'<div class="dash-del-bg"><span>🗑</span></div><div class="dash-pin-bg"><span>📌</span></div>')+
+        zeileHtml+'</div>';
     });
     rows='<div class="dash-rows">'+rows+'</div>';
   } else {
@@ -1824,7 +1870,7 @@ function renderDashboard(arr){
   const oeffnePlan=()=>{ausTagesplan=false;sheetAuf("sheet-tagesplan");vielleichtWischHint();};
   const oeffneGeraete=()=>{ausTagesplan=false;sheetAuf("sheet-geraete");};
   const cv=$("dash-curve"); if(cv)cv.onclick=oeffnePlan;
-  dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>r.onclick=oeffnePlan);
+  dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ r.onclick=oeffnePlan; swipeDash(r,tagKey); });
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
   const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
   // Scroll-Hinweis: Liste scrollt intern, wenn mehr Geräte als sichtbar
@@ -2009,7 +2055,7 @@ function renderPlaner(arr){
         '<div class="pl-pin-bg"><span>'+(b._fix?"📌 Lösen":"📌 Verankern")+'</span></div>'+
         '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
           '<span class="pl-ic">'+b.icon+'</span>'+
-          '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+b.name+'</span>'+
+          '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+kurzName(b.name)+'</span>'+
             '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
           '<span class="pl-akt">'+
             '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
