@@ -671,7 +671,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
 </div>
 <div class="status" id="status" hidden>Lade Sonnen- und Preisdaten…</div>
-<div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Forecast.Solar war nicht erreichbar – die Sonnenprognose kommt gerade von der Wetter-Rückfalllösung (Open-Meteo) und ist ungenauer, besonders an wechselhaften Tagen.</div>
+<div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Die gewählte Sonnenquelle war nicht erreichbar – die Prognose kommt gerade von der Ausweichquelle und kann ungenauer sein, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
 
 <!-- Kompakte Startseite: alles Wichtige auf einen Blick (wie das Mockup). Details in Sheets. -->
@@ -890,6 +890,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="meine-verwaltung" id="meine-verwaltung"></div>
   </div>
   <div class="abschnitt">
+    <div class="frage">🛰️ Datenquelle Sonnenprognose</div>
+    <div class="hilfe">Forecast.Solar rechnet im kostenlosen Tarif oft zu niedrig. <b>Open-Meteo</b> (DWD-Modell ICON-D2) ist ebenfalls kostenlos, braucht <b>kein Konto</b> und trifft in Deutschland häufig besser. Beim Wechsel wird die Kalibrierung zurückgesetzt – sie gilt je Quelle.</div>
+    <div class="wahl" id="w-pvquelle"></div>
+    <div class="hilfe" id="pvquelle-hinweis" style="margin-top:8px"></div>
+  </div>
+  <div class="abschnitt">
     <div class="frage">☀️ Prognose kalibrieren</div>
     <div class="hilfe">Die kostenlose Sonnenprognose rechnet meist zu niedrig. Trag an ein paar Abenden deinen <b>echten</b> Tagesertrag aus deinem EMS/Wechselrichter ein – die App vergleicht ihn mit ihrer eigenen Prognose und korrigiert sich dann automatisch. Je mehr Tage, desto genauer.</div>
     <div class="hilfe" id="kalib-prognose" style="color:var(--tinte);font-weight:600">Heutige Prognose: – kWh</div>
@@ -1052,7 +1058,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+  faktor:1.0,kalib:[],pvQuelle:"fs",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -1464,8 +1470,36 @@ async function holeForecastSolar(){
   fsCacheSpeichern(roh);   // guten Stand sichern (Rohwerte)
   fsRohAnwenden(roh);      // mit Kalibrierfaktor in daten.pv übernehmen
 }
+// Open-Meteo (DWD ICON-D2 für DE): geneigte Globalstrahlung -> Ertrag. Kein Key, kein Konto.
+// PR 0.85 (Verluste Wechselrichter/Kabel/Temperatur). Ergebnis in Wh je Stunde, mit Kalibrierfaktor.
+async function holeOpenMeteo(){
+  const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
+    "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
+    "&forecast_days=2&timezone=Europe%2FBerlin";
+  const r=await fetch(u);
+  if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);
+  const j=await r.json();
+  const t=(j.hourly&&j.hourly.time)||[], g=(j.hourly&&j.hourly.global_tilted_irradiance)||[];
+  if(!t.length)throw new Error("Open-Meteo leer");
+  for(let i=0;i<t.length;i++){ const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10); daten.pv[key]=(daten.pv[key]||0)+(g[i]||0)*cfg.kwp*0.85*cfg.faktor; }
+}
 async function ladePV(force){
   daten.pv={};
+  // Nutzer hat Open-Meteo als Hauptquelle gewählt (kostenlos, kein Konto, in DE oft genauer).
+  if(cfg.pvQuelle==="om"){
+    try{
+      try{ await holeOpenMeteo(); }
+      catch(e){ await warten(900); daten.pv={}; await holeOpenMeteo(); }
+      return {label:"Open-Meteo · DWD ICON", warnung:false};
+    }catch(e){
+      // Rückfall auf Forecast.Solar (gespeicherter Stand, sonst live)
+      const cache=fsCacheLaden();
+      if(cache){ daten.pv={}; fsRohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:true}; }
+      try{ daten.pv={}; await holeForecastSolar(); return {label:"Forecast.Solar", warnung:true}; }
+      catch(e2){ throw e; }
+    }
+  }
+  // Standard: Forecast.Solar als Hauptquelle
   const cache=fsCacheLaden();
   const FRISCH=30*60*1000; // 30 Min: so lange gilt ein gespeicherter Stand als aktuell (spart Abrufe)
   // 1) Frischer Stand vorhanden & kein erzwungenes Neuladen -> ohne API-Abruf übernehmen
@@ -1482,16 +1516,8 @@ async function ladePV(force){
     // 3) Abruf fehlgeschlagen -> letzter guter Forecast.Solar-Stand (statt ungenauem Open-Meteo)
     if(cache){ daten.pv={}; fsRohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false}; }
     // 4) Kein gespeicherter Stand -> Wetter-Rückfall (Open-Meteo)
-    const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
-      "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
-      "&forecast_days=2&timezone=Europe%2FBerlin";
-    const r=await fetch(u);
-    if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);
-    const j=await r.json();
-    const t=j.hourly.time,g=j.hourly.global_tilted_irradiance;
-    daten.pv={};
-    for(let i=0;i<t.length;i++){ const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10); daten.pv[key]=(g[i]||0)*cfg.kwp*0.85*cfg.faktor; }
-    return {label:"Open-Meteo", warnung:true};
+    try{ daten.pv={}; await holeOpenMeteo(); return {label:"Open-Meteo", warnung:true}; }
+    catch(e2){ throw e; }
   }
 }
 async function geocode(adresse){
@@ -2528,6 +2554,25 @@ function renderWahl(boxId,liste,aktiv,setzen){
 }
 renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
 renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
+/* ---------- Datenquelle der Sonnenprognose ---------- */
+const pvQuellen=[["Forecast.Solar","fs"],["Open-Meteo · DWD","om"]];
+function pvQuelleHinweis(){
+  const h=$("pvquelle-hinweis"); if(!h)return;
+  h.innerHTML = (cfg.pvQuelle==="om")
+    ? "Aktiv: <b>Open-Meteo</b> (DWD ICON-D2). Kalibriere über ein paar Tage neu gegen deine echten Erträge."
+    : "Aktiv: <b>Forecast.Solar</b> (kostenloser Public-Tarif).";
+}
+function setzePvQuelle(v){
+  if(v===cfg.pvQuelle){pvQuelleHinweis();return;}
+  cfg.pvQuelle=v;
+  cfg.faktor=1.0; cfg.kalib=[];              // Kalibrierung gilt je Quelle -> beim Wechsel zurücksetzen
+  const ff=$("f-faktor"); if(ff)ff.value=dz(cfg.faktor);
+  try{localStorage.removeItem("eo-fs-cache");}catch(e){}
+  speichern(); pvQuelleHinweis(); kalibUI();
+  starteAktualisierung(true);                // frisch von der neuen Quelle laden
+}
+renderWahl("w-pvquelle",pvQuellen,cfg.pvQuelle||"fs",setzePvQuelle);
+pvQuelleHinweis();
 /* ---------- Prognose-Kalibrierung (aus echtem EMS-Ertrag) ---------- */
 function prognoseHeute(){ // heutige (bereits faktorierte) Prognose in kWh
   let s=0;const t=heuteStr();for(let h=0;h<24;h++)s+=(daten.pv[t+"-"+h]||0);return s/1000;
@@ -2603,6 +2648,7 @@ $("btn-einrichten").onclick=()=>{
   kalibUI();
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
+  renderWahl("w-pvquelle",pvQuellen,cfg.pvQuelle||"fs",setzePvQuelle); pvQuelleHinweis();
   renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
   renderWahl("w-tarif",tarifListe,cfg.tarif,v=>{cfg.tarif=v;tarifUI();});
   tarifUI();
