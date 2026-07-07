@@ -445,10 +445,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .rh-mini:active{transform:scale(.9)}
 .rh-line{display:flex;align-items:center;gap:0}
 .rh-cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
-.rh-dot{width:15px;height:15px;border-radius:50%;background:var(--linie)}
+.rh-dot{width:15px;height:15px;border-radius:50%;background:var(--linie);box-sizing:border-box}
 .rh-dot.run{background:var(--gruen)}
+.rh-dot.plan{background:transparent;border:2.5px solid var(--gruen)}
 .rh-dot.next{background:transparent;border:2.5px solid var(--sonne)}
 .rh-cell span{font-size:9.5px;color:var(--grau);font-family:var(--mono)}
+.rh-cell.heute span{color:var(--nacht);font-weight:800}
 .rh-cell.next span{color:#B4780A;font-weight:800}
 .rh-note{font-size:11.5px;color:var(--grau);margin-top:9px;line-height:1.4}
 .rh-note b{color:#B4780A}
@@ -684,7 +686,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
 
   <div class="karten-kopf" style="margin-top:22px"><h2 style="font-size:15px">🤖 Erkannte Rhythmen</h2></div>
-  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat – gefüllter Punkt = gelaufen, Ring = nächster fälliger Lauf.</div>
+  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat. Punkte (heute in der Mitte): <b>voll grün</b> = gelaufen, <b>grüner Ring</b> = Rhythmus-Tag, <b>oranger Ring</b> = nächster fälliger Lauf.</div>
   <div id="rhythmus-liste"></div>
 </section>
 
@@ -1131,17 +1133,15 @@ function entferneGeraetVomTag(tagKey,name,routine){
     cfg.routineSkip=cfg.routineSkip||{};
     const l=(cfg.routineSkip[tagKey]=cfg.routineSkip[tagKey]||[]);
     if(!l.includes(name))l.push(name);
+  } else if(cfg.uebernommen&&cfg.uebernommen[tagKey]&&cfg.uebernommen[tagKey].includes(name)){
+    // Übernommener Vorschlag hat Vorrang – auch wenn ein gleichnamiges Basis-Gerät existiert.
+    // Nur aus der Übernahme-Liste nehmen, NICHT ablehnen: so wird er (z. B. nach versehentlichem
+    // Löschen) wieder vorgeschlagen. „Nicht heute" passiert nur über das ✕ am Vorschlags-Chip.
+    cfg.uebernommen[tagKey]=cfg.uebernommen[tagKey].filter(x=>x!==name);
+    if(!cfg.uebernommen[tagKey].length)delete cfg.uebernommen[tagKey];
   } else if(geraete.some(g=>g.name===name)){
     const n=tagAnzahl(tagKey,name);
     setzeTagAnzahl(tagKey,name,Math.max(0,n-1)); // einen Durchgang entfernen
-  } else {
-    // Übernommener Vorschlag: nur aus dem Plan nehmen. NICHT ablehnen –
-    // so erscheint er (z. B. nach versehentlichem Löschen) wieder als Vorschlag.
-    // „Nicht heute" passiert ausschließlich über das ✕ am Vorschlags-Chip.
-    if(cfg.uebernommen&&cfg.uebernommen[tagKey]){
-      cfg.uebernommen[tagKey]=cfg.uebernommen[tagKey].filter(x=>x!==name);
-      if(!cfg.uebernommen[tagKey].length)delete cfg.uebernommen[tagKey];
-    }
   }
   speichern();platzSig="";aktualisieren();
 }
@@ -2224,20 +2224,30 @@ function renderWoche(){
   renderRoutineListe();
   renderRhythmen();
 }
-// Rollende 7-Tage-Achse (heute-6 … heute): Punkte für „lief" (grün) bzw. „nächster fälliger Lauf" (Ring heute).
-function rhythmusZeile(lief,ringHeute){
+// 7-Tage-Achse mit Ausblick (heute-3 … heute … heute+3). Drei Zustände je Tag:
+//   gefüllt grün  = tatsächlich gelaufen (ran)
+//   grüner Ring   = Rhythmus-Tag (an diesem Wochentag/Intervall erwartet, noch offen)
+//   amber Ring    = nächster fälliger Lauf (nextKey)
+// Priorität: nächster > gelaufen > Rhythmus-Tag.
+function rhythmusZeile(ran,rhythmusTag,nextKey){
   const h=Date.parse(heuteStr()+"T12:00:00Z");
   let cells="";
-  for(let i=6;i>=0;i--){
-    const key=new Date(h-i*86400000).toISOString().slice(0,10);
+  for(let i=-3;i<=3;i++){
+    const key=new Date(h+i*86400000).toISOString().slice(0,10);
     const wd=WOCHENTAG_KURZ[wochentagVonKey(key)];
-    const istHeute=(i===0);
-    let cellCls="",dotCls="";
-    if(istHeute&&ringHeute){cellCls=" next";dotCls=" next";}
-    else if(lief(key)){dotCls=" run";}
+    let cellCls=(i===0?" heute":""),dotCls="";
+    if(nextKey&&key===nextKey){cellCls+=" next";dotCls=" next";}
+    else if(ran&&ran(key)){dotCls=" run";}
+    else if(rhythmusTag&&rhythmusTag(key)){dotCls=" plan";}
     cells+='<div class="rh-cell'+cellCls+'"><div class="rh-dot'+dotCls+'"></div><span>'+wd+'</span></div>';
   }
   return '<div class="rh-line">'+cells+'</div>';
+}
+// Nächster geplanter Lauf einer Routine ab heute (0..14), sonst null.
+function naechsterRoutineLauf(r){
+  const h=Date.parse(heuteStr()+"T12:00:00Z");
+  for(let d=0;d<=14;d++){const key=new Date(h+d*86400000).toISOString().slice(0,10);if(routineFaelligAn(r,key))return {key,offset:d};}
+  return null;
 }
 // Nächster fälliger Tag eines gelernten Musters ab heute (0..14), sonst null.
 function naechsteFaelligkeit(m){
@@ -2256,17 +2266,17 @@ function relTag(offset,key){
 function renderRoutineListe(){
   const box=$("routine-liste");
   if(!routinen.length){box.innerHTML='<div class="rh-leer">Noch keine feste Routine. Lege z. B. „Handtücher jeden Samstag" an – sie läuft dann automatisch im Wochenrhythmus.</div>';return;}
-  const h=Date.parse(heuteStr()+"T12:00:00Z");
+  const heuteK=heuteStr();
   box.innerHTML=routinen.map((r,i)=>{
     const aktiv=r.aktiv!==false;
     const rhy=r.rhythmus===2?"alle 2 Wochen":"jede Woche";
-    const lief=key=>aktiv&&routineFaelligAn(r,key)&&key!==heuteStr(); // vergangene geplante Tage grün
-    const ringHeute=aktiv&&routineFaelligAn(r,heuteStr());
-    // nächster geplanter Lauf ab morgen (heute steckt schon im Ring)
+    const nx=aktiv?naechsterRoutineLauf(r):null;
+    // gefüllt grün = vergangener geplanter Lauf; grüner Ring = Wochentag der Routine (auch „Aus"-Woche);
+    // amber Ring = nächster geplanter Lauf.
+    const ran=key=>aktiv&&routineFaelligAn(r,key)&&key<heuteK;
+    const rhythmusTag=key=>aktiv&&wochentagVonKey(key)===r.wochentag;
     let note='<span style="opacity:.7">pausiert</span>';
     if(aktiv){
-      let nx=null;
-      for(let d=0;d<=14;d++){const key=new Date(h+d*86400000).toISOString().slice(0,10);if(routineFaelligAn(r,key)){nx={offset:d,key};break;}}
       note = nx ? 'Nächster Lauf: <b>'+relTag(nx.offset,nx.key)+'</b> · '+dz(r.kwh)+' kWh · '+dz(r.dauer)+' h'
                 : dz(r.kwh)+' kWh · '+dz(r.dauer)+' h';
     }
@@ -2275,7 +2285,7 @@ function renderRoutineListe(){
       '<span class="rh-badge">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+'</span>'+
       '<button class="rh-mini" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
       '<button class="rh-mini" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>'+
-      rhythmusZeile(lief,ringHeute)+
+      rhythmusZeile(ran,rhythmusTag,nx&&nx.key)+
       '<div class="rh-note">'+note+'</div></div>';
   }).join("");
   box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
@@ -2307,6 +2317,11 @@ function renderRhythmen(){
     const badge = m.typ==="intervall" ? "alle ~"+m.intervall+" Tag"+(m.intervall===1?"":"e") : "meist "+m.wochentage.map(w=>WOCHENTAG_KURZ[w]).join("/");
     const faelligHeute=!!musterFaellig(m,heuteK);
     const nx=naechsteFaelligkeit(m);
+    // Rhythmus-Tag (grüner Ring): Wochentag- bzw. Intervall-Raster um den letzten Lauf.
+    const letzterT=Date.parse(m.letzter+"T12:00:00Z");
+    const rhythmusTag = m.typ==="intervall"
+      ? key=>Math.round(Math.abs(Date.parse(key+"T12:00:00Z")-letzterT)/86400000)%m.intervall===0
+      : key=>m.wochentage.includes(wochentagVonKey(key));
     let note;
     if(faelligHeute){note='<b>Nächster fälliger Lauf: heute</b> – liegt schon als Vorschlag auf der Startseite.';}
     else if(nx){note='Nächster fälliger Lauf: <b>'+relTag(nx.offset,nx.key)+'</b>.';}
@@ -2314,7 +2329,7 @@ function renderRhythmen(){
     return '<div class="rh-block"><div class="rh-head">'+
       '<span class="rh-ic">'+icon+'</span><span class="rh-nm">'+kurzName(name)+'</span>'+
       '<span class="rh-badge">'+badge+'</span></div>'+
-      rhythmusZeile(runDates(name),faelligHeute)+
+      rhythmusZeile(runDates(name),rhythmusTag,nx&&nx.key)+
       '<div class="rh-note">'+note+'</div>'+
       '<button class="rh-uebernehmen" data-uebernehmen="'+encodeURIComponent(name)+'">＋ Als feste Routine übernehmen</button></div>';
   }).join("");
