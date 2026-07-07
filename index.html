@@ -22,7 +22,7 @@
   --gelb:#FF9F0A; --gelb-hell:#FBF1D3;
   --rot:#FF3B30; --rot-hell:#FDE7E5;
   --grau:#6E7A88; --linie:#E3E9F0;
-  --knopf:#10233A; --knopf-fg:#FFFFFF; --preis-linie:#AF52DE;
+  --knopf:#F5A00C; --knopf-fg:#3A2600; --preis-linie:#AF52DE;
   --sky-top:#CFE3F4; --sky-hor:#FCEECB; --sun-glow:rgba(245,160,12,.45);
   /* Liquid Glass */
   --glass:rgba(255,255,255,.62); --glass-2:rgba(255,255,255,.34); --glass-rand:rgba(255,255,255,.7);
@@ -108,7 +108,7 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .chip .mini button{width:31px;height:31px;border:none;border-radius:999px;background:var(--papier);font-size:16px;font-weight:700;cursor:pointer;color:var(--nacht);transition:background var(--schnell),transform var(--schnell)}
 .chip .mini button:active{transform:scale(.88)}
 .chip .mini .z{font-family:var(--mono);font-size:14px;font-weight:600;width:22px;text-align:center}
-.chip .weg{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border:none;border-radius:999px;background:var(--knopf);color:var(--knopf-fg);font-size:12px;line-height:1;cursor:pointer;box-shadow:var(--schatten);transition:transform var(--schnell)}
+.chip .weg{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border:none;border-radius:999px;background:var(--nacht);color:var(--papier);font-size:12px;line-height:1;cursor:pointer;box-shadow:var(--schatten);transition:transform var(--schnell)}
 .chip .weg:active{transform:scale(.88)}
 .chip-plus{border:1.5px dashed #C4D0DA;border-radius:var(--radius-pill);padding:10px 17px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;transition:border-color var(--schnell),background var(--schnell),color var(--schnell)}
 .chip-plus:hover{border-color:var(--sonne);color:var(--nacht);background:var(--sonne-hell)}
@@ -162,7 +162,7 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .zahl-feld input{width:100px;padding:12px;border:1.5px solid var(--linie);border-radius:12px;font-family:var(--mono);font-size:16px;text-align:right;transition:border-color var(--schnell),box-shadow var(--schnell)}
 .zahl-feld input:focus{outline:none;border-color:var(--netz);box-shadow:0 0 0 3px rgba(59,111,212,.15)}
 .zahl-feld .einheit{font-size:13px;color:var(--grau)}
-.fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(20,31,44,.5)}
+.fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(245,160,12,.55)}
 .fertig:active{transform:scale(.98)}
 .loeschen-knopf{width:100%;padding:13px;border:1.5px solid var(--rot);border-radius:15px;background:transparent;color:var(--rot);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:background var(--schnell)}
 .loeschen-knopf:active{background:var(--rot-hell)}
@@ -495,7 +495,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 /* Dark Mode – folgt der Systemeinstellung */
 :root[data-theme="dark"]{
   --nacht:#EAF1FA; --tinte:#B7C4D2; --papier:#0A1420; --karte:#18242F;
-  --grau:#8A98A6; --linie:#293848; --knopf:#2E4864; --preis-linie:#BF5AF2;
+  --grau:#8A98A6; --linie:#293848; --knopf:#F5A00C; --knopf-fg:#3A2600; --preis-linie:#BF5AF2;
   --netz:#0A84FF; --gruen:#30D158; --rot:#FF453A; --gelb:#FFD60A;
   --sonne-hell:#382C12; --gruen-hell:#12291D; --gelb-hell:#2E2711; --rot-hell:#321F1B;
   --sky-top:#13273A; --sky-hor:#33290F; --sun-glow:rgba(245,160,12,.32);
@@ -791,15 +791,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="sheet" id="sheet-geraet" role="dialog" aria-label="Gerät hinzufügen">
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Gerät hinzufügen</h3>
-  <div class="sub">Zwei Antworten reichen – oder such gleich dein Modell.</div>
-  <div class="abschnitt" id="meine-abschnitt" hidden>
-    <div class="frage">★ Meine Geräte</div>
-    <div class="hilfe">Deine gespeicherten Geräte – antippen zum Hinzufügen.</div>
-    <div class="meine-chips" id="meine-chips"></div>
-  </div>
+  <div class="sub">Erst das Gerät wählen – dann ein fertiges Programm oder ein neues erstellen.</div>
   <div class="abschnitt">
     <div class="frage">Welches Gerät?</div>
     <div class="g-typen" id="g-typen"></div>
+  </div>
+  <div class="abschnitt" id="programme-abschnitt" hidden>
+    <div class="frage" id="programme-frage">Programm wählen</div>
+    <div class="hilfe" id="programme-hilfe">Wähle ein vorgefertigtes Programm – oder erstelle ein neues.</div>
+    <div class="meine-chips" id="programme-liste"></div>
+    <button class="chip-plus" id="btn-neues-programm" style="margin-top:2px">＋ Neues Programm erstellen</button>
   </div>
   <div class="abschnitt" id="klasse-abschnitt" hidden>
     <div class="frage">Wie effizient ist es?</div>
@@ -808,6 +809,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt" id="schaetzung-box" hidden>
     <div class="schaetzung" id="schaetzung"></div>
+  </div>
+  <div class="abschnitt" id="programm-speichern-box" hidden>
+    <label class="switch-zeile"><span>★ Als eigenes Programm speichern</span>
+      <span class="switch"><input type="checkbox" id="cb-programm-speichern"><span class="switch-ui"></span></span></label>
+    <div class="hilfe" id="programm-name-zeile" hidden style="margin-top:10px">
+      <div class="adresse-zeile"><input id="neu-programm-name" type="text" autocomplete="off" placeholder="z. B. Bunt/Hell 40°" aria-label="Programmname"></div>
+      <div style="margin-top:6px">Es erscheint künftig unter diesem Gerät als fertiges Programm.</div>
+    </div>
   </div>
   <button class="fertig" id="btn-g-fertig" hidden>Zum Plan hinzufügen</button>
 </div>
@@ -2278,10 +2287,44 @@ function renderTypen(){
     const b=document.createElement("button");
     b.innerHTML='<span class="ic">'+t.icon+'</span><span class="tn">'+t.name+'</span>';
     if(wahlTyp&&wahlTyp.id===t.id)b.classList.add("aktiv");
-    b.onclick=()=>{wahlTyp=t;wahlKlasse=null;renderTypen();renderKlassen();
-      $("klasse-abschnitt").hidden=false;$("schaetzung-box").hidden=true;$("btn-g-fertig").hidden=true;};
+    b.onclick=()=>{
+      wahlTyp=t;wahlKlasse=null;renderTypen();
+      // Erst die vorgefertigten/gespeicherten Programme dieser Hauptkategorie zeigen
+      renderProgramme(t);
+      $("programme-abschnitt").hidden=false;
+      $("klasse-abschnitt").hidden=true;$("schaetzung-box").hidden=true;
+      $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
+      // Gibt es noch keine Programme, direkt ins Erstellen springen
+      if(!meineGeraete.some(m=>(m.typ||"")===t.id)) starteNeuesProgramm();
+    };
     box.appendChild(b);
   });
+}
+// Vorgefertigte/gespeicherte Programme der gewählten Hauptkategorie (typ) als Auswahl.
+function renderProgramme(typ){
+  const box=$("programme-liste");if(!box)return;
+  $("programme-frage").textContent=typ.icon+" "+typ.name+" – Programm wählen";
+  const presets=meineGeraete.map((m,i)=>({m,i})).filter(x=>(x.m.typ||"")===typ.id);
+  if(!presets.length){ box.innerHTML='<div class="hilfe" style="margin:0">Noch kein gespeichertes Programm für dieses Gerät – erstelle unten dein erstes.</div>'; return; }
+  box.innerHTML="";
+  presets.forEach(({m,i})=>{
+    const c=document.createElement("div");c.className="meine-chip";
+    c.innerHTML='<button class="mc-add" data-add="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+kurzName(m.name)+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>';
+    box.appendChild(c);
+  });
+  box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
+    const m=meineGeraete[+b.dataset.add];
+    geraetAnHeutigenTag({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis});
+    speichern();sheetZu();renderChips();aktualisieren();
+  });
+}
+// „Neues Programm erstellen": Effizienz-/Schätzflow einblenden
+function starteNeuesProgramm(){
+  wahlKlasse=null;renderKlassen();
+  $("klasse-abschnitt").hidden=false;$("schaetzung-box").hidden=true;
+  $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
+  const cb=$("cb-programm-speichern");if(cb)cb.checked=false;
+  $("programm-name-zeile").hidden=true;const nf=$("neu-programm-name");if(nf)nf.value="";
 }
 function renderKlassen(){
   const box=$("w-klasse");box.innerHTML="";
@@ -2293,26 +2336,10 @@ function renderKlassen(){
       const kwh=wahlTyp.klassen[k];
       $("schaetzung").innerHTML="Geschätzter Verbrauch: <b>"+dz(kwh)+" kWh</b> "+wahlTyp.text+
         " · Laufzeit ca. "+wahlTyp.dauer+" h.<br><span style='color:var(--grau)'>Typischer Wert – nach dem Hinzufügen kannst du per ✎ Modellsuche oder Handeingabe verfeinern.</span>";
-      $("schaetzung-box").hidden=false;$("btn-g-fertig").hidden=false;};
+      $("schaetzung-box").hidden=false;$("programm-speichern-box").hidden=false;$("btn-g-fertig").hidden=false;
+      const nf=$("neu-programm-name");if(nf)nf.placeholder=kurzName(wahlTyp.name)+" · "+k;};
     box.appendChild(b);
   });
-}
-function renderMeine(){
-  const box=$("meine-chips"),sec=$("meine-abschnitt");
-  if(!meineGeraete.length){sec.hidden=true;box.innerHTML="";return;}
-  sec.hidden=false;box.innerHTML="";
-  meineGeraete.forEach((m,i)=>{
-    const c=document.createElement("div");
-    c.className="meine-chip";
-    c.innerHTML='<button class="mc-add" data-add="'+i+'"><span class="mc-ic">'+m.icon+'</span><span class="mc-t"><span class="mc-n">'+m.name+'</span><span class="mc-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span></button>';
-    box.appendChild(c);
-  });
-  box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
-    const m=meineGeraete[+b.dataset.add];
-    geraetAnHeutigenTag({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis});
-    speichern();sheetZu();renderChips();aktualisieren();
-  });
-  // Verwalten (Umbenennen/Löschen) gebündelt unter „Einrichten → Meine Geräte" – hier nur Antippen zum Hinzufügen.
 }
 function renderMeineVerwaltung(){
   const box=$("meine-verwaltung"),sec=$("meine-verwaltung-abschnitt");
@@ -2339,12 +2366,26 @@ function renderMeineVerwaltung(){
     meineGeraete.splice(+b.dataset.del,1);speichern();renderMeineVerwaltung();
   });
 }
-$("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();renderMeine();
-  $("klasse-abschnitt").hidden=true;$("schaetzung-box").hidden=true;$("btn-g-fertig").hidden=true;
+$("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();
+  $("programme-abschnitt").hidden=true;$("klasse-abschnitt").hidden=true;$("schaetzung-box").hidden=true;
+  $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
   sheetAuf("sheet-geraet");};
+$("btn-neues-programm").onclick=starteNeuesProgramm;
+$("cb-programm-speichern").onchange=e=>{ $("programm-name-zeile").hidden=!e.target.checked; };
 $("btn-g-fertig").onclick=()=>{
-  geraetAnHeutigenTag({typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,
-    kwh:wahlTyp.klassen[wahlKlasse],dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
+  if(!wahlTyp||!wahlKlasse)return;
+  const kwh=wahlTyp.klassen[wahlKlasse];
+  const dev={typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis};
+  // Optional: als eigenes Programm unter „Meine Geräte" speichern (der Hauptkategorie zugeordnet)
+  const cb=$("cb-programm-speichern");
+  if(cb&&cb.checked){
+    let nm=(($("neu-programm-name").value||"").trim())||(kurzName(wahlTyp.name)+" · "+wahlKlasse);
+    const progName=wahlTyp.name+": "+nm; // „Hauptkategorie: Programm" – Untergliederung
+    if(!meineGeraete.some(m=>m.name===progName))
+      meineGeraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:progName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
+    dev.name=progName;
+  }
+  geraetAnHeutigenTag(dev);
   speichern();sheetZu();renderChips();aktualisieren();
 };
 
