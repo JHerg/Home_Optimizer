@@ -268,6 +268,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .p-blk.part .pbp{color:#B4780A} .p-blk.part .pbacc{background:var(--sonne)}
 .p-blk.zieht{cursor:grabbing;transform:scale(1.06);box-shadow:0 12px 24px -8px rgba(20,31,44,.55);z-index:6}
 .p-blk .pbb{position:absolute;top:3px;right:4px;font-size:10px}
+.p-blk .pbpin{position:absolute;top:2px;right:3px;font-size:10px}
+.p-blk.fix{box-shadow:0 0 0 1.5px var(--sonne)} .p-blk.fix .pbacc{background:var(--sonne)}
 .preis-titel{font-size:11.5px;font-weight:600;color:var(--grau);margin:16px 0 6px}
 .planer-preis{display:flex;gap:2px;height:16px}
 .planer-preis .preis-col{flex:1 1 0;border-radius:3px}
@@ -322,21 +324,27 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .v-zeile b{font-family:var(--mono)}
 /* Geräte-Liste unter der Zeitleiste */
 .planer-liste{display:flex;flex-direction:column;gap:7px;margin-top:12px}
-.pl-zeile{display:flex;align-items:center;gap:7px;background:var(--papier);border-radius:12px;padding:9px 10px}
+.pl-zeile{display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:12px;padding:9px 10px}
+.pl-zeile.fix{box-shadow:inset 3px 0 0 var(--sonne)}
 .pl-ic{font-size:18px;flex-shrink:0}
 .pl-info{display:flex;flex-direction:column;min-width:0;flex:1}
 .pl-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-zeit{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--tinte);white-space:nowrap}
+.pl-zeit{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-cov{color:var(--grau);font-weight:600} .pl-cov.gut{color:var(--gruen)}
+.pl-fixtag{color:var(--sonne);font-weight:700;font-family:var(--sans)}
+.pl-akt{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .pl-nudge{display:flex;gap:2px;flex-shrink:0}
 .pl-nudge button{width:25px;height:28px;border:none;border-radius:8px;background:rgba(20,31,44,.07);font-size:15px;font-weight:700;color:var(--nacht);cursor:pointer;line-height:1;transition:background var(--schnell),transform var(--schnell)}
 .pl-nudge button:active{transform:scale(.9)}
 .pl-nudge button:disabled{opacity:.32;cursor:default}
-.pl-hak{flex-shrink:0;width:27px;height:28px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);font-size:14px;font-weight:700;color:var(--gruen);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),transform var(--schnell)}
+.pl-hak,.pl-weg,.pl-pin{flex-shrink:0;width:27px;height:28px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),color var(--schnell),transform var(--schnell)}
+.pl-hak{font-size:14px;font-weight:700;color:var(--gruen)}
 .pl-hak:hover{border-color:var(--gruen);background:var(--gruen-hell)}
-.pl-hak:active{transform:scale(.9)}
-.pl-weg{flex-shrink:0;width:27px;height:28px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);font-size:13px;font-weight:700;color:var(--grau);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),color var(--schnell),transform var(--schnell)}
+.pl-weg{font-size:13px;font-weight:700;color:var(--grau)}
 .pl-weg:hover{border-color:var(--rot);background:rgba(255,59,48,.09);color:var(--rot)}
-.pl-weg:active{transform:scale(.9)}
+.pl-pin{font-size:13px;filter:grayscale(1);opacity:.55}
+.pl-pin.an{border-color:var(--sonne);background:var(--sonne-hell);filter:none;opacity:1}
+.pl-hak:active,.pl-weg:active,.pl-pin:active{transform:scale(.9)}
 /* Bestätigungs-Dialog (Ja/Nein) */
 .frage-knoepfe{display:flex;gap:10px;margin-top:20px}
 .frage-knoepfe button{flex:1;border:none;border-radius:14px;padding:14px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:transform var(--schnell),filter var(--schnell)}
@@ -600,7 +608,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 <!-- Geräte-Sheet: Auswahl, Anlegen, Bearbeiten (vom Dashboard per ＋ geöffnet) -->
 <div class="sheet" id="sheet-geraete" role="dialog" aria-label="Geräte">
-  <button class="sheet-schliessen" data-zu>✕</button>
+  <button class="sheet-schliessen" id="geraete-zu">✕</button>
   <section class="karte" id="karte-geraete">
     <div class="karten-kopf">
       <h2>Was steht an?</h2>
@@ -674,6 +682,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe-glossar">
       <div>Die <b>Startseite</b> zeigt alles Wichtige auf einen Blick: Sonnenkurve, Tagesertrag, dein Eigenverbrauch und die geplanten Geräte – ohne Scrollen.</div>
       <div>Tippe auf die <b>Sonnenkurve</b> oder ein <b>geplantes Gerät</b>, um den <b>Tagesplan</b> zu öffnen – dort ziehst du Geräte auf die Zeitleiste, siehst die Deckung je Stunde und kannst ein Gerät per <b>✕</b> wieder aus dem Tag nehmen.</div>
+      <div>Braucht ein Gerät eine <b>feste Zeit</b> (z. B. Backofen 11–12 Uhr)? Tippe das <b>📌</b> – dann bleibt es dort und die App plant die anderen Geräte drumherum. „Neuer Vorschlag" respektiert verankerte Zeiten.</div>
       <div>Über <b>＋ Geräte</b> wählst du, was heute laufen soll, und legst neue Geräte an.</div>
     </div>
   </div>
@@ -1164,7 +1173,7 @@ function uebernommeneFuerTag(tagStr){
 function speicherePlan(){
   const key=tagKeyAktuell();
   cfg.plaene=cfg.plaene||{};
-  cfg.plaene[key]=platzierungen.map(b=>({key:b._key,run:b.run,start:b.start}));
+  cfg.plaene[key]=platzierungen.map(b=>({key:b._key,run:b.run,start:b.start,fix:!!b._fix}));
   speichern();
 }
 
@@ -1321,20 +1330,35 @@ function autoPlatzierung(arr){
   ungeplant=[];
   const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
   const startMap=new Map(gespeichert.map(s=>[s.key+"#"+s.run,s.start]));
+  const fixSet=new Set(gespeichert.filter(s=>s.fix).map(s=>s.key+"#"+s.run)); // verankerte Läufe
   // Belegung je Geraetetyp: dieselbe Maschine kann nicht parallel laufen
   const belegtProTyp={};
   const belegtVon=t=>belegtProTyp[t]||(belegtProTyp[t]=new Array(24).fill(false));
+  // ---- 1) Verankerte Geräte ZUERST platzieren – sie reservieren ihre Stunden ----
   planGeraete.forEach((g,gi)=>{
-    const dauer=Math.max(1,Math.ceil(g.dauer));
-    const devKW=g.kwh/g.dauer;
-    const key=deviceKey(g);
-    const belegt=belegtVon(g.typ||g.name); // gleicher Typ = eine Maschine
-    let naechsterStart = g.von, n = 0;
-    while(n < g.anzahl){
+    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
+    const belegt=belegtVon(g.typ||g.name);
+    for(let n=0;n<g.anzahl;n++){
+      if(!fixSet.has(key+"#"+n))continue;
+      const start=Math.max(g.von,Math.min(g.bis-dauer,startMap.get(key+"#"+n)));
+      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+      bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key,_fix:true});
+    }
+  });
+  // ---- 2) Übrige Läufe: gespeicherte Position (nicht verankert) oder frische Sonnen-Optimierung ----
+  planGeraete.forEach((g,gi)=>{
+    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
+    const belegt=belegtVon(g.typ||g.name); // gleicher Typ = eine Maschine (verankerte Stunden bereits belegt)
+    let naechsterStart = g.von, platziert = 0;
+    for(let n=0;n<g.anzahl;n++){
+      if(fixSet.has(key+"#"+n)){ // in Schritt 1 verankert platziert
+        const fs=Math.max(g.von,Math.min(g.bis-dauer,startMap.get(key+"#"+n)));
+        naechsterStart=Math.max(naechsterStart,fs+dauer); platziert++; continue;
+      }
       const gesp=startMap.get(key+"#"+n);
       let start;
       if(gesp!=null){
-        start=Math.max(g.von,Math.min(g.bis-dauer,gesp)); // gespeicherte Platzierung, aufs Fenster begrenzt
+        start=Math.max(g.von,Math.min(g.bis-dauer,gesp)); // gemerkte Platzierung, aufs Fenster begrenzt
       }else{
         const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis,belegt);
         if(!f)break; // kein Fenster mehr frei / Maschine belegt -> Rest gilt als ungeplant
@@ -1342,12 +1366,12 @@ function autoPlatzierung(arr){
       }
       naechsterStart = start + dauer;
       for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
-      bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key});
-      n++;
+      bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key,_fix:false});
+      platziert++;
     }
-    if(n<g.anzahl){
+    if(platziert<g.anzahl){
       const jetzt=(tag==="heute")?berlinTeile(new Date()).stunde:0;
-      ungeplant.push({icon:g.icon,name:g.name,kwh:g.kwh,fehlend:g.anzahl-n,
+      ungeplant.push({icon:g.icon,name:g.name,kwh:g.kwh,fehlend:g.anzahl-platziert,
         abStart:Math.max(naechsterStart,jetzt),dauer,bis:Math.min(24,g.bis)});
     }
   });
@@ -1641,8 +1665,8 @@ function renderDashboard(arr){
       '<button id="dash-geraete-btn">＋ Geräte</button></div>'+
     '<div class="dash-plan">'+rows+'</div>'+resHtml;
   // --- Verdrahtung: Kurve & Zeilen -> Tagesplan-Sheet; ＋ -> Geräte-Sheet ---
-  const oeffnePlan=()=>sheetAuf("sheet-tagesplan");
-  const oeffneGeraete=()=>sheetAuf("sheet-geraete");
+  const oeffnePlan=()=>{ausTagesplan=false;sheetAuf("sheet-tagesplan");};
+  const oeffneGeraete=()=>{ausTagesplan=false;sheetAuf("sheet-geraete");};
   const cv=$("dash-curve"); if(cv)cv.onclick=oeffnePlan;
   dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>r.onclick=oeffnePlan);
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
@@ -1656,7 +1680,7 @@ function renderPlaner(arr){
   const akkuAn=cfg.akku_an;
   const tagKey = tag==="morgen"?morgenStr():heuteStr();
   const kannAbhaken = (tag==="heute"); // "schon gelaufen" nur für heute sinnvoll
-  $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Gedeckt wird aus <b>Sonne</b>'+(akkuAn?', <b>Speicher</b>':'')+' oder <b>Netz</b>.';
+  $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Mit <b>📌</b> nagelst du eine feste Zeit an – die anderen werden drumherum geplant.';
   if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;}
   warn.innerHTML=ungeplantHtml();wireUngeplant(tagKey);
   const hatBloecke = platzierungen.length>0;
@@ -1776,7 +1800,8 @@ function renderPlaner(arr){
     const el=document.createElement("div");
     el.className="p-blk";
     el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*40)+"px";
-    el.innerHTML='<span class="pbacc"></span>'+(b.routine?'<span class="pbb">🔁</span>':'')+'<span class="pbi">'+b.icon+'</span><span class="pbp"></span>';
+    el.innerHTML='<span class="pbacc"></span>'+(b._fix?'<span class="pbpin">📌</span>':(b.routine?'<span class="pbb">🔁</span>':''))+'<span class="pbi">'+b.icon+'</span><span class="pbp"></span>';
+    if(b._fix)el.classList.add("fix");
     el.title=b.name+" ("+b.start+"–"+(b.start+b.dauer)+" Uhr) – ziehen zum Verschieben";
     el.addEventListener("pointerdown",e=>starteDrag(e,b,el));
     b._el=el;
@@ -1824,14 +1849,16 @@ function renderPlaner(arr){
       const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
       const hakBtn=kannAbhaken?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
       const wegBtn='<button class="pl-weg" data-weg="'+idx+'" aria-label="'+b.name+' aus dem Tagesplan entfernen" title="Aus dem Tagesplan entfernen">✕</button>';
-      li+='<div class="pl-zeile">'+
+      const pinBtn='<button class="pl-pin'+(b._fix?" an":"")+'" data-pin="'+idx+'" aria-label="'+b.name+(b._fix?' Zeit lösen':' Zeit verankern')+'" title="'+(b._fix?'Verankert – tippen zum Lösen':'Zeit verankern – die Vorschläge planen drumherum')+'">📌</button>';
+      li+='<div class="pl-zeile'+(b._fix?" fix":"")+'">'+
         '<span class="pl-ic">'+b.icon+'</span>'+
-        '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span><span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr</span></span>'+
-        '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
-        '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
-        hakBtn+wegBtn+
-        '<span class="pl-deck"><span class="pl-meter"><span style="width:'+gruen+'%;background:var(--gruen)"></span><span style="width:'+netz+'%;background:var(--rot)"></span></span>'+
-        '<span class="pl-proz'+(gruen>=50?" gut":"")+'">'+gruen+'% '+(akkuAn?"Sonne/Speicher":"Sonne")+'</span></span>'+
+        '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
+          '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
+        '<span class="pl-akt">'+
+          '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
+          '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
+          pinBtn+hakBtn+wegBtn+
+        '</span>'+
         '</div>';
     });
     $("planer-liste").innerHTML=li;
@@ -1853,6 +1880,10 @@ function renderPlaner(arr){
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
       markiereErledigt(tagKey,b.name,b.icon,b.start,b.dauer,b.kwh); // Fenster + kWh
+    });
+    $("planer-liste").querySelectorAll("[data-pin]").forEach(btn=>btn.onclick=()=>{
+      const b=platzierungen[+btn.dataset.pin];if(!b)return;
+      b._fix=!b._fix; speicherePlan(); renderPlaner(arr); // Zeit verankern / lösen
     });
     // Deckungs-Streifen je Stunde – auch bereits gelaufene Geräte (mit gespeichertem Fenster) einbeziehen
     const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
@@ -2064,23 +2095,34 @@ async function laden(force){
 }
 
 /* ---------- Sheets ---------- */
+let ausTagesplan=false; // Geräteauswahl aus dem Tagesplan geöffnet? Dann dorthin zurückkehren.
 function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");}
 // Aus einem Sheet in ein anderes wechseln (statt stapeln): erst alle schließen, dann öffnen.
 function wechsleZuSheet(id){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));sheetAuf(id);}
-// „＋ Gerät hinzufügen" im Tagesplan öffnet dieselbe Geräteauswahl wie auf der Startseite.
-if($("btn-plan-geraet"))$("btn-plan-geraet").onclick=()=>wechsleZuSheet("sheet-geraete");
+// „＋ Gerät hinzufügen" im Tagesplan öffnet die Geräteauswahl – und kehrt danach in den Tagesplan zurück.
+if($("btn-plan-geraet"))$("btn-plan-geraet").onclick=()=>{ausTagesplan=true;wechsleZuSheet("sheet-geraete");};
+// Nach dem Hinzufügen: zurück in den Tagesplan (falls von dort gekommen), sonst schließen.
+function hinzufuegenFertig(){
+  speichern();renderChips();aktualisieren();
+  if(ausTagesplan){ausTagesplan=false;wechsleZuSheet("sheet-tagesplan");}
+  else sheetZu();
+}
 
 function sheetZu(){
   if(frageResolve){const r=frageResolve;frageResolve=null;r(false);} // offener Ja/Nein-Dialog = Abbruch
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
+  ausTagesplan=false;
   const warPlanOderGeraete=document.querySelector("#sheet-tagesplan.offen,#sheet-geraete.offen")!=null;
   $("schleier").classList.remove("offen");
   document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));
   // Änderungen aus Tagesplan/Geräte-Sheet auf der kompakten Startseite spiegeln
   if(warPlanOderGeraete && (tag==="heute"||tag==="morgen") && aktuelleStunden) renderDashboard(aktuelleStunden);
 }
+// Schließen der Geräteauswahl: aus dem Tagesplan gekommen -> dorthin zurück statt aufs Dashboard.
+function geraeteSheetZu(){ if(ausTagesplan){ausTagesplan=false;wechsleZuSheet("sheet-tagesplan");} else sheetZu(); }
 $("schleier").onclick=sheetZu;
 document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
+if($("geraete-zu"))$("geraete-zu").onclick=geraeteSheetZu;
 
 /* Eigenes Texteingabe-Sheet (statt prompt(), das in installierten iOS-Apps oft blockiert ist).
    Öffnet sich auch ÜBER einem anderen Sheet (z.B. Einrichten) und schließt beim Bestätigen
@@ -2258,7 +2300,12 @@ $("btn-alle-loeschen").onclick=async()=>{
 /* Neuer Auto-Vorschlag: gespeicherten Plan des Tages verwerfen und frisch optimieren */
 $("btn-vorschlag").onclick=()=>{
   const k=tagKeyAktuell();
-  if(cfg.plaene&&cfg.plaene[k]){delete cfg.plaene[k];speichern();}
+  // Neu optimieren, aber verankerte Geräte an ihrer Zeit lassen.
+  if(cfg.plaene&&cfg.plaene[k]){
+    const fix=cfg.plaene[k].filter(s=>s.fix);
+    if(fix.length)cfg.plaene[k]=fix; else delete cfg.plaene[k];
+    speichern();
+  }
   platzSig="";aktualisieren();
 };
 
@@ -2329,7 +2376,7 @@ function renderProgramme(typ){
   box.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
     const m=meineGeraete[+b.dataset.add];
     geraetAnHeutigenTag({typ:m.typ||"so",icon:m.icon,name:m.name,kwh:m.kwh,dauer:m.dauer,von:m.von,bis:m.bis});
-    speichern();sheetZu();renderChips();aktualisieren();
+    hinzufuegenFertig();
   });
 }
 // „Neues Programm erstellen": Effizienz-/Schätzflow einblenden
@@ -2400,7 +2447,7 @@ $("btn-g-fertig").onclick=()=>{
     dev.name=progName;
   }
   geraetAnHeutigenTag(dev);
-  speichern();sheetZu();renderChips();aktualisieren();
+  hinzufuegenFertig();
 };
 
 /* Gerät bearbeiten */
