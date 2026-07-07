@@ -1428,26 +1428,27 @@ async function ladePreise(){
 }
 function warten(ms){return new Promise(r=>setTimeout(r,ms));}
 // Signatur aus Standort + Anlage: ändert sie sich, ist der gespeicherte Stand ungültig.
-function fsSignatur(){ return [cfg.lat,cfg.lon,cfg.kwp,cfg.neigung,cfg.azimut].join("|"); }
-// Letzten guten Forecast.Solar-Stand (Rohwerte je Stunde, OHNE Kalibrierfaktor) pro Tag lokal sichern.
-function fsCacheSpeichern(roh){
-  let c; try{c=JSON.parse(localStorage.getItem("eo-fs-cache")||"{}");}catch(e){c={};}
-  if(!c||c.sig!==fsSignatur())c={sig:fsSignatur(),tage:{}};
+function pvSignatur(){ return [cfg.lat,cfg.lon,cfg.kwp,cfg.neigung,cfg.azimut].join("|"); }
+const CACHE_FS="eo-fs-cache", CACHE_OM="eo-om-cache"; // je Quelle ein eigener Offline-Cache
+// Letzten guten Stand (Rohwerte je Stunde, OHNE Kalibrierfaktor) pro Tag lokal sichern – je Quelle.
+function pvCacheSpeichern(storeKey,roh){
+  let c; try{c=JSON.parse(localStorage.getItem(storeKey)||"{}");}catch(e){c={};}
+  if(!c||c.sig!==pvSignatur())c={sig:pvSignatur(),tage:{}};
   c.tage=c.tage||{};
   const perTag={}; Object.keys(roh).forEach(key=>{const d=key.slice(0,10);(perTag[d]=perTag[d]||{})[key]=roh[key];});
   const ts=Date.now(); Object.keys(perTag).forEach(d=>{c.tage[d]={ts,werte:perTag[d]};});
   const hk=heuteStr(),mk=morgenStr(); Object.keys(c.tage).forEach(d=>{if(d!==hk&&d!==mk)delete c.tage[d];});
-  try{localStorage.setItem("eo-fs-cache",JSON.stringify(c));}catch(e){}
+  try{localStorage.setItem(storeKey,JSON.stringify(c));}catch(e){}
 }
 // Gespeicherte Rohwerte für heute+morgen laden (nur wenn Standort/Anlage unverändert). {roh,ts} oder null.
-function fsCacheLaden(){
-  let c; try{c=JSON.parse(localStorage.getItem("eo-fs-cache")||"{}");}catch(e){return null;}
-  if(!c||c.sig!==fsSignatur()||!c.tage)return null;
+function pvCacheLaden(storeKey){
+  let c; try{c=JSON.parse(localStorage.getItem(storeKey)||"{}");}catch(e){return null;}
+  if(!c||c.sig!==pvSignatur()||!c.tage)return null;
   const hk=heuteStr(),mk=morgenStr(); const roh={}; let ts=0,hat=false;
   [hk,mk].forEach(d=>{const e=c.tage[d]; if(e&&e.werte){Object.assign(roh,e.werte);ts=Math.max(ts,e.ts||0);hat=true;}});
   return hat?{roh,ts}:null;
 }
-function fsRohAnwenden(roh){ Object.keys(roh).forEach(key=>{ daten.pv[key]=(daten.pv[key]||0)+roh[key]*cfg.faktor; }); }
+function rohAnwenden(roh){ Object.keys(roh).forEach(key=>{ daten.pv[key]=(daten.pv[key]||0)+roh[key]*cfg.faktor; }); }
 function hhmm(ts){ return new Date(ts).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}); }
 async function holeForecastSolar(){
   const basis="https://api.forecast.solar/"+(cfg.fsKey?cfg.fsKey+"/":"")+"estimate/"+cfg.lat+"/"+cfg.lon+"/"+cfg.neigung+"/"+cfg.azimut+"/"+cfg.kwp;
@@ -1460,11 +1461,11 @@ async function holeForecastSolar(){
   const roh={};
   Object.keys(whPeriode).forEach(k=>{ const t=new Date(k),key=berlinTeile(t).key+"-"+berlinTeile(t).stunde; roh[key]=(roh[key]||0)+whPeriode[k]; });
   if(!Object.keys(roh).length)throw new Error("leere Antwort");
-  fsCacheSpeichern(roh);   // guten Stand sichern (Rohwerte)
-  fsRohAnwenden(roh);      // mit Kalibrierfaktor in daten.pv übernehmen
+  pvCacheSpeichern(CACHE_FS,roh);  // guten Stand sichern (Rohwerte)
+  rohAnwenden(roh);                // mit Kalibrierfaktor in daten.pv übernehmen
 }
 // Open-Meteo (DWD ICON-D2 für DE): geneigte Globalstrahlung -> Ertrag. Kein Key, kein Konto.
-// PR 0.85 (Verluste Wechselrichter/Kabel/Temperatur). Ergebnis in Wh je Stunde, mit Kalibrierfaktor.
+// PR 0.85 (Verluste Wechselrichter/Kabel/Temperatur). Rohwerte (ohne Faktor) werden gecacht.
 async function holeOpenMeteo(){
   const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
     "&hourly=global_tilted_irradiance&tilt="+cfg.neigung+"&azimuth="+cfg.azimut+
@@ -1474,30 +1475,38 @@ async function holeOpenMeteo(){
   const j=await r.json();
   const t=(j.hourly&&j.hourly.time)||[], g=(j.hourly&&j.hourly.global_tilted_irradiance)||[];
   if(!t.length)throw new Error("Open-Meteo leer");
-  for(let i=0;i<t.length;i++){ const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10); daten.pv[key]=(daten.pv[key]||0)+(g[i]||0)*cfg.kwp*0.85*cfg.faktor; }
+  const roh={};
+  for(let i=0;i<t.length;i++){ const key=t[i].slice(0,10)+"-"+parseInt(t[i].slice(11,13),10); roh[key]=(roh[key]||0)+(g[i]||0)*cfg.kwp*0.85; }
+  if(!Object.keys(roh).length)throw new Error("Open-Meteo leer");
+  pvCacheSpeichern(CACHE_OM,roh);  // guten Stand sichern (überlebt offline)
+  rohAnwenden(roh);
 }
 async function ladePV(force){
   daten.pv={};
+  const FRISCH=30*60*1000; // 30 Min: so lange gilt ein gespeicherter Stand als aktuell (spart Abrufe)
   // Nutzer hat Open-Meteo als Hauptquelle gewählt (kostenlos, kein Konto, in DE oft genauer).
   if(cfg.pvQuelle==="om"){
+    const cacheOM=pvCacheLaden(CACHE_OM);
+    if(!force && cacheOM && (Date.now()-cacheOM.ts)<FRISCH){ rohAnwenden(cacheOM.roh); return {label:"Open-Meteo · Stand "+hhmm(cacheOM.ts), warnung:false}; }
     try{
       try{ await holeOpenMeteo(); }
       catch(e){ await warten(900); daten.pv={}; await holeOpenMeteo(); }
       return {label:"Open-Meteo · DWD ICON", warnung:false};
     }catch(e){
-      // Rückfall auf Forecast.Solar (gespeicherter Stand, sonst live)
-      const cache=fsCacheLaden();
-      if(cache){ daten.pv={}; fsRohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:true}; }
+      // Offline/Abruf-Fehler: erst eigener gespeicherter Open-Meteo-Stand …
+      if(cacheOM){ daten.pv={}; rohAnwenden(cacheOM.roh); return {label:"Open-Meteo · Stand "+hhmm(cacheOM.ts), warnung:false}; }
+      // … sonst Forecast.Solar als Ausweichquelle (Cache, dann live)
+      const cacheFS=pvCacheLaden(CACHE_FS);
+      if(cacheFS){ daten.pv={}; rohAnwenden(cacheFS.roh); return {label:"Forecast.Solar · Stand "+hhmm(cacheFS.ts), warnung:true}; }
       try{ daten.pv={}; await holeForecastSolar(); return {label:"Forecast.Solar", warnung:true}; }
       catch(e2){ throw e; }
     }
   }
   // Standard: Forecast.Solar als Hauptquelle
-  const cache=fsCacheLaden();
-  const FRISCH=30*60*1000; // 30 Min: so lange gilt ein gespeicherter Stand als aktuell (spart Abrufe)
+  const cache=pvCacheLaden(CACHE_FS);
   // 1) Frischer Stand vorhanden & kein erzwungenes Neuladen -> ohne API-Abruf übernehmen
   if(!force && cache && (Date.now()-cache.ts)<FRISCH){
-    fsRohAnwenden(cache.roh);
+    rohAnwenden(cache.roh);
     return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false};
   }
   // 2) Frisch von Forecast.Solar holen (ein kurzer Retry)
@@ -1507,7 +1516,7 @@ async function ladePV(force){
     return {label:"Forecast.Solar", warnung:false};
   }catch(e){
     // 3) Abruf fehlgeschlagen -> letzter guter Forecast.Solar-Stand (statt ungenauem Open-Meteo)
-    if(cache){ daten.pv={}; fsRohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false}; }
+    if(cache){ daten.pv={}; rohAnwenden(cache.roh); return {label:"Forecast.Solar · Stand "+hhmm(cache.ts), warnung:false}; }
     // 4) Kein gespeicherter Stand -> Wetter-Rückfall (Open-Meteo)
     try{ daten.pv={}; await holeOpenMeteo(); return {label:"Open-Meteo", warnung:true}; }
     catch(e2){ throw e; }
@@ -1704,9 +1713,12 @@ function renderChips(){
   box.querySelectorAll("[data-w]").forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.w, g=geraete[i]; if(!g)return;
     if(!(await frageJaNein(g.icon+" "+g.name+" ganz löschen?","Das Gerät verschwindet komplett aus deiner Liste – für heute und morgen.","Löschen")))return;
-    const name=g.name; geraete.splice(i,1);
+    const name=g.name, dkey=deviceKey(g); geraete.splice(i,1);
     // Tages-Anzahlen dieses Geräts überall aufräumen
     if(cfg.tagAnzahl)Object.keys(cfg.tagAnzahl).forEach(d=>{if(cfg.tagAnzahl[d])delete cfg.tagAnzahl[d][name];});
+    // Verwaiste Verweise (übernommen/abgelehnt/gespeicherte Pläne) auf dieses Gerät entfernen
+    ["uebernommen","abgelehnt"].forEach(k=>{ if(cfg[k])Object.keys(cfg[k]).forEach(d=>{ const a=cfg[k][d]; if(Array.isArray(a)){ const f=a.filter(x=>x!==name); if(f.length)cfg[k][d]=f; else delete cfg[k][d]; } }); });
+    if(cfg.plaene)Object.keys(cfg.plaene).forEach(d=>{ const a=cfg.plaene[d]; if(Array.isArray(a)){ const f=a.filter(p=>p.key!==dkey); if(f.length)cfg.plaene[d]=f; else delete cfg.plaene[d]; } });
     speichern();renderChips();aktualisieren();});
   box.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>oeffneBearbeiten(+b.dataset.e));
 }
@@ -2560,7 +2572,7 @@ function setzePvQuelle(v){
   cfg.pvQuelle=v;
   cfg.faktor=1.0; cfg.kalib=[];              // Kalibrierung gilt je Quelle -> beim Wechsel zurücksetzen
   const ff=$("f-faktor"); if(ff)ff.value=dz(cfg.faktor);
-  try{localStorage.removeItem("eo-fs-cache");}catch(e){}
+  try{localStorage.removeItem(CACHE_FS);localStorage.removeItem(CACHE_OM);}catch(e){}
   speichern(); pvQuelleHinweis(); kalibUI();
   starteAktualisierung(true);                // frisch von der neuen Quelle laden
 }
