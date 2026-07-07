@@ -95,6 +95,12 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .untertitel{font-size:12.5px;color:var(--grau);margin-bottom:14px;line-height:1.5}
 .karten-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .alle-loeschen{border:none;background:none;font-size:12px;font-weight:600;color:var(--rot);cursor:pointer;padding:4px}
+/* Aktionsleiste oben im Tagesplan: Gerät hinzufügen (primär) + Neuer Vorschlag */
+.plan-aktionen{display:flex;gap:8px;margin-bottom:14px}
+.plan-akt{flex:1;border:none;border-radius:12px;padding:11px 8px;font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;transition:transform var(--schnell),filter var(--schnell);display:inline-flex;align-items:center;justify-content:center;gap:5px}
+.plan-akt:active{transform:scale(.97)}
+.plan-akt.primaer{background:var(--sonne);color:#3A2600;box-shadow:0 6px 16px -8px rgba(245,160,12,.6)}
+.plan-akt.sekundaer{background:var(--papier);color:var(--netz);flex:0 0 auto;padding:11px 14px}
 
 /* Geräte-Chips */
 .chips{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:12px}
@@ -613,15 +619,17 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <section class="karte" id="karte-plan">
     <div class="karten-kopf">
       <h2>Dein Tagesplan</h2>
-      <button class="alle-loeschen" id="btn-vorschlag" style="color:var(--netz)">↺ Neuer Vorschlag</button>
     </div>
     <div class="untertitel" id="planer-untertitel">Ziehe die Geräte auf die Zeitleiste.</div>
+    <div class="plan-aktionen">
+      <button class="plan-akt primaer" id="btn-plan-geraet">＋ Gerät hinzufügen</button>
+      <button class="plan-akt sekundaer" id="btn-vorschlag">↺ Neuer Vorschlag</button>
+    </div>
     <div id="planer">
       <div id="planer-warnung"></div>
       <div id="planer-chart"><div class="plan-leer">Wähle mindestens ein Gerät.</div></div>
       <div id="planer-rest"></div>
     </div>
-    <button class="chip-plus" id="btn-plan-geraet" style="width:100%;margin-top:12px">＋ Gerät hinzufügen</button>
   </section>
 </div>
 
@@ -1673,7 +1681,7 @@ function renderPlaner(arr){
         ? 'Heute nichts mehr einplanbar – siehe Hinweis oben.'
         : (erledigtListe(tagKey).length
             ? 'Alles für heute erledigt oder eingeplant. 🎉'
-            : 'Noch keine Geräte für diesen Tag – tippe unten <b>＋ Gerät hinzufügen</b>.'))+'</div>';
+            : 'Noch keine Geräte für diesen Tag – tippe oben <b>＋ Gerät hinzufügen</b>.'))+'</div>';
   // ---- Antippbarer Verlauf: 24 unsichtbare Stunden-Flächen über dem Himmel ----
   let tapsHtml=""; for(let h=0;h<24;h++){ tapsHtml+='<button class="sky-tap" data-h="'+h+'" style="left:'+(h/24*100).toFixed(4)+'%;width:'+(100/24).toFixed(4)+'%" aria-label="'+h+' Uhr"></button>'; }
   // ---- Kennzahlen-Kacheln (Tageswerte, unabhängig von der Geräteauswahl) ----
