@@ -345,7 +345,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 /* Geräte-Liste unter der Zeitleiste */
 .planer-liste{display:flex;flex-direction:column;gap:7px;margin-top:12px}
 .pl-swipe{position:relative;border-radius:12px;overflow:hidden}
-.pl-del-bg{position:absolute;inset:0;background:var(--rot);border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:16px;color:#fff;font-weight:700;font-size:13px}
+.pl-del-bg,.pl-pin-bg{position:absolute;inset:0;border-radius:12px;display:flex;align-items:center;font-weight:700;font-size:13px;opacity:0}
+.pl-del-bg{background:var(--rot);justify-content:flex-end;padding-right:16px;color:#fff}
+.pl-pin-bg{background:var(--sonne);justify-content:flex-start;padding-left:16px;color:#3A2600}
 .pl-zeile{position:relative;display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:12px;padding:9px 10px;touch-action:pan-y}
 .pl-zeile.fix{box-shadow:inset 3px 0 0 var(--sonne)}
 .pl-ic{font-size:18px;flex-shrink:0}
@@ -359,14 +361,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .pl-nudge button{width:25px;height:28px;border:none;border-radius:8px;background:rgba(20,31,44,.07);font-size:15px;font-weight:700;color:var(--nacht);cursor:pointer;line-height:1;transition:background var(--schnell),transform var(--schnell)}
 .pl-nudge button:active{transform:scale(.9)}
 .pl-nudge button:disabled{opacity:.32;cursor:default}
-.pl-hak,.pl-weg,.pl-pin{flex-shrink:0;width:27px;height:28px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),color var(--schnell),transform var(--schnell)}
-.pl-hak{font-size:14px;font-weight:700;color:var(--gruen)}
+.pl-hak{flex-shrink:0;width:28px;height:28px;border:1.5px solid var(--linie);border-radius:8px;background:var(--karte);font-size:14px;font-weight:700;color:var(--gruen);cursor:pointer;line-height:1;transition:background var(--schnell),border-color var(--schnell),transform var(--schnell)}
 .pl-hak:hover{border-color:var(--gruen);background:var(--gruen-hell)}
-.pl-weg{font-size:13px;font-weight:700;color:var(--grau)}
-.pl-weg:hover{border-color:var(--rot);background:rgba(255,59,48,.09);color:var(--rot)}
-.pl-pin{font-size:13px;filter:grayscale(1);opacity:.55}
-.pl-pin.an{border-color:var(--sonne);background:var(--sonne-hell);filter:none;opacity:1}
-.pl-hak:active,.pl-weg:active,.pl-pin:active{transform:scale(.9)}
+.pl-hak:active{transform:scale(.9)}
 /* Bestätigungs-Dialog (Ja/Nein) */
 .frage-knoepfe{display:flex;gap:10px;margin-top:20px}
 .frage-knoepfe button{flex:1;border:none;border-radius:14px;padding:14px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:transform var(--schnell),filter var(--schnell)}
@@ -705,8 +702,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <h4>📱 So bedienst du die Startseite</h4>
     <div class="hilfe-glossar">
       <div>Die <b>Startseite</b> zeigt alles Wichtige auf einen Blick: Sonnenkurve, Tagesertrag, dein Eigenverbrauch und die geplanten Geräte – ohne Scrollen.</div>
-      <div>Tippe auf die <b>Sonnenkurve</b> oder ein <b>geplantes Gerät</b>, um den <b>Tagesplan</b> zu öffnen – dort ziehst du Geräte auf die Zeitleiste, siehst die Deckung je Stunde und kannst ein Gerät per <b>✕</b> wieder aus dem Tag nehmen.</div>
-      <div>Braucht ein Gerät eine <b>feste Zeit</b> (z. B. Backofen 11–12 Uhr)? Tippe das <b>📌</b> – dann bleibt es dort und die App plant die anderen Geräte drumherum. „Neuer Vorschlag" respektiert verankerte Zeiten.</div>
+      <div>Tippe auf die <b>Sonnenkurve</b> oder ein <b>geplantes Gerät</b>, um den <b>Tagesplan</b> zu öffnen – dort ziehst du Geräte auf die Zeitleiste und siehst die Deckung je Stunde. In der Liste: <b>nach links wischen</b> nimmt ein Gerät aus dem Tag (mit „Rückgängig").</div>
+      <div>Braucht ein Gerät eine <b>feste Zeit</b> (z. B. Backofen 11–12 Uhr)? <b>Nach rechts wischen</b> setzt ein 📌 – dann bleibt es dort und die App plant die anderen Geräte drumherum. „Neuer Vorschlag" respektiert verankerte Zeiten.</div>
       <div>Über <b>＋ Geräte</b> wählst du, was heute laufen soll, und legst neue Geräte an.</div>
     </div>
   </div>
@@ -1088,9 +1085,10 @@ function zeigeToast(text,undoFn){
   clearTimeout(toastTimer);
   t.querySelector(".toast-txt").textContent=text;
   const u=t.querySelector(".toast-undo");
-  u.onclick=()=>{ clearTimeout(toastTimer); t.classList.remove("an"); if(undoFn)undoFn(); };
+  u.hidden=!undoFn;
+  u.onclick=undoFn?(()=>{clearTimeout(toastTimer);t.classList.remove("an");undoFn();}):null;
   t.classList.add("an");
-  toastTimer=setTimeout(()=>t.classList.remove("an"),4500);
+  toastTimer=setTimeout(()=>t.classList.remove("an"), undoFn?4500:2200);
 }
 // Gerät sofort aus dem Tag nehmen – reversibel per „Rückgängig" (statt Nachfrage-Popup).
 function entferneMitUndo(tagKey,b){
@@ -1099,7 +1097,9 @@ function entferneMitUndo(tagKey,b){
   zeigeToast((b.routine?"🔁 ":"")+b.icon+" "+b.name+" entfernt", ()=>zustandWiederherstellen(snap));
 }
 // Nach links wischen auf einer Tagesplan-Zeile = entfernen (mit Rückgängig).
-function swipeZumEntfernen(zeile,tagKey){
+// Wischgesten auf einer Tagesplan-Zeile: links = entfernen (mit Rückgängig), rechts = Zeit verankern/lösen.
+function swipeGesten(zeile,tagKey){
+  const wrap=zeile.parentNode, del=wrap.querySelector(".pl-del-bg"), pin=wrap.querySelector(".pl-pin-bg");
   let x0=0,y0=0,modus="off",dx=0;
   zeile.addEventListener("touchstart",e=>{
     if(e.touches.length!==1 || e.target.closest(".pl-akt,button")){modus="off";return;}
@@ -1109,21 +1109,29 @@ function swipeZumEntfernen(zeile,tagKey){
     if(modus==="off")return;
     const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
     if(modus==="pending"){
-      if(cx<-8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";}
-      else if(Math.abs(cy)>8 || cx>8){modus="off";return;}
+      if(Math.abs(cx)>8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";}
+      else if(Math.abs(cy)>8){modus="off";return;}
       else return;
     }
-    dx=Math.min(0,cx);                                   // nur nach links
+    dx=cx;                                               // links (−) = entfernen, rechts (+) = verankern
     zeile.style.transform="translateX("+dx+"px)";
+    if(del)del.style.opacity=dx<0?1:0;
+    if(pin)pin.style.opacity=dx>0?1:0;
     if(e.cancelable)e.preventDefault();
   },{passive:false});
   function ende(){
     if(modus==="swipe"){
       const idx=+zeile.dataset.idx, b=platzierungen[idx];
       zeile.style.transition="transform .2s ease";
-      if(-dx>90 && b){ zeile.style.transform="translateX(-100%)"; setTimeout(()=>entferneMitUndo(tagKey,b),150); }
-      else zeile.style.transform="";
+      if(dx<-90 && b){                                   // nach links weit = entfernen
+        zeile.style.transform="translateX(-100%)"; setTimeout(()=>entferneMitUndo(tagKey,b),150);
+      }else if(dx>90 && b){                              // nach rechts weit = verankern/lösen
+        zeile.style.transform=""; b._fix=!b._fix; speicherePlan();
+        zeigeToast((b._fix?"📌 ":"")+b.icon+" "+b.name+(b._fix?" verankert – andere planen drumherum":" – Verankerung gelöst"),null);
+        renderPlaner(aktuelleStunden);
+      }else zeile.style.transform="";
     }
+    if(del)del.style.opacity=0; if(pin)pin.style.opacity=0;
     modus="off";
   }
   zeile.addEventListener("touchend",ende,{passive:true});
@@ -1762,7 +1770,7 @@ function renderPlaner(arr){
   const akkuAn=cfg.akku_an;
   const tagKey = tag==="morgen"?morgenStr():heuteStr();
   const kannAbhaken = (tag==="heute"); // "schon gelaufen" nur für heute sinnvoll
-  $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. Mit <b>📌</b> nagelst du eine feste Zeit an – die anderen werden drumherum geplant.';
+  $("planer-untertitel").innerHTML='Ziehe die Geräte auf die Zeitleiste. In der Liste: nach <b>links wischen</b> = entfernen, nach <b>rechts</b> = 📌 Zeit verankern.';
   if(arr.every(s=>s.eff==null)){warn.innerHTML="";chart.innerHTML='<div class="plan-leer">Noch keine Preisdaten für diesen Tag.</div>';rest.innerHTML=erledigtHtml(tagKey);wireErledigt(tagKey);return;}
   warn.innerHTML=ungeplantHtml();wireUngeplant(tagKey);
   const hatBloecke = platzierungen.length>0;
@@ -1930,28 +1938,23 @@ function renderPlaner(arr){
       const idx=platzierungen.indexOf(b);
       const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
       const hakBtn=kannAbhaken?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
-      const wegBtn='<button class="pl-weg" data-weg="'+idx+'" aria-label="'+b.name+' aus dem Tagesplan entfernen" title="Aus dem Tagesplan entfernen">✕</button>';
-      const pinBtn='<button class="pl-pin'+(b._fix?" an":"")+'" data-pin="'+idx+'" aria-label="'+b.name+(b._fix?' Zeit lösen':' Zeit verankern')+'" title="'+(b._fix?'Verankert – tippen zum Lösen':'Zeit verankern – die Vorschläge planen drumherum')+'">📌</button>';
       li+='<div class="pl-swipe">'+
         '<div class="pl-del-bg"><span>🗑 Entfernen</span></div>'+
+        '<div class="pl-pin-bg"><span>'+(b._fix?"📌 Lösen":"📌 Verankern")+'</span></div>'+
         '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
           '<span class="pl-ic">'+b.icon+'</span>'+
-          '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
+          '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+b.name+'</span>'+
             '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
           '<span class="pl-akt">'+
             '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
             '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
-            pinBtn+hakBtn+wegBtn+
+            hakBtn+
           '</span>'+
         '</div></div>';
     });
     $("planer-liste").innerHTML=li;
-    // Entfernen (Button ODER nach links wischen) – sofort, mit „Rückgängig"-Einblendung
-    $("planer-liste").querySelectorAll("[data-weg]").forEach(btn=>btn.onclick=()=>{
-      const b=platzierungen[+btn.dataset.weg];if(!b)return;
-      entferneMitUndo(tagKey,b);
-    });
-    $("planer-liste").querySelectorAll(".pl-zeile").forEach(z=>swipeZumEntfernen(z,tagKey));
+    // Wischen: links = entfernen (mit Rückgängig), rechts = Zeit verankern/lösen
+    $("planer-liste").querySelectorAll(".pl-zeile").forEach(z=>swipeGesten(z,tagKey));
     $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
       const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
@@ -1960,10 +1963,6 @@ function renderPlaner(arr){
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
       markiereErledigt(tagKey,b.name,b.icon,b.start,b.dauer,b.kwh); // Fenster + kWh
-    });
-    $("planer-liste").querySelectorAll("[data-pin]").forEach(btn=>btn.onclick=()=>{
-      const b=platzierungen[+btn.dataset.pin];if(!b)return;
-      b._fix=!b._fix; speicherePlan(); renderPlaner(arr); // Zeit verankern / lösen
     });
     // Deckungs-Streifen je Stunde – auch bereits gelaufene Geräte (mit gespeichertem Fenster) einbeziehen
     const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
