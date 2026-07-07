@@ -480,6 +480,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-ring-tx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .dash-ring-tx b{font-size:18px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--tinte)}
 .dh-ring-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--grau)}
+/* „💡 Fällig"-Vorschläge auf der Startseite (gelerntes Muster) */
+#dash-vorschlag{background:radial-gradient(120% 100% at 100% 0%,rgba(245,168,12,.16),rgba(245,168,12,0) 62%),var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:var(--radius);padding:11px 13px;box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.5)}
+.dash-vs-titel{font-size:11.5px;font-weight:700;color:#B4780A;margin:0 2px 8px}
+:root[data-theme="dark"] .dash-vs-titel{color:#FFD489}
+.dash-vs{display:flex;align-items:center;gap:10px;padding:3px 2px}
+.dash-vs+.dash-vs{margin-top:4px;border-top:.5px solid var(--linie);padding-top:8px}
+.dash-vs-ic{font-size:20px;flex-shrink:0}
+.dash-vs-tx{flex:1;min-width:0;display:flex;flex-direction:column}
+.dash-vs-nm{font-size:14px;font-weight:600;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-vs-grund{font-size:11.5px;color:var(--grau);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-vs-ok{flex-shrink:0;border:none;border-radius:10px;background:var(--sonne);color:#3A2600;font-family:var(--sans);font-size:12.5px;font-weight:700;padding:8px 12px;cursor:pointer;transition:transform var(--schnell)}
+.dash-vs-ok:active{transform:scale(.95)}
+.dash-vs-nein{flex-shrink:0;width:30px;height:30px;border:1.5px solid var(--linie);border-radius:9px;background:var(--karte);color:var(--grau);font-size:13px;cursor:pointer;transition:background var(--schnell),color var(--schnell)}
+.dash-vs-nein:active{background:var(--papier)}
 .dash-plan-card{padding:12px 12px}
 .dash-plan-h{display:flex;justify-content:space-between;align-items:center;padding:0 6px 6px}
 .dash-plan-h h2{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--tinte)}
@@ -509,6 +523,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-plan-card.hat-mehr .dash-plan::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--glass))}
 .dash-plan-card.hat-mehr .dash-plan::before{content:"↓ mehr Geräte";position:absolute;left:50%;bottom:1px;transform:translateX(-50%);z-index:2;pointer-events:none;font-size:9.5px;font-weight:700;color:var(--grau);letter-spacing:.02em}
 .dash-rows{max-height:172px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+#dashboard.hat-vorschlag .dash-rows{max-height:88px} /* Platz für den Vorschlags-Chip – Liste scrollt intern */
 .dash-rows::-webkit-scrollbar{display:none}
 .dash-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:100px;margin-left:2px;vertical-align:middle;letter-spacing:.01em}
 .dash-badge.run{background:var(--gruen-hell);color:var(--gruen)}
@@ -642,6 +657,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div id="dashboard" hidden>
   <div id="dash-curve-wrap"></div>
   <div class="karte dash-hero" id="dash-hero"></div>
+  <div id="dash-vorschlag" hidden></div>
   <div class="karte dash-plan-card" id="dash-plan-card"></div>
 </div>
 
@@ -1876,6 +1892,36 @@ function renderDashboard(arr){
   // Scroll-Hinweis: Liste scrollt intern, wenn mehr Geräte als sichtbar
   const card=$("dash-plan-card"), dr=card.querySelector(".dash-rows");
   card.classList.toggle("hat-mehr", !!(dr && dr.scrollHeight>dr.clientHeight+2));
+  // --- Gelernte, heute fällige Vorschläge direkt auf der Startseite ---
+  renderDashVorschlaege(tagKey, arr);
+}
+// „💡 Fällig"-Chips auf der Startseite: gelerntes Muster wird hier sichtbar & mit 1 Tipp übernommen.
+function renderDashVorschlaege(tagKey, arr){
+  const box=$("dash-vorschlag"); if(!box)return;
+  const dash=$("dashboard");
+  const list=vorschlaegeFuer(tagKey);
+  if(!list.length){ box.hidden=true; box.innerHTML=""; if(dash)dash.classList.remove("hat-vorschlag"); return; }
+  box.hidden=false;
+  if(dash)dash.classList.add("hat-vorschlag"); // Geräteliste schrumpft, damit alles scrollfrei bleibt
+  box.innerHTML='<div class="dash-vs-titel">💡 Aus deinem Rhythmus – heute fällig</div>'+
+    list.map(v=>'<div class="dash-vs">'+
+      '<span class="dash-vs-ic">'+v.icon+'</span>'+
+      '<span class="dash-vs-tx"><span class="dash-vs-nm">'+kurzName(v.name)+'</span><span class="dash-vs-grund">'+musterText(v)+'</span></span>'+
+      '<button class="dash-vs-ok" data-vsok="'+encodeURIComponent(v.name)+'">Übernehmen</button>'+
+      '<button class="dash-vs-nein" data-vsnein="'+encodeURIComponent(v.name)+'" aria-label="Nicht heute" title="Nicht heute">✕</button>'+
+      '</div>').join("");
+  box.querySelectorAll("[data-vsok]").forEach(b=>b.onclick=()=>{
+    const n=decodeURIComponent(b.dataset.vsok);
+    cfg.uebernommen=cfg.uebernommen||{};(cfg.uebernommen[tagKey]=cfg.uebernommen[tagKey]||[]);
+    if(!cfg.uebernommen[tagKey].includes(n))cfg.uebernommen[tagKey].push(n);
+    speichern();platzSig="";aktualisieren();     // Gerät wird automatisch in die Sonnenstunden gelegt
+  });
+  box.querySelectorAll("[data-vsnein]").forEach(b=>b.onclick=()=>{
+    const n=decodeURIComponent(b.dataset.vsnein);
+    cfg.abgelehnt=cfg.abgelehnt||{};(cfg.abgelehnt[tagKey]=cfg.abgelehnt[tagKey]||[]);
+    if(!cfg.abgelehnt[tagKey].includes(n))cfg.abgelehnt[tagKey].push(n);
+    speichern();renderDashboard(arr);
+  });
 }
 function renderPlaner(arr){
   const chart=$("planer-chart"),rest=$("planer-rest"),warn=$("planer-warnung");
