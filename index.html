@@ -53,7 +53,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--netz);outline-o
 .kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
 .eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sonne);font-weight:700}
 h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-height:1.03}
-.unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px}
+.unterzeile{font-size:13px;color:var(--grau);display:inline-flex;align-items:center;gap:5px;max-width:74vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unterzeile::before{flex-shrink:0}
 .unterzeile::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--gruen);box-shadow:0 0 0 3px var(--gruen-hell)}
 .kopf-aktionen{display:flex;gap:6px;flex-shrink:0}
 .claim{font-size:13px;color:var(--grau);margin:6px 2px 0;line-height:1.4;max-width:44ch}
@@ -436,35 +437,35 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .budget-ok{color:var(--gruen);font-weight:600}
 .budget-warn{color:var(--rot);font-weight:600}
 /* ---- Kompakte Startseite (Dashboard – wie das Mockup, alles auf einen Blick) ---- */
-#dashboard{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
-.dash-curve{position:relative;display:block;width:100%;height:134px;border:none;padding:0;margin:0;cursor:pointer;background:transparent;border-radius:18px;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:transform var(--schnell)}
+#dashboard{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.dash-curve{position:relative;display:block;width:100%;height:112px;border:none;padding:0;margin:0;cursor:pointer;background:transparent;border-radius:18px;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:transform var(--schnell)}
 .dash-curve svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .dash-curve:active{transform:scale(.994)}
 .dc-sun{position:absolute;width:34px;height:34px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;background:radial-gradient(circle at 38% 34%,#FFF3D2,#FFC24D 46%,var(--sonne) 82%);box-shadow:0 0 0 6px rgba(245,160,12,.20),0 0 34px 9px rgba(245,160,12,.34)}
 .dc-now{position:absolute;z-index:4;top:5px;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:#8A5A06;background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dc-hint{position:absolute;z-index:4;right:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--grau);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:3px}
 :root[data-theme="dark"] .dc-now{color:#FFD489}
-.dash-hero{display:flex;align-items:center;gap:14px;padding:16px 18px}
+.dash-hero{display:flex;align-items:center;gap:14px;padding:13px 18px}
 .dh-big{flex:1;min-width:0}
-.dh-lbl{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
-.dh-num{font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:6px;font-variant-numeric:tabular-nums;color:var(--tinte)}
-.dh-num small{font-size:19px;font-weight:600;color:var(--grau);letter-spacing:-.01em}
+.dh-lbl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
+.dh-num{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums;color:var(--tinte)}
+.dh-num small{font-size:17px;font-weight:600;color:var(--grau);letter-spacing:-.01em}
 .dh-num .trust-chip{display:inline-block;vertical-align:middle;margin-left:2px}
 .dh-ring-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0}
-.dash-ring{position:relative;width:74px;height:74px}
-.dash-ring svg{width:74px;height:74px;display:block}
+.dash-ring{position:relative;width:66px;height:66px}
+.dash-ring svg{width:66px;height:66px;display:block}
 .dash-ring-tx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.dash-ring-tx b{font-size:21px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--tinte)}
+.dash-ring-tx b{font-size:18px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--tinte)}
 .dh-ring-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--grau)}
-.dash-plan-card{padding:14px 12px}
-.dash-plan-h{display:flex;justify-content:space-between;align-items:center;padding:0 6px 8px}
+.dash-plan-card{padding:12px 12px}
+.dash-plan-h{display:flex;justify-content:space-between;align-items:center;padding:0 6px 6px}
 .dash-plan-h h2{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--tinte)}
 .dash-plan-h button{border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:600;color:var(--sonne);cursor:pointer;padding:3px 4px}
 .dash-plan-h button:active{opacity:.6}
-.dash-row{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:14px;cursor:pointer;transition:background var(--schnell)}
+.dash-row{display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:14px;cursor:pointer;transition:background var(--schnell)}
 .dash-row:active{background:var(--papier)}
 .dash-row+.dash-row{border-top:.5px solid var(--linie)}
-.dash-ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:19px;background:var(--papier)}
+.dash-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;background:var(--papier)}
 .dash-info{flex:1;min-width:0}
 .dash-nm{font-size:14.5px;font-weight:600;letter-spacing:-.01em;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .dash-sub{font-size:12px;color:var(--grau);margin-top:1px;font-variant-numeric:tabular-nums;white-space:nowrap;display:block}
@@ -475,6 +476,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-leer{padding:14px 8px 6px;text-align:center;color:var(--grau);font-size:13px;line-height:1.5}
 .dash-leer .dash-leer-btn{margin-top:11px;display:inline-block;border:none;border-radius:100px;background:var(--sonne);color:#3A2600;font-family:var(--sans);font-size:13.5px;font-weight:700;padding:9px 18px;cursor:pointer}
 .dash-leer .dash-leer-btn:active{transform:scale(.96)}
+.dash-rows{max-height:178px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.dash-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:100px;margin-left:2px;vertical-align:middle;letter-spacing:.01em}
+.dash-badge.run{background:var(--gruen-hell);color:var(--gruen)}
+.dash-badge.run i{width:6px;height:6px;border-radius:50%;background:var(--gruen);animation:dash-blink 1.4s ease-in-out infinite}
+@keyframes dash-blink{0%,100%{opacity:1}50%{opacity:.35}}
+.dash-badge.done{background:rgba(52,199,89,.14);color:var(--gruen)}
+.dash-badge.past{background:var(--papier);color:var(--grau)}
+.dash-check{font-size:16px;font-weight:700;color:var(--gruen);flex-shrink:0;width:34px;text-align:center}
+.dash-res-strip{margin:0 6px 2px;padding-top:11px;border-top:.5px solid var(--linie)}
+.dash-res-strip .planer-deckung{margin-top:0}
+.dash-res{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:9px;font-size:12px;color:var(--grau);align-items:center}
+.dash-res b{font-family:var(--mono);font-weight:600;color:var(--tinte)}
+.dash-res .r-leg{display:inline-flex;align-items:center;gap:4px}
+.dash-res .r-leg i{width:9px;height:9px;border-radius:3px;display:inline-block}
 /* Sektionen, die jetzt in Sheets wohnen, ohne eigenen Glas-Rahmen */
 .sheet .karte{background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;margin:0}
 /* Verlaufs-Reiter */
@@ -560,7 +575,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 <div class="kopf">
   <div>
-    <div class="eyebrow">Energie-Optimierer</div>
+    <div class="eyebrow" id="kopf-eyebrow">Energie-Optimierer</div>
     <h1 id="titel">Heute</h1>
     <div class="unterzeile" id="standort-zeile">Altbaumburgweg, Köln</div>
   </div>
@@ -1564,32 +1579,67 @@ function renderDashboard(arr){
       '<div class="dh-num"><span class="zahl">'+Math.round(kwhTag)+'</span> <small>kWh</small>'+trustChip()+'</div></div>'+
     '<div class="dh-ring-wrap">'+dashRing(ev)+'<div class="dh-ring-lbl">Eigenverbrauch</div></div>';
   const z=$("dash-hero").querySelector(".zahl"); if(z&&kwhTag>0.1)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
-  // --- Geplante Geräte (kompakte Liste) ---
-  const sorted=platzierungen.slice().sort((a,b)=>a.start-b.start);
+  // --- Geräte heute: schon gelaufen + geplant, mit Status; darunter Ressourcen-Sicht ---
+  const akkuAn=cfg.akku_an;
   const kannPlanen = !arr.every(s=>s.eff==null);
+  const erl=erledigtListe(tagKey);
+  // Einheitliche Liste (erledigt + geplant), nach Startzeit sortiert
+  const items=[];
+  platzierungen.forEach(b=>{
+    const selbst=(b._sun||0)+(b._batt||0), g=b.kwh>0?Math.round(selbst/b.kwh*100):0;
+    items.push({icon:b.icon,name:b.name,routine:b.routine,start:b.start,ende:b.start+b.dauer,kwh:b.kwh,g,done:false});
+  });
+  erl.forEach(e=>{
+    const st=(e.s!=null?e.s:99), en=(e.e!=null?e.e:(e.s!=null?e.s+1:null));
+    items.push({icon:e.icon||"•",name:e.name,routine:false,start:st,ende:en,kwh:(e.k!=null?e.k:null),g:null,done:true});
+  });
+  items.sort((a,b)=>a.start-b.start);
   let rows="";
-  if(sorted.length){
-    sorted.forEach(b=>{
-      const selbst=(b._sun||0)+(b._batt||0), g=b.kwh>0?Math.round(selbst/b.kwh*100):0, netz=Math.max(0,100-g);
-      rows+='<div class="dash-row" data-plan>'+
-        '<span class="dash-ic">'+b.icon+'</span>'+
-        '<span class="dash-info"><span class="dash-nm">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
-          '<span class="dash-sub">'+b.start+'–'+(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh</span></span>'+
-        '<span class="dash-pct'+(g>=50?" gut":"")+'"><span class="dash-cov"><i style="width:'+g+'%;background:var(--gruen)"></i><i style="width:'+netz+'%;background:var(--rot)"></i></span>'+g+'%</span>'+
-        '</div>';
+  if(items.length){
+    items.forEach(it=>{
+      const zeit = (it.ende!=null? it.start+"–"+it.ende+" Uhr" : it.start+" Uhr");
+      const kwhStr = it.kwh!=null? " · "+dz(it.kwh.toFixed(1))+" kWh" : "";
+      // Status-Badge
+      let badge="";
+      if(it.done) badge='<span class="dash-badge done">✓ gelaufen</span>';
+      else if(jetztH>=0 && it.start<=jetztH && jetztH<it.ende) badge='<span class="dash-badge run"><i></i>läuft</span>';
+      else if(jetztH>=0 && jetztH>=it.ende) badge='<span class="dash-badge past">vorbei</span>';
+      // Rechts: Deckung (geplant) oder ✓ (erledigt)
+      let right;
+      if(it.done) right='<span class="dash-check">✓</span>';
+      else { const g=it.g||0, netz=Math.max(0,100-g);
+        right='<span class="dash-pct'+(g>=50?" gut":"")+'"><span class="dash-cov"><i style="width:'+g+'%;background:var(--gruen)"></i><i style="width:'+netz+'%;background:var(--rot)"></i></span>'+g+'%</span>'; }
+      rows+='<div class="dash-row"'+(it.done?"":" data-plan")+'>'+
+        '<span class="dash-ic">'+it.icon+'</span>'+
+        '<span class="dash-info"><span class="dash-nm">'+(it.routine?"🔁 ":"")+it.name+'</span>'+
+          '<span class="dash-sub">'+zeit+kwhStr+badge+'</span></span>'+
+        right+'</div>';
     });
+    rows='<div class="dash-rows">'+rows+'</div>';
   } else {
-    const erl=erledigtListe(tagKey);
     rows='<div class="dash-leer">'+
       (!kannPlanen ? 'Noch keine Preisdaten für diesen Tag.'
-        : erl.length ? '✓ Für heute alles erledigt oder nichts weiter geplant.'
         : 'Noch keine Geräte eingeplant.<br>Wähle, was heute laufen soll.')+
       '<br><button class="dash-leer-btn" id="dash-add">＋ Gerät wählen</button></div>';
   }
+  // Ressourcen-Sicht: Deckung je Stunde (inkl. gelaufener Geräte) + Sonne/Netz-Summen
+  let resHtml="";
+  if(items.length){
+    const erlPlatz=erl.filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{const d=Math.max(1,e.e-e.s);return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};});
+    const simTag = simuliere(arr, platzierungen.map(b=>Object.assign({},b)).concat(erlPlatz));
+    let dv="";
+    simTag.per.forEach(p=>{ let inner=""; if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';} dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>'; });
+    resHtml='<div class="dash-res-strip"><div class="planer-deckung">'+dv+'</div>'+
+      '<div class="dash-res">'+
+        '<span class="r-leg"><i style="background:var(--gruen)"></i>☀️ <b>'+simTag.sonneKwh.toFixed(1)+'</b> kWh</span>'+
+        (akkuAn?'<span class="r-leg"><i style="background:var(--netz)"></i>🔋 <b>'+simTag.akkuKwh.toFixed(1)+'</b> kWh</span>':'')+
+        '<span class="r-leg"><i style="background:var(--rot)"></i>🔌 <b>'+simTag.netzKwh.toFixed(1)+'</b> kWh</span>'+
+      '</div></div>';
+  }
   $("dash-plan-card").innerHTML=
-    '<div class="dash-plan-h"><h2>'+(tag==="morgen"?"Morgen":"Heute")+' geplant</h2>'+
+    '<div class="dash-plan-h"><h2>'+(tag==="morgen"?"Morgen":"Heute")+'</h2>'+
       '<button id="dash-geraete-btn">＋ Geräte</button></div>'+
-    '<div class="dash-plan">'+rows+'</div>';
+    '<div class="dash-plan">'+rows+'</div>'+resHtml;
   // --- Verdrahtung: Kurve & Zeilen -> Tagesplan-Sheet; ＋ -> Geräte-Sheet ---
   const oeffnePlan=()=>sheetAuf("sheet-tagesplan");
   const oeffneGeraete=()=>sheetAuf("sheet-geraete");
@@ -1842,6 +1892,7 @@ function aktualisieren(){
     $("sonnen-summe").hidden=true;
     $("routine-banner").hidden=true;
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
+    const eb=$("kopf-eyebrow"); if(eb)eb.textContent="Energie-Optimierer";
     if(tag==="woche"){ $("titel").textContent="Deine Woche"; renderWoche(); }
     else { $("titel").textContent="Verlauf"; renderVerlauf(); }
     return;
@@ -1855,7 +1906,8 @@ function aktualisieren(){
   syncRegler();
   if(typeof ambienteAnwenden==="function")ambienteAnwenden();
   renderChips();sichereVorschlag(arr);renderPlaner(arr);renderVorschlaege(tagStr);
-  $("titel").textContent=(tag==="heute"?"Heute, ":"Morgen, ")+tagStr.split("-").reverse().join(".");
+  $("titel").textContent=(tag==="heute"?"Heute":"Morgen");
+  const eb=$("kopf-eyebrow"); if(eb){ const d=new Date(tagStr+"T12:00:00"); eb.textContent=d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}); }
   $("sonnen-summe").hidden=true;
   renderDashboard(arr);
   routineBanner(tagStr);
