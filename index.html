@@ -73,6 +73,17 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 #ptr svg{width:20px;height:20px;display:block}
 #ptr.spin svg{animation:dreh .8s linear infinite}
 .sheet{will-change:transform}
+/* Undo-Toast (iOS-Stil, dunkle Glas-Pille über der Tab-Leiste) */
+#toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));z-index:12;
+  display:flex;align-items:center;gap:10px;max-width:calc(100% - 28px);
+  background:rgba(38,42,50,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  color:#fff;border-radius:16px;padding:11px 8px 11px 16px;border:.5px solid rgba(255,255,255,.14);
+  box-shadow:0 14px 34px -10px rgba(0,0,0,.55);opacity:0;pointer-events:none;
+  transform:translate(-50%,18px) scale(.97);transition:opacity .24s ease,transform .24s ease}
+#toast.an{opacity:1;pointer-events:auto;transform:translate(-50%,0) scale(1)}
+#toast .toast-txt{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#toast .toast-undo{flex-shrink:0;border:none;background:none;color:#FFC24D;font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;padding:6px 10px;border-radius:10px}
+#toast .toast-undo:active{background:rgba(255,255,255,.1)}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
@@ -333,7 +344,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .v-zeile b{font-family:var(--mono)}
 /* Geräte-Liste unter der Zeitleiste */
 .planer-liste{display:flex;flex-direction:column;gap:7px;margin-top:12px}
-.pl-zeile{display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:12px;padding:9px 10px}
+.pl-swipe{position:relative;border-radius:12px;overflow:hidden}
+.pl-del-bg{position:absolute;inset:0;background:var(--rot);border-radius:12px;display:flex;align-items:center;justify-content:flex-end;padding-right:16px;color:#fff;font-weight:700;font-size:13px}
+.pl-zeile{position:relative;display:flex;align-items:center;gap:8px;background:var(--papier);border-radius:12px;padding:9px 10px;touch-action:pan-y}
 .pl-zeile.fix{box-shadow:inset 3px 0 0 var(--sonne)}
 .pl-ic{font-size:18px;flex-shrink:0}
 .pl-info{display:flex;flex-direction:column;min-width:0;flex:1}
@@ -559,6 +572,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </head>
 <body>
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg></div>
+<div id="toast" role="status" aria-live="polite"><span class="toast-txt"></span><button class="toast-undo">Rückgängig</button></div>
 
 <div class="kopf">
   <div>
@@ -1056,6 +1070,64 @@ function entferneGeraetVomTag(tagKey,name,routine){
     if(!a.includes(name))a.push(name); // heute nicht erneut vorschlagen
   }
   speichern();platzSig="";aktualisieren();
+}
+// ---- Zustand sichern/wiederherstellen (für „Rückgängig") ----
+function zustandSnapshot(){ try{return JSON.stringify({cfg,geraete,meineGeraete,routinen});}catch(e){return null;} }
+function zustandWiederherstellen(snap){
+  if(!snap)return;
+  try{ const s=JSON.parse(snap);
+    for(const k in cfg)delete cfg[k]; Object.assign(cfg,s.cfg);
+    geraete=s.geraete||[]; meineGeraete=s.meineGeraete||[]; routinen=s.routinen||[];
+    speichern();platzSig="";renderChips();aktualisieren();
+  }catch(e){}
+}
+// ---- Undo-Toast (iOS-Stil) ----
+let toastTimer=null;
+function zeigeToast(text,undoFn){
+  const t=$("toast"); if(!t)return;
+  clearTimeout(toastTimer);
+  t.querySelector(".toast-txt").textContent=text;
+  const u=t.querySelector(".toast-undo");
+  u.onclick=()=>{ clearTimeout(toastTimer); t.classList.remove("an"); if(undoFn)undoFn(); };
+  t.classList.add("an");
+  toastTimer=setTimeout(()=>t.classList.remove("an"),4500);
+}
+// Gerät sofort aus dem Tag nehmen – reversibel per „Rückgängig" (statt Nachfrage-Popup).
+function entferneMitUndo(tagKey,b){
+  const snap=zustandSnapshot();
+  entferneGeraetVomTag(tagKey,b.name,b.routine);
+  zeigeToast((b.routine?"🔁 ":"")+b.icon+" "+b.name+" entfernt", ()=>zustandWiederherstellen(snap));
+}
+// Nach links wischen auf einer Tagesplan-Zeile = entfernen (mit Rückgängig).
+function swipeZumEntfernen(zeile,tagKey){
+  let x0=0,y0=0,modus="off",dx=0;
+  zeile.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1 || e.target.closest(".pl-akt,button")){modus="off";return;}
+    x0=e.touches[0].clientX; y0=e.touches[0].clientY; modus="pending"; dx=0; zeile.style.transition="none";
+  },{passive:true});
+  zeile.addEventListener("touchmove",e=>{
+    if(modus==="off")return;
+    const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
+    if(modus==="pending"){
+      if(cx<-8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";}
+      else if(Math.abs(cy)>8 || cx>8){modus="off";return;}
+      else return;
+    }
+    dx=Math.min(0,cx);                                   // nur nach links
+    zeile.style.transform="translateX("+dx+"px)";
+    if(e.cancelable)e.preventDefault();
+  },{passive:false});
+  function ende(){
+    if(modus==="swipe"){
+      const idx=+zeile.dataset.idx, b=platzierungen[idx];
+      zeile.style.transition="transform .2s ease";
+      if(-dx>90 && b){ zeile.style.transform="translateX(-100%)"; setTimeout(()=>entferneMitUndo(tagKey,b),150); }
+      else zeile.style.transform="";
+    }
+    modus="off";
+  }
+  zeile.addEventListener("touchend",ende,{passive:true});
+  zeile.addEventListener("touchcancel",ende,{passive:true});
 }
 // Als "heute schon gelaufen" abgehakte Durchgänge (verhindert das Weiterschieben).
 // Zählbasiert: ein Eintrag = ein erledigter Durchgang (auch bei Geräten mit Anzahl>1).
@@ -1860,28 +1932,26 @@ function renderPlaner(arr){
       const hakBtn=kannAbhaken?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
       const wegBtn='<button class="pl-weg" data-weg="'+idx+'" aria-label="'+b.name+' aus dem Tagesplan entfernen" title="Aus dem Tagesplan entfernen">✕</button>';
       const pinBtn='<button class="pl-pin'+(b._fix?" an":"")+'" data-pin="'+idx+'" aria-label="'+b.name+(b._fix?' Zeit lösen':' Zeit verankern')+'" title="'+(b._fix?'Verankert – tippen zum Lösen':'Zeit verankern – die Vorschläge planen drumherum')+'">📌</button>';
-      li+='<div class="pl-zeile'+(b._fix?" fix":"")+'">'+
-        '<span class="pl-ic">'+b.icon+'</span>'+
-        '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
-          '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
-        '<span class="pl-akt">'+
-          '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
-          '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
-          pinBtn+hakBtn+wegBtn+
-        '</span>'+
-        '</div>';
+      li+='<div class="pl-swipe">'+
+        '<div class="pl-del-bg"><span>🗑 Entfernen</span></div>'+
+        '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
+          '<span class="pl-ic">'+b.icon+'</span>'+
+          '<span class="pl-info"><span class="pl-name">'+(b.routine?"🔁 ":"")+b.name+'</span>'+
+            '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
+          '<span class="pl-akt">'+
+            '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
+            '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
+            pinBtn+hakBtn+wegBtn+
+          '</span>'+
+        '</div></div>';
     });
     $("planer-liste").innerHTML=li;
-    $("planer-liste").querySelectorAll("[data-weg]").forEach(btn=>btn.onclick=async()=>{
+    // Entfernen (Button ODER nach links wischen) – sofort, mit „Rückgängig"-Einblendung
+    $("planer-liste").querySelectorAll("[data-weg]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.weg];if(!b)return;
-      const ja=await frageJaNein(
-        (b.routine?"🔁 ":"")+b.icon+" "+b.name+" entfernen?",
-        b.routine
-          ? "Diese Routine wird nur für diesen Tag aus dem Plan genommen – der Wochenrhythmus bleibt."
-          : "Das Gerät wird aus dem Tagesplan für diesen Tag entfernt.",
-        "Entfernen");
-      if(ja)entferneGeraetVomTag(tagKey,b.name,b.routine);
+      entferneMitUndo(tagKey,b);
     });
+    $("planer-liste").querySelectorAll(".pl-zeile").forEach(z=>swipeZumEntfernen(z,tagKey));
     $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
       const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
