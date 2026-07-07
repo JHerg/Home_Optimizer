@@ -64,6 +64,15 @@ h1{font-size:34px;font-weight:700;letter-spacing:-.033em;margin:2px 0;line-heigh
 .knopf-aktualisieren:active{transform:scale(.92)}
 .knopf-aktualisieren.laedt{animation:dreh .9s linear infinite;pointer-events:none;color:var(--sonne)}
 @keyframes dreh{to{transform:rotate(360deg)}}
+/* Pull-to-Refresh-Anzeige (Glas-Kreis mit Spinner, oben eingeblendet) */
+#ptr{position:fixed;top:0;left:50%;z-index:8;width:38px;height:38px;border-radius:50%;
+  background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:.5px solid var(--glass-rand);box-shadow:var(--schatten),inset 0 1px 0 rgba(255,255,255,.5);
+  display:flex;align-items:center;justify-content:center;color:var(--sonne);opacity:0;pointer-events:none;
+  transform:translate(-50%,-56px)}
+#ptr svg{width:20px;height:20px;display:block}
+#ptr.spin svg{animation:dreh .8s linear infinite}
+.sheet{will-change:transform}
 .trust-chip{margin-left:2px;background:rgba(255,255,255,.55);color:#5E4408;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap}
 .trust-chip.lern{opacity:.9}
 :root[data-theme="dark"] .trust-chip{background:rgba(0,0,0,.22);color:#FFE9B8}
@@ -549,6 +558,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </script>
 </head>
 <body>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 4v5h-5"/></svg></div>
 
 <div class="kopf">
   <div>
@@ -2630,6 +2640,100 @@ document.addEventListener("visibilitychange",()=>{
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
+
+/* ===== Apple-Gesten: (1) Sheets nach unten wegwischen, (2) Pull-to-Refresh ===== */
+(function(){
+  // --- (1) Bottom-Sheet per Wisch nach unten schließen (wie in iOS) ---
+  const NICHT_ZIEHEN='button,a,input,textarea,select,label,.p-blk,.sky-tap,.lane,.track,.wahl,.g-typen,.g-icons,.meine-chip,.chip,.dash-row,.pl-akt,.mini,.switch,.gl-zonen,.gl-z';
+  function sheetSchliessen(sheet){
+    const id=sheet.id;
+    if(id==="sheet-eingabe")return eingabeFertig(null);
+    if(id==="sheet-frage")return frageFertig(false);
+    if(id==="sheet-geraete")return geraeteSheetZu();
+    sheetZu();
+  }
+  function wischbar(sheet){
+    sheet.addEventListener("pointerdown",e=>{
+      if(e.button!=null&&e.button!==0)return;
+      if(sheet.scrollTop>2)return;                       // Inhalt gescrollt -> normal scrollen, nicht schließen
+      if(e.target.closest(NICHT_ZIEHEN))return;          // Bedienelemente/Schieber nicht abfangen
+      const startY=e.clientY,startX=e.clientX; let modus="pending",dy=0,t0=Date.now();
+      const move=ev=>{
+        const d=ev.clientY-startY;
+        if(modus==="pending"){
+          if(d>6){modus="drag";sheet.style.transition="none";}
+          else if(d<-2||Math.abs(ev.clientX-startX)>10){beenden();return;}
+          else return;
+        }
+        dy=Math.max(0,ev.clientY-startY);
+        sheet.style.transform="translateY("+dy+"px)";
+        if(ev.cancelable)ev.preventDefault();
+      };
+      const up=()=>{
+        if(modus==="drag"){
+          const dt=Date.now()-t0, v=dy/Math.max(1,dt);
+          if(dy>120||(v>0.55&&dy>40)){
+            sheet.style.transition="transform .2s ease";sheet.style.transform="translateY(100%)";
+            setTimeout(()=>{sheet.style.transition="";sheet.style.transform="";sheetSchliessen(sheet);},200);
+          }else{
+            sheet.style.transition="transform .22s ease";sheet.style.transform="";
+            setTimeout(()=>{sheet.style.transition="";},240);
+          }
+        }
+        beenden();
+      };
+      function beenden(){window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);}
+      window.addEventListener("pointermove",move,{passive:false});
+      window.addEventListener("pointerup",up);
+      window.addEventListener("pointercancel",up);
+    });
+  }
+  document.querySelectorAll(".sheet").forEach(wischbar);
+
+  // --- (2) Pull-to-Refresh auf der Startseite ---
+  const ptr=document.getElementById("ptr");
+  const MAX=90, AUS=62; let ptrY=0, modus="off", ptrDy=0;
+  const obenUndFrei=()=>!document.querySelector(".sheet.offen") && (window.scrollY||document.documentElement.scrollTop||0)<=0;
+  document.addEventListener("pointerdown",e=>{
+    if(e.pointerType==="mouse")return;                   // nur Touch
+    if(!obenUndFrei())return;
+    ptrY=e.clientY; modus="pending"; ptrDy=0;
+  },{passive:true});
+  document.addEventListener("pointermove",e=>{
+    if(modus==="off")return;
+    const d=e.clientY-ptrY;
+    if(modus==="pending"){
+      if(d>8&&obenUndFrei())modus="pull";
+      else if(d<0){modus="off";return;}
+      else return;
+    }
+    if(modus!=="pull")return;
+    ptrDy=Math.min(MAX,d*0.5);
+    ptr.style.transition="none";
+    ptr.style.transform="translate(-50%,"+(ptrDy-56)+"px) rotate("+(ptrDy/MAX*270).toFixed(0)+"deg)";
+    ptr.style.opacity=Math.min(1,ptrDy/AUS).toFixed(2);
+    if(e.cancelable)e.preventDefault();
+  },{passive:false});
+  function ptrEnde(){
+    if(modus!=="pull"){modus="off";return;}
+    modus="off";
+    ptr.style.transition="transform .25s ease, opacity .25s ease";
+    if(ptrDy>=AUS){
+      ptr.classList.add("spin");
+      ptr.style.transform="translate(-50%,14px)"; ptr.style.opacity="1";
+      starteAktualisierung(true);
+      const fertig=()=>{ptr.classList.remove("spin");ptr.style.transform="translate(-50%,-56px)";ptr.style.opacity="0";};
+      let n=0; const iv=setInterval(()=>{ n++;
+        const laedt=$("btn-aktualisieren").classList.contains("laedt");
+        if((!laedt&&n>3)||n>50){clearInterval(iv);setTimeout(fertig,350);}
+      },100);
+    }else{
+      ptr.style.transform="translate(-50%,-56px)"; ptr.style.opacity="0";
+    }
+  }
+  document.addEventListener("pointerup",ptrEnde,{passive:true});
+  document.addEventListener("pointercancel",ptrEnde,{passive:true});
+})();
 /* ===== Farbmodus (hell/dunkel/automatisch) + Tageszeit-Ambiente ===== */
 function systemDunkel(){return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;}
 // Ambiente: der obere Seitenrand färbt sich nach echter Uhrzeit (und Hell/Dunkel).
