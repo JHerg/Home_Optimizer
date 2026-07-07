@@ -38,8 +38,8 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-html{overflow-x:hidden}
-body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;overflow-x:hidden;
+html{overflow-x:hidden;overscroll-behavior-y:contain}
+body{font-family:var(--sans);color:var(--nacht);line-height:1.45;padding:18px 16px;max-width:760px;margin:0 auto;overflow-x:hidden;overscroll-behavior-y:contain;
   padding-bottom:calc(104px + env(safe-area-inset-bottom));padding-left:calc(16px + env(safe-area-inset-left));padding-right:calc(16px + env(safe-area-inset-right));
   background:
     radial-gradient(130% 60% at 84% -6%, var(--amb-glow) 0%, transparent 52%),
@@ -2641,10 +2641,13 @@ if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 }
 
-/* ===== Apple-Gesten: (1) Sheets nach unten wegwischen, (2) Pull-to-Refresh ===== */
+/* ===== Apple-Gesten: (1) Sheets nach unten wegwischen, (2) Pull-to-Refresh =====
+   Bewusst mit TOUCH-Events (passive:false): nur so stoppt preventDefault auf iOS
+   das native „Gummiband"-Scrollen zuverlässig – Pointer-Events tun das dort nicht. */
 (function(){
-  // --- (1) Bottom-Sheet per Wisch nach unten schließen (wie in iOS) ---
-  const NICHT_ZIEHEN='button,a,input,textarea,select,label,.p-blk,.sky-tap,.lane,.track,.wahl,.g-typen,.g-icons,.meine-chip,.chip,.dash-row,.pl-akt,.mini,.switch,.gl-zonen,.gl-z';
+  const NICHT_ZIEHEN='button,a,input,textarea,select,label,.p-blk,.sky-tap,.lane,.track,.wahl,.g-typen,.g-icons,.meine-chip,.chip,.dash-row,.pl-akt,.mini,.switch,.gl-zonen,.gl-z,input[type=range]';
+
+  // --- (1) Bottom-Sheet per Wisch nach unten schließen ---
   function sheetSchliessen(sheet){
     const id=sheet.id;
     if(id==="sheet-eingabe")return eingabeFertig(null);
@@ -2653,86 +2656,86 @@ if("serviceWorker" in navigator){
     sheetZu();
   }
   function wischbar(sheet){
-    sheet.addEventListener("pointerdown",e=>{
-      if(e.button!=null&&e.button!==0)return;
-      if(sheet.scrollTop>2)return;                       // Inhalt gescrollt -> normal scrollen, nicht schließen
-      if(e.target.closest(NICHT_ZIEHEN))return;          // Bedienelemente/Schieber nicht abfangen
-      const startY=e.clientY,startX=e.clientX; let modus="pending",dy=0,t0=Date.now();
-      const move=ev=>{
-        const d=ev.clientY-startY;
-        if(modus==="pending"){
-          if(d>6){modus="drag";sheet.style.transition="none";}
-          else if(d<-2||Math.abs(ev.clientX-startX)>10){beenden();return;}
-          else return;
+    let sy=0,sx=0,modus="off",dy=0,t0=0;
+    sheet.addEventListener("touchstart",e=>{
+      if(e.touches.length!==1){modus="off";return;}
+      if(sheet.scrollTop>2){modus="off";return;}          // Inhalt gescrollt -> normal scrollen
+      if(e.target.closest(NICHT_ZIEHEN)){modus="off";return;} // Bedienelemente nicht abfangen
+      sy=e.touches[0].clientY; sx=e.touches[0].clientX; modus="pending"; dy=0; t0=Date.now();
+    },{passive:true});
+    sheet.addEventListener("touchmove",e=>{
+      if(modus==="off")return;
+      const d=e.touches[0].clientY-sy, dx=e.touches[0].clientX-sx;
+      if(modus==="pending"){
+        if(d>6){modus="drag";sheet.style.transition="none";}
+        else if(d<-2||Math.abs(dx)>12){modus="off";return;}
+        else return;
+      }
+      dy=Math.max(0,d);
+      sheet.style.transform="translateY("+dy+"px)";
+      if(e.cancelable)e.preventDefault();                  // stoppt das Mitscrollen des Sheets
+    },{passive:false});
+    function ende(){
+      if(modus==="drag"){
+        const dt=Date.now()-t0, v=dy/Math.max(1,dt);
+        if(dy>110||(v>0.5&&dy>40)){
+          sheet.style.transition="transform .2s ease";sheet.style.transform="translateY(100%)";
+          setTimeout(()=>{sheet.style.transition="";sheet.style.transform="";sheetSchliessen(sheet);},200);
+        }else{
+          sheet.style.transition="transform .22s ease";sheet.style.transform="";
+          setTimeout(()=>{sheet.style.transition="";},240);
         }
-        dy=Math.max(0,ev.clientY-startY);
-        sheet.style.transform="translateY("+dy+"px)";
-        if(ev.cancelable)ev.preventDefault();
-      };
-      const up=()=>{
-        if(modus==="drag"){
-          const dt=Date.now()-t0, v=dy/Math.max(1,dt);
-          if(dy>120||(v>0.55&&dy>40)){
-            sheet.style.transition="transform .2s ease";sheet.style.transform="translateY(100%)";
-            setTimeout(()=>{sheet.style.transition="";sheet.style.transform="";sheetSchliessen(sheet);},200);
-          }else{
-            sheet.style.transition="transform .22s ease";sheet.style.transform="";
-            setTimeout(()=>{sheet.style.transition="";},240);
-          }
-        }
-        beenden();
-      };
-      function beenden(){window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);}
-      window.addEventListener("pointermove",move,{passive:false});
-      window.addEventListener("pointerup",up);
-      window.addEventListener("pointercancel",up);
-    });
+      }
+      modus="off";
+    }
+    sheet.addEventListener("touchend",ende,{passive:true});
+    sheet.addEventListener("touchcancel",ende,{passive:true});
   }
   document.querySelectorAll(".sheet").forEach(wischbar);
 
   // --- (2) Pull-to-Refresh auf der Startseite ---
   const ptr=document.getElementById("ptr");
-  const MAX=90, AUS=62; let ptrY=0, modus="off", ptrDy=0;
-  const obenUndFrei=()=>!document.querySelector(".sheet.offen") && (window.scrollY||document.documentElement.scrollTop||0)<=0;
-  document.addEventListener("pointerdown",e=>{
-    if(e.pointerType==="mouse")return;                   // nur Touch
-    if(!obenUndFrei())return;
-    ptrY=e.clientY; modus="pending"; ptrDy=0;
+  const MAX=90, AUS=62; let py=0, modus="off", pdy=0;
+  const atTop=()=>(window.scrollY||document.documentElement.scrollTop||document.body.scrollTop||0)<=0;
+  const frei=()=>!document.querySelector(".sheet.offen") && atTop();
+  document.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1 || !frei()){modus="off";return;}
+    py=e.touches[0].clientY; modus="pending"; pdy=0;
   },{passive:true});
-  document.addEventListener("pointermove",e=>{
+  document.addEventListener("touchmove",e=>{
     if(modus==="off")return;
-    const d=e.clientY-ptrY;
+    const d=e.touches[0].clientY-py;
     if(modus==="pending"){
-      if(d>8&&obenUndFrei())modus="pull";
-      else if(d<0){modus="off";return;}
+      if(d>8 && frei()) modus="pull";
+      else if(d<2){modus="off";return;}
       else return;
     }
     if(modus!=="pull")return;
-    ptrDy=Math.min(MAX,d*0.5);
+    pdy=Math.min(MAX, Math.max(0,d)*0.5);
     ptr.style.transition="none";
-    ptr.style.transform="translate(-50%,"+(ptrDy-56)+"px) rotate("+(ptrDy/MAX*270).toFixed(0)+"deg)";
-    ptr.style.opacity=Math.min(1,ptrDy/AUS).toFixed(2);
-    if(e.cancelable)e.preventDefault();
+    ptr.style.transform="translate(-50%,"+(pdy-56).toFixed(0)+"px) rotate("+(pdy/MAX*270).toFixed(0)+"deg)";
+    ptr.style.opacity=Math.min(1,pdy/AUS).toFixed(2);
+    if(e.cancelable)e.preventDefault();                    // übernimmt die Geste (kein Gummiband)
   },{passive:false});
   function ptrEnde(){
     if(modus!=="pull"){modus="off";return;}
     modus="off";
     ptr.style.transition="transform .25s ease, opacity .25s ease";
-    if(ptrDy>=AUS){
+    if(pdy>=AUS){
       ptr.classList.add("spin");
       ptr.style.transform="translate(-50%,14px)"; ptr.style.opacity="1";
       starteAktualisierung(true);
       const fertig=()=>{ptr.classList.remove("spin");ptr.style.transform="translate(-50%,-56px)";ptr.style.opacity="0";};
       let n=0; const iv=setInterval(()=>{ n++;
         const laedt=$("btn-aktualisieren").classList.contains("laedt");
-        if((!laedt&&n>3)||n>50){clearInterval(iv);setTimeout(fertig,350);}
+        if((!laedt&&n>4)||n>60){clearInterval(iv);setTimeout(fertig,400);}
       },100);
     }else{
       ptr.style.transform="translate(-50%,-56px)"; ptr.style.opacity="0";
     }
   }
-  document.addEventListener("pointerup",ptrEnde,{passive:true});
-  document.addEventListener("pointercancel",ptrEnde,{passive:true});
+  document.addEventListener("touchend",ptrEnde,{passive:true});
+  document.addEventListener("touchcancel",ptrEnde,{passive:true});
 })();
 /* ===== Farbmodus (hell/dunkel/automatisch) + Tageszeit-Ambiente ===== */
 function systemDunkel(){return window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;}
