@@ -454,6 +454,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .rh-cell.next span{color:#B4780A;font-weight:800}
 .rh-note{font-size:11.5px;color:var(--grau);margin-top:9px;line-height:1.4}
 .rh-note b{color:#B4780A}
+.rh-legende{display:flex;flex-wrap:wrap;gap:7px 14px;margin:2px 2px 14px}
+.rh-legende span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--grau)}
+.rh-legende i{width:13px;height:13px;border-radius:50%;box-sizing:border-box;flex-shrink:0;background:var(--linie)}
+.rh-legende i.run{background:var(--gruen)}
+.rh-legende i.plan{background:transparent;border:2.5px solid var(--gruen)}
+.rh-legende i.next{background:transparent;border:2.5px solid var(--sonne)}
 .rh-uebernehmen{border:1.5px dashed #C4D0DA;background:transparent;color:var(--tinte);border-radius:11px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:9px;transition:border-color var(--schnell),color var(--schnell)}
 .rh-uebernehmen:hover{border-color:var(--sonne);color:var(--nacht)}
 .rh-uebernehmen:active{transform:scale(.98)}
@@ -682,11 +688,13 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <section class="karte" id="karte-woche" hidden>
   <div class="karten-kopf" style="margin-top:2px"><h2 style="font-size:15px">🔁 Feste Routinen</h2></div>
   <div class="untertitel">Was du selbst festgelegt hast – läuft im Wochenrhythmus und wird automatisch in den Tagesplan gelegt.</div>
+  <div class="rh-legende"><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster Lauf</span></div>
   <div id="routine-liste"></div>
   <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
 
   <div class="karten-kopf" style="margin-top:22px"><h2 style="font-size:15px">🤖 Erkannte Rhythmen</h2></div>
-  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat. Punkte (heute in der Mitte): <b>voll grün</b> = gelaufen, <b>grüner Ring</b> = Rhythmus-Tag, <b>oranger Ring</b> = nächster fälliger Lauf.</div>
+  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat – heute steht in der Mitte der Zeitachse.</div>
+  <div class="rh-legende"><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster fälliger Lauf</span></div>
   <div id="rhythmus-liste"></div>
 </section>
 
@@ -3160,7 +3168,10 @@ seedPresets();
 (function(){const hk=heuteStr(),mk=morgenStr();
   if(cfg.erledigt&&typeof cfg.erledigt==="object")Object.keys(cfg.erledigt).forEach(k=>{if(k!==hk)delete cfg.erledigt[k];});
   if(cfg.plaene&&typeof cfg.plaene==="object")Object.keys(cfg.plaene).forEach(k=>{if(k!==hk&&k!==mk)delete cfg.plaene[k];});
-  ["uebernommen","abgelehnt","tagAnzahl","routineSkip"].forEach(kk=>{ if(cfg[kk]&&typeof cfg[kk]==="object")Object.keys(cfg[kk]).forEach(d=>{if(d!==hk&&d!==mk)delete cfg[kk][d];}); });
+  ["uebernommen","tagAnzahl","routineSkip"].forEach(kk=>{ if(cfg[kk]&&typeof cfg[kk]==="object")Object.keys(cfg[kk]).forEach(d=>{if(d!==hk&&d!==mk)delete cfg[kk][d];}); });
+  // „Nicht heute" gilt ausschließlich für den heutigen Tag – niemals für morgen.
+  // (Verhindert, dass ein abgelehnter Vorschlag den morgigen Tag dauerhaft blockiert.)
+  if(cfg.abgelehnt&&typeof cfg.abgelehnt==="object")Object.keys(cfg.abgelehnt).forEach(d=>{if(d!==hk)delete cfg.abgelehnt[d];});
 })();
 $("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
 renderChips();
