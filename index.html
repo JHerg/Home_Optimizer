@@ -188,17 +188,25 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .abschnitt .frage{font-size:14.5px;font-weight:600;margin-bottom:3px}
 .abschnitt .hilfe{font-size:12px;color:var(--grau);margin-bottom:10px;line-height:1.5}
 /* Hilfe / "So funktioniert's" */
-.hilfe-abschnitt{margin-bottom:20px}
-.hilfe-abschnitt h4{font-size:14px;font-weight:700;color:var(--nacht);margin-bottom:9px}
-.hilfe-text{font-size:13px;color:var(--tinte);line-height:1.55}
-.hilfe-text b,.hilfe-schritte b,.hilfe-glossar b{color:var(--nacht);font-weight:600}
-.hilfe-schritte{list-style:none;display:flex;flex-direction:column;gap:11px}
-.hilfe-schritte li{display:flex;gap:11px;font-size:13px;color:var(--tinte);line-height:1.5}
-.hilfe-schritte .num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--sonne-hell);color:#7A5A0C;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
-:root[data-theme="dark"] .hilfe-schritte .num{color:#FFCF6B}
-.hilfe-glossar{display:flex;flex-direction:column;gap:11px}
-.hilfe-glossar div{font-size:13px;color:var(--tinte);line-height:1.5}
-.hilfe-fertig{width:100%;padding:14px;border:none;border-radius:14px;background:var(--knopf);color:var(--knopf-fg);font-size:14px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform var(--schnell)}
+/* Hilfe: Apple-Onboarding-Stil – Icon-Kacheln + knappe Zeilen */
+.hilfe-features{margin:16px 0 4px}
+.hilfe-feature{display:flex;gap:13px;align-items:flex-start;padding:13px 0}
+.hilfe-feature+.hilfe-feature{border-top:.5px solid var(--linie)}
+.hf-ic{flex-shrink:0;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;line-height:1}
+.hf-ic.sonne{background:var(--sonne-hell)}
+.hf-ic.gruen{background:var(--gruen-hell)}
+.hf-ic.blau{background:rgba(10,132,255,.14)}
+.hf-ic.grau{background:rgba(20,31,44,.06)}
+:root[data-theme="dark"] .hf-ic.grau{background:rgba(255,255,255,.08)}
+.hf-body{min-width:0}
+.hf-titel{font-size:14.5px;font-weight:700;color:var(--nacht);margin-bottom:2px;letter-spacing:-.01em}
+.hf-sub{font-size:12.5px;color:var(--tinte);line-height:1.45}
+.hf-sub b{color:var(--nacht);font-weight:600}
+.hilfe-tipps{background:var(--papier);border-radius:14px;padding:2px 14px;margin:14px 0 18px}
+.hilfe-tipps div{font-size:12.5px;color:var(--tinte);line-height:1.5;padding:11px 0}
+.hilfe-tipps div+div{border-top:.5px solid var(--linie)}
+.hilfe-tipps b{color:var(--nacht);font-weight:600}
+.hilfe-fertig{width:100%;padding:15px;border:none;border-radius:14px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform var(--schnell)}
 .hilfe-fertig:active{transform:scale(.98)}
 .adresse-zeile{display:flex;gap:8px}
 .adresse-zeile input{flex:1;padding:13px;border:1.5px solid var(--linie);border-radius:13px;font-size:16px;font-family:var(--sans);min-width:0;transition:border-color var(--schnell),box-shadow var(--schnell)}
@@ -761,62 +769,37 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="sheet" id="sheet-hilfe" role="dialog" aria-label="So funktioniert's">
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>So funktioniert's ☀️</h3>
-  <div class="sub">In einer Minute erklärt, was das Tool für dich macht.</div>
+  <div class="sub">Mehr Eigenverbrauch, weniger Netzbezug – in Kürze.</div>
 
-  <div class="hilfe-abschnitt">
-    <h4>🎯 Die Idee</h4>
-    <div class="hilfe-text">Dein Dach produziert tagsüber Sonnenstrom. Am meisten sparst du, wenn du diesen Strom <b>selbst verbrauchst</b>, statt ihn günstig einzuspeisen. Das Tool sagt dir, <b>wann du welche Geräte laufen lassen solltest</b>, damit sie möglichst aus deiner eigenen Sonne laufen – für maximalen Eigenverbrauch und minimalen Netzbezug.</div>
-  </div>
-
-  <div class="hilfe-abschnitt">
-    <h4>⚙️ So arbeitet es</h4>
-    <ul class="hilfe-schritte">
-      <li><span class="num">1</span><span>Es holt die <b>Sonnenprognose</b> für dein Dach und die aktuellen <b>Strompreise</b>.</span></li>
-      <li><span class="num">2</span><span>Es rechnet die <b>freie Sonne</b> aus: Produktion <b>minus deiner Grundlast</b> (Kühlschrank, Router & Co. – das läuft ohnehin). Nur dieser Überschuss ist „gratis" für deine Geräte.</span></li>
-      <li><span class="num">3</span><span>Du wählst, <b>was laufen soll</b> – das Tool legt die Geräte automatisch in die <b>sonnigsten und günstigsten Stunden</b>.</span></li>
-      <li><span class="num">4</span><span>Es merkt sich, was tatsächlich lief, <b>lernt deine Rhythmen</b> und schlägt Fälliges von selbst vor.</span></li>
-    </ul>
-  </div>
-
-  <div class="hilfe-abschnitt">
-    <h4>📖 Die wichtigsten Begriffe</h4>
-    <div class="hilfe-glossar">
-      <div><b>Sonnenertrag heute</b> – die gesamte Tagesproduktion deines Dachs (brutto).</div>
-      <div><b>Freie Sonne</b> – der Überschuss über deiner Grundlast; das, was du auf Geräte verschieben kannst.</div>
-      <div><b>Sonnen-Budget</b> – wie viel Energie deine geplanten Geräte brauchen im Vergleich zur freien Sonne des Tages.</div>
-      <div><b>Eigenverbrauch</b> – der Anteil deiner Geräte, der aus Sonne (und Speicher) läuft statt aus dem Netz.</div>
-      <div><b>Grundlast</b> – der Dauerverbrauch im Haus, der immer mitläuft.</div>
+  <div class="hilfe-features">
+    <div class="hilfe-feature">
+      <div class="hf-ic sonne">☀️</div>
+      <div class="hf-body"><div class="hf-titel">Freie Sonne finden</div>
+        <div class="hf-sub">Die App holt Sonnenprognose und Strompreise und rechnet aus, wann Strom vom eigenen Dach übrig ist – deine <b>freie Sonne</b>.</div></div>
+    </div>
+    <div class="hilfe-feature">
+      <div class="hf-ic gruen">🔌</div>
+      <div class="hf-body"><div class="hf-titel">Geräte clever einplanen</div>
+        <div class="hf-sub">Du wählst, was laufen soll – die App legt es automatisch in die <b>sonnigsten und günstigsten Stunden</b>.</div></div>
+    </div>
+    <div class="hilfe-feature">
+      <div class="hf-ic blau">🔁</div>
+      <div class="hf-body"><div class="hf-titel">Deine Rhythmen lernen</div>
+        <div class="hf-sub">Sie merkt sich, was wirklich läuft, erkennt Muster (z. B. Spülmaschine täglich) und <b>schlägt Fälliges von selbst vor</b>.</div></div>
+    </div>
+    <div class="hilfe-feature">
+      <div class="hf-ic grau">🧭</div>
+      <div class="hf-body"><div class="hf-titel">Du behältst die Kontrolle</div>
+        <div class="hf-sub">Die App <b>berät nur</b> – starten musst du (oder dein Energiemanager). Alles bleibt <b>lokal</b>, kein Konto, keine Cloud.</div></div>
     </div>
   </div>
 
-  <div class="hilfe-abschnitt">
-    <h4>📱 So bedienst du die Startseite</h4>
-    <div class="hilfe-glossar">
-      <div>Die <b>Startseite</b> zeigt alles Wichtige auf einen Blick: Sonnenkurve, Tagesertrag, dein Eigenverbrauch und die geplanten Geräte – ohne Scrollen.</div>
-      <div>Tippe auf die <b>Sonnenkurve</b> oder ein <b>geplantes Gerät</b>, um den <b>Tagesplan</b> zu öffnen – dort ziehst du Geräte auf die Zeitleiste und siehst die Deckung je Stunde. In der Liste: <b>nach links wischen</b> nimmt ein Gerät aus dem Tag (mit „Rückgängig").</div>
-      <div>Braucht ein Gerät eine <b>feste Zeit</b> (z. B. Backofen 11–12 Uhr)? <b>Nach rechts wischen</b> setzt ein 📌 – dann bleibt es dort und die App plant die anderen Geräte drumherum. „Neuer Vorschlag" respektiert verankerte Zeiten.</div>
-      <div>Über <b>＋ Geräte</b> wählst du, was heute laufen soll, und legst neue Geräte an.</div>
-    </div>
+  <div class="hilfe-tipps">
+    <div>👆 <b>Wischen im Tagesplan:</b> nach links = Gerät aus dem Tag, nach rechts = 📌 Zeit festhalten.</div>
+    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Verlauf</b> (Protokoll).</div>
   </div>
 
-  <div class="hilfe-abschnitt">
-    <h4>🗂️ Die Reiter</h4>
-    <div class="hilfe-glossar">
-      <div><b>Heute / Morgen</b> – dein Tagesplan mit Sonnenkurve und Geräten.</div>
-      <div><b>Woche</b> – wiederkehrende Routinen der nächsten 7 Tage.</div>
-      <div><b>Verlauf</b> – was schon gelaufen ist und was die App über deine Rhythmen gelernt hat.</div>
-    </div>
-  </div>
-
-  <div class="hilfe-abschnitt">
-    <h4>✋ Gut zu wissen</h4>
-    <div class="hilfe-glossar">
-      <div>Die App <b>steuert nichts selbst</b> – sie berät. Starten musst du (oder dein Energiemanager) die Geräte.</div>
-      <div>Alles bleibt <b>lokal auf deinem Gerät</b> – keine Cloud, kein Konto.</div>
-    </div>
-  </div>
-
-  <button class="hilfe-fertig" data-zu>Verstanden – los geht's</button>
+  <button class="hilfe-fertig" data-zu>Los geht's</button>
 </div>
 
 <div class="sheet" id="sheet-einrichten" role="dialog" aria-label="Einrichtung">
