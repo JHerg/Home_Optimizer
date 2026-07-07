@@ -2247,10 +2247,13 @@ function wechsleZuSheet(id){document.querySelectorAll(".sheet").forEach(s=>s.cla
 // „＋ Gerät hinzufügen" im Tagesplan öffnet die Geräteauswahl – und kehrt danach in den Tagesplan zurück.
 if($("btn-plan-geraet"))$("btn-plan-geraet").onclick=()=>{ausTagesplan=true;wechsleZuSheet("sheet-geraete");};
 // Nach dem Hinzufügen: zurück in den Tagesplan (falls von dort gekommen), sonst schließen.
+// Nach dem Hinzufügen eines Geräts landet man IMMER im Tagesplan (= „mit der Planung anfangen"),
+// egal ob von der Startseite oder aus dem Tagesplan gestartet. Verlassen entscheidet man selbst per ✕.
 function hinzufuegenFertig(){
   speichern();renderChips();aktualisieren();
-  if(ausTagesplan){ausTagesplan=false;wechsleZuSheet("sheet-tagesplan");}
-  else sheetZu();
+  ausTagesplan=false;
+  wechsleZuSheet("sheet-tagesplan");
+  vielleichtWischHint(); // beim ersten Mal die Wisch-Einführung zeigen
 }
 
 function sheetZu(){
