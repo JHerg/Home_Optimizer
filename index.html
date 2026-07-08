@@ -362,6 +362,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .regler input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--knopf);box-shadow:0 2px 6px rgba(20,31,44,.4);border:3px solid var(--karte);cursor:pointer}
 .regler input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--knopf);border:3px solid var(--karte);cursor:pointer}
 .v-tipp{font-size:12.5px;color:var(--tinte);background:var(--sonne-hell);border-radius:11px;padding:10px 12px;margin-bottom:11px;line-height:1.45}
+.v-info{font-size:12px;color:var(--grau);background:var(--papier);border-radius:11px;padding:10px 12px;margin-bottom:11px;line-height:1.45}
 /* Umschalter (Switch) */
 .switch-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:var(--nacht);cursor:pointer}
 .switch{position:relative;flex-shrink:0;width:46px;height:28px}
@@ -2227,10 +2228,13 @@ function renderPlaner(arr){
     // Verdikt & Kennzahlen zählen den GANZEN Tag – auch bereits gelaufene Geräte (simTag),
     // damit „komplett aus Sonnenstrom" nicht behauptet wird, wenn früher schon Netzstrom lief.
     const ok=simTag.netzKwh<0.05;
-    // Tipp: günstigste freie Stunde (freier Sonnenüberschuss gratis, sonst günstigste Netzstunde)
+    const planNetz=sim.netzKwh; // Netzbezug NUR der noch geplanten (verschiebbaren) Geräte
     let tip="";
-    if(!ok && platzierungen.length){
-      const minVon=Math.min(...platzierungen.map(b=>b.von)), maxBis=Math.max(...platzierungen.map(b=>b.bis));
+    if(!ok && planNetz>=0.05 && platzierungen.length){
+      // Planbare Geräte ziehen Netz -> in eine freie/günstige Stunde IN DER ZUKUNFT verschieben
+      // (vergangene Stunden sind nicht mehr änderbar, daher erst ab jetzt suchen).
+      const abH=(tag==="heute")?Math.max(0,jetztH):0;
+      const minVon=Math.max(abH,Math.min(...platzierungen.map(b=>b.von))), maxBis=Math.max(...platzierungen.map(b=>b.bis));
       let best=null;
       simTag.per.forEach(p=>{
         if(p.h<minVon||p.h>=maxBis)return;
@@ -2239,6 +2243,10 @@ function renderPlaner(arr){
       });
       if(best&&best.frei>0.1) tip='<div class="v-tipp">💡 Tipp: Um '+best.h+'–'+(best.h+1)+' Uhr ist noch Sonnenüberschuss frei – ein Gerät dorthin ziehen kostet nichts.</div>';
       else if(dyn&&best&&best.preis!=null) tip='<div class="v-tipp">💡 Tipp: Günstigste Netzstunde ist '+best.h+'–'+(best.h+1)+' Uhr (~'+dz(best.preis.toFixed(1))+' ct/kWh)'+(akkuAn?' – dorthin ziehen, wenn Speicher leer &amp; keine Sonne.':' – dorthin ziehen, wenn keine Sonne da ist.')+'</div>';
+    } else if(!ok){
+      // Netz stammt aus einem bereits gelaufenen (oder fest verankerten) Gerät – bewusste Wahl,
+      // nicht mehr verschiebbar. Kein „Optimierungs"-Tipp für die Vergangenheit.
+      tip='<div class="v-info">ℹ️ Der Netzanteil stammt aus einem bereits gelaufenen Gerät – so von dir gewählt und jetzt nicht mehr verschiebbar.</div>';
     }
     const haupt = ok
       ? (akkuAn?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"✅ Deine Geräte laufen komplett aus Sonnenstrom")
@@ -3299,7 +3307,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v30"; }
+{ const av=$("app-version"); if(av)av.textContent="v31"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
