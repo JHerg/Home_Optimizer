@@ -395,6 +395,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .v-haupt.warn{background:var(--gelb-hell);color:#9A6A00}
 .v-zeile{display:flex;justify-content:space-between;font-size:13px;padding:3px 2px;color:var(--tinte)}
 .v-zeile b{font-family:var(--mono)}
+.v-inkl{font-size:11px;color:var(--grau);margin-top:7px;line-height:1.4}
 /* Geräte-Liste unter der Zeitleiste */
 .planer-liste{display:flex;flex-direction:column;gap:7px;margin-top:12px}
 .pl-swipe{position:relative;border-radius:12px;overflow:hidden}
@@ -1703,6 +1704,20 @@ function simuliere(arr,bloecke){
   }
   return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt,hausNetzKwh};
 }
+// Bereits gelaufene Geräte des Tages als Pseudo-Blöcke (mit ihrem gespeicherten Zeitfenster).
+function erledigtBloecke(tagKey){
+  return erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
+    const d=Math.max(1,e.e-e.s);
+    return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
+  });
+}
+// Simulation des GANZEN Tages inkl. bereits gelaufener Geräte – für ehrliche Eigenverbrauch-/
+// Sonne-/Netz-Werte (derselbe Datensatz, den auch der Deckungs-Streifen nutzt). Null = nichts da.
+function simGesamt(arr,tagKey){
+  const erl=erledigtBloecke(tagKey);
+  const bl = erl.length ? platzierungen.map(b=>Object.assign({},b)).concat(erl) : platzierungen;
+  return bl.length ? simuliere(arr,bl) : null;
+}
 
 /* ---------- Darstellung ---------- */
 function renderChips(){
@@ -1880,7 +1895,8 @@ function renderDashboard(arr){
     '<span class="dc-hint">Tagesplan öffnen ›</span></button>';
   $("dash-curve-wrap").innerHTML=curveHtml;
   // --- Hero: großer Tagesertrag + Eigenverbrauch-Ring ---
-  const sm = platzierungen.length ? simuliere(arr,platzierungen) : null;
+  if(platzierungen.length) simuliere(arr,platzierungen); // mutiert Blöcke für die Geräte-Deckung unten
+  const sm = simGesamt(arr,tagKey);                      // Eigenverbrauch = ganzer Tag inkl. gelaufener Geräte
   let ev=null;
   if(sm){ const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; }
   $("dash-hero").innerHTML=
@@ -2039,7 +2055,8 @@ function renderPlaner(arr){
     '<circle class="hs-ring-fg" cx="18" cy="18" r="15.915" stroke-dasharray="'+Math.max(0,Math.min(100,pct))+' 100"/></svg>'+
     '<span class="hs-ring-ic">'+ic+'</span></span><span class="hs-tx"><b>'+wert+'</b><span>'+label+'</span></span></div>';
   let k3;
-  if(hatBloecke){ const sm=simuliere(arr,platzierungen); const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; const ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; k3=kachelRing(ev,'🔋',ev+'%','Eigenverbrauch'); }
+  const smTagK=simGesamt(arr,tagKey); // Eigenverbrauch des ganzen Tages (inkl. gelaufener Geräte)
+  if(smTagK){ const last=smTagK.sonneKwh+smTagK.akkuKwh+smTagK.netzKwh; const ev=last>0.01?Math.round((smTagK.sonneKwh+smTagK.akkuKwh)/last*100):0; k3=kachelRing(ev,'🔋',ev+'%','Eigenverbrauch'); }
   else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
   else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
   const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
@@ -2206,13 +2223,15 @@ function renderPlaner(arr){
       dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>';
     });
     $("planer-deckung").innerHTML=dv;
-    const ok=sim.netzKwh<0.05;
+    // Verdikt & Kennzahlen zählen den GANZEN Tag – auch bereits gelaufene Geräte (simTag),
+    // damit „komplett aus Sonnenstrom" nicht behauptet wird, wenn früher schon Netzstrom lief.
+    const ok=simTag.netzKwh<0.05;
     // Tipp: günstigste freie Stunde (freier Sonnenüberschuss gratis, sonst günstigste Netzstunde)
     let tip="";
-    if(!ok){
+    if(!ok && platzierungen.length){
       const minVon=Math.min(...platzierungen.map(b=>b.von)), maxBis=Math.max(...platzierungen.map(b=>b.bis));
       let best=null;
-      sim.per.forEach(p=>{
+      simTag.per.forEach(p=>{
         if(p.h<minVon||p.h>=maxBis)return;
         const marg=p.frei>0.1?-1000:(p.preis!=null?p.preis:9999);
         if(best==null||marg<best.marg)best={h:p.h,marg,preis:p.preis,frei:p.frei};
@@ -2222,13 +2241,14 @@ function renderPlaner(arr){
     }
     const haupt = ok
       ? (akkuAn?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"✅ Deine Geräte laufen komplett aus Sonnenstrom")
-      : "⚠️ "+sim.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(sim.netzCt/100)+")";
+      : "⚠️ "+simTag.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(simTag.netzCt/100)+")";
     $("planer-verdikt").innerHTML=
       '<div class="v-haupt '+(ok?"gut":"warn")+'">'+haupt+'</div>'+tip+
-      '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+sim.sonneKwh.toFixed(1)+' kWh</b></div>'+
-      (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+sim.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
-      '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+sim.netzKwh.toFixed(1)+' kWh</b></div>'+
-      (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+sim.akkuStart.toFixed(1)+' → '+sim.akkuEnde.toFixed(1)+' kWh</b></div>':'');
+      '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+simTag.sonneKwh.toFixed(1)+' kWh</b></div>'+
+      (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+simTag.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
+      '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+simTag.netzKwh.toFixed(1)+' kWh</b></div>'+
+      (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+simTag.akkuStart.toFixed(1)+' → '+simTag.akkuEnde.toFixed(1)+' kWh</b></div>':'')+
+      (erlPlatz.length?'<div class="v-inkl">Werte inkl. der heute schon gelaufenen Geräte.</div>':'');
   }
   updateSim();
 }
