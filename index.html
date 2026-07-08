@@ -319,16 +319,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .hero-detail b{color:var(--tinte)}
 .hero-detail .hd-sonne{color:var(--gruen);font-weight:600}
 .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px}
-.hs-kachel{display:flex;align-items:center;gap:6px;background:var(--papier);border-radius:14px;padding:10px 8px;overflow:hidden}
-.hs-ic{width:27px;height:27px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(16,35,58,.12);display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;flex-shrink:0}
-.hs-ring{position:relative;width:27px;height:27px;flex-shrink:0}
-.hs-ring svg{width:27px;height:27px;transform:rotate(-90deg)}
+.hs-kachel{display:flex;align-items:center;gap:5px;background:var(--papier);border-radius:14px;padding:10px 6px;overflow:hidden}
+.hs-ic{width:24px;height:24px;border-radius:50%;background:var(--karte);box-shadow:0 1px 3px rgba(16,35,58,.12);display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex-shrink:0}
+.hs-ring{position:relative;width:24px;height:24px;flex-shrink:0}
+.hs-ring svg{width:24px;height:24px;transform:rotate(-90deg)}
 .hs-ring-bg{fill:none;stroke:var(--linie);stroke-width:3.2}
 .hs-ring-fg{fill:none;stroke:var(--gruen);stroke-width:3.2;stroke-linecap:round;transition:stroke-dasharray var(--weich)}
-.hs-ring-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.hs-ring-ic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12.5px;line-height:1}
 .hs-tx{display:flex;flex-direction:column;min-width:0}
-.hs-tx b{font-size:13.5px;font-weight:700;color:var(--nacht);letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hs-tx span{font-size:9.5px;color:var(--grau);line-height:1.2;overflow:hidden}
+.hs-tx b{font-size:12.5px;font-weight:700;color:var(--nacht);letter-spacing:-.02em;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-tx span{font-size:9px;color:var(--grau);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p-blk{position:absolute;top:0;height:34px;border-radius:11px;padding:0 8px;display:flex;align-items:center;gap:6px;
   background:var(--karte);border:1px solid var(--linie);box-shadow:0 4px 12px -6px rgba(20,31,44,.4);
   cursor:grab;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
@@ -683,7 +683,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div>
     <div class="eyebrow" id="kopf-eyebrow">Energie-Optimierer</div>
     <h1 id="titel">Heute</h1>
-    <div class="unterzeile" id="standort-zeile">Altbaumburgweg, Köln</div>
+    <div class="unterzeile" id="standort-zeile">📍 Adresse festlegen</div>
   </div>
   <div class="kopf-aktionen">
     <button class="knopf-aktualisieren" id="btn-thema" aria-label="Farbmodus wechseln" title="Farbmodus">🌗</button>
@@ -722,6 +722,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="qi-titel">⚖️ Haftung</div>
       <div>Beratendes Werkzeug: Prognose, Preise und Ersparnis sind <b>Schätzungen ohne Gewähr</b>. Die App <b>steuert keine Geräte</b> – Nutzung auf eigene Verantwortung.</div>
     </div>
+    <div class="qi-block"><div class="qi-titel">ⓘ App</div><div>Energie-Optimierer · <span id="app-version">–</span></div></div>
   </div>
 </details>
 
@@ -838,10 +839,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="frage-kopf"><span class="fk-ic blau">📍</span><span class="fk-titel">Wo wohnst du?</span></div>
     <div class="hilfe">Die Adresse bestimmt, wie viel Sonne bei dir ankommt.</div>
     <div class="adresse-zeile">
-      <input id="f-adresse" value="Altbaumburgweg 2, 50739 Köln" aria-label="Adresse">
+      <input id="f-adresse" value="" placeholder="Straße Hausnr., PLZ Ort" aria-label="Adresse">
       <button id="btn-adresse">Suchen</button>
     </div>
-    <div id="adresse-info" class="adresse-ok">✓ Position gesetzt (Köln-Bilderstöckchen)</div>
+    <div id="adresse-info" class="adresse-ok">Bitte deine Adresse eingeben und „Suchen" tippen.</div>
   </div>
   <div class="abschnitt">
     <div class="frage-kopf"><span class="fk-ic sonne">☀️</span><span class="fk-titel">Wohin zeigen deine Module?</span></div>
@@ -1068,8 +1069,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 "use strict";
 const $=id=>document.getElementById(id);
 
-let cfg={lat:50.978,lon:6.930,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:"Altbaumburgweg 2, 50739 Köln"};
+let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:""};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -2059,7 +2060,7 @@ function renderPlaner(arr){
   if(smTagK){ const last=smTagK.sonneKwh+smTagK.akkuKwh+smTagK.netzKwh; const ev=last>0.01?Math.round((smTagK.sonneKwh+smTagK.akkuKwh)/last*100):0; k3=kachelRing(ev,'🔋',ev+'%','Eigenverbrauch'); }
   else if(dyn && vollMin!=null){ k3=kachel('💶',dz(vollMin.toFixed(1))+' ct','Netz günstig'); }
   else { k3=kachel('⚡',dz(maxKW.toFixed(1))+' kW','Spitze'); }
-  const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Sonnenertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
+  const statsHtml='<div class="hero-stats">'+kachel('☀️',Math.round(kwhTag)+' kWh','Ertrag')+kachel('🟢',sunWin,'freie Sonne')+k3+'</div>';
   // ---- Sonnen-Budget: Bedarf vs. noch verschiebbare freie Sonne ----
   // Heute zählt nur die Sonne AB JETZT (vergangene Stunden sind vorbei); morgen der ganze Tag.
   const abH = jetztH>=0 ? jetztH : 0;
@@ -2479,24 +2480,36 @@ function renderVerlauf(){
 }
 let letzterLoad=0;
 async function laden(force){
-  $("status").hidden=false; $("status").textContent="Lade Sonnen- und Preisdaten…";
-  try{
-    const jobs=[ladePV(force)];
-    if(cfg.tarif!=="fest")jobs.push(ladePreise()); // fester Tarif braucht keine Börsendaten
-    const res=await Promise.all(jobs);
-    const r0=res[0]||{label:"–",warnung:false};
-    letzterLoad=Date.now();
-    // Erfolgreich geladen: Statuszeile auf der Startseite ausblenden (Stand steht unter „ⓘ Datenquellen").
-    const st=$("status"); st.textContent=""; st.hidden=true;
-    const qs=$("quelle-stand"); if(qs)qs.textContent="Stand "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
-    aktualisieren();
-    $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : cfg.anbieter;
-    $("quelle-sonne").textContent = r0.label;
-    $("pv-fallback-hinweis").hidden = !r0.warnung;
-  }catch(e){
+  // Ohne gesetzte Adresse (Erststart / geteilte Version) gibt es keine Prognose – freundlich zur Einrichtung führen.
+  if(cfg.lat==null||cfg.lon==null){
+    daten.pv={}; daten.preise={}; aktualisieren();
     const st=$("status"); st.hidden=false;
-    st.innerHTML='<span class="fehler">Daten konnten nicht geladen werden ('+e.message+'). Tipp: Datei lokal im Browser öffnen – die Vorschau hier blockiert externe Abrufe.</span>';
+    st.innerHTML='<span class="fehler">📍 Bitte oben über ⚙️ deine Adresse festlegen – dann rechnet die App Sonne &amp; Preise für dich.</span>';
+    $("quelle-sonne").textContent="–";
+    return;
   }
+  $("status").hidden=false; $("status").textContent="Lade Sonnen- und Preisdaten…";
+  // Sonne und Preise unabhängig laden: fällt nur der Preis aus, bleibt die Sonnenprognose nutzbar.
+  const [pvRes,preisRes]=await Promise.allSettled([
+    ladePV(force),
+    (cfg.tarif!=="fest") ? ladePreise() : Promise.resolve()
+  ]);
+  if(pvRes.status==="rejected"){
+    const st=$("status"); st.hidden=false;
+    st.innerHTML='<span class="fehler">Sonnendaten gerade nicht erreichbar – bitte Internetverbindung prüfen. Gespeicherte Werte werden genutzt, sobald vorhanden.</span>';
+    return;
+  }
+  const r0=pvRes.value||{label:"–",warnung:false};
+  const preisFehler=(preisRes.status==="rejected");
+  letzterLoad=Date.now();
+  const qs=$("quelle-stand"); if(qs)qs.textContent="Stand "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  aktualisieren(); // blendet die Statuszeile aus – daher den Preis-Hinweis DANACH setzen
+  $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : (preisFehler ? cfg.anbieter+" (offline)" : cfg.anbieter);
+  $("quelle-sonne").textContent = r0.label;
+  $("pv-fallback-hinweis").hidden = !r0.warnung;
+  const st=$("status");
+  if(preisFehler){ st.hidden=false; st.innerHTML='<span class="fehler">Strompreise gerade nicht erreichbar – die Sonnenplanung läuft weiter.</span>'; }
+  else { st.textContent=""; st.hidden=true; }
 }
 
 /* ---------- Sheets ---------- */
@@ -2678,7 +2691,7 @@ $("btn-kalib").onclick=()=>{
 };
 $("btn-hilfe").onclick=()=>sheetAuf("sheet-hilfe");
 $("btn-einrichten").onclick=()=>{
-  $("f-adresse").value=cfg.adresse;
+  $("f-adresse").value=cfg.adresse||"";
   $("f-aufschlag").value=dz(cfg.aufschlag);
   $("f-kwp").value=dz(cfg.kwp);
   $("f-faktor").value=dz(cfg.faktor);
@@ -2696,7 +2709,9 @@ $("btn-einrichten").onclick=()=>{
   tarifUI();
   renderMeineVerwaltung();
   const info=$("adresse-info");info.className="adresse-ok";
-  info.textContent="✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",");
+  info.textContent = (cfg.adresse && cfg.lat!=null)
+    ? "✓ Position gesetzt: "+cfg.adresse.split(",").slice(0,2).join(",")
+    : "Bitte deine Adresse eingeben und „Suchen“ tippen.";
   sheetAuf("sheet-einrichten");
 };
 $("btn-adresse").onclick=async()=>{
@@ -2707,7 +2722,7 @@ $("btn-adresse").onclick=async()=>{
     cfg.lat=erg.lat;cfg.lon=erg.lon;cfg.adresse=erg.name;
     $("f-adresse").value = erg.name;
     info.textContent="✓ Gefunden: "+erg.name.split(",").slice(0,3).join(",");
-    $("standort-zeile").textContent=cfg.adresse.split(",")[0]+", "+(cfg.adresse.split(",")[1]||"").trim();
+    standortAnzeige(); speichern(); // sofort sichern, damit die Adresse auch ohne „Fertig" bleibt
   }catch(e){
     cfg.lat = null; cfg.lon = null;
     info.className="adresse-fehler";
@@ -3274,11 +3289,23 @@ seedPresets();
   // (Verhindert, dass ein abgelehnter Vorschlag den morgigen Tag dauerhaft blockiert.)
   if(cfg.abgelehnt&&typeof cfg.abgelehnt==="object")Object.keys(cfg.abgelehnt).forEach(d=>{if(d!==hk)delete cfg.abgelehnt[d];});
 })();
-$("standort-zeile").textContent = cfg.adresse.split(",")[0] + ", " + (cfg.adresse.split(",")[1] || "").trim();
+// Standort-Zeile im Kopf: gesetzte Adresse (Ort) oder Aufforderung; immer antippbar → Einrichtung.
+function standortAnzeige(){
+  const z=$("standort-zeile"); if(!z)return;
+  z.textContent = (cfg.adresse && cfg.lat!=null)
+    ? cfg.adresse.split(",")[0]+", "+(cfg.adresse.split(",")[1]||"").trim()
+    : "📍 Adresse festlegen";
+  z.style.cursor="pointer";
+  z.onclick=()=>$("btn-einrichten").onclick();
+}
+standortAnzeige();
+{ const av=$("app-version"); if(av)av.textContent="v30"; }
 renderChips();
 laden();
-// Beim allerersten Start die Kurzanleitung zeigen (danach jederzeit über „?" im Kopf).
-if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; speichern(); }
+// Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
+// sonst beim allerersten Mal die Kurzanleitung (jederzeit über „?" erreichbar).
+if(cfg.lat==null){ setTimeout(()=>$("btn-einrichten").onclick(),450); }
+else if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; speichern(); }
 })();
 </script>
 </body>
