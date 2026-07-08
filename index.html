@@ -2640,10 +2640,14 @@ pvQuelleHinweis();
 function prognoseHeute(){ // heutige (bereits faktorierte) Prognose in kWh
   let s=0;const t=heuteStr();for(let h=0;h<24;h++)s+=(daten.pv[t+"-"+h]||0);return s/1000;
 }
-function faktorAusKalib(){ // Mittel der Verhältnisse real/roh über die gespeicherten Tage
-  const k=cfg.kalib||[];let sum=0,n=0;
-  k.forEach(e=>{if(e.raw>0.5){sum+=e.real/e.raw;n++;}});
-  return n?Math.max(0.3,Math.min(3,sum/n)):null;
+// Faktor = MEDIAN der Verhältnisse real/roh über die gespeicherten Tage.
+// Median statt Mittelwert: ein einzelner Wetter-Ausreißer-Tag (Prognose weit daneben)
+// zieht den Faktor nicht mehr mit – der "typische" Tag bestimmt die Korrektur.
+function faktorAusKalib(){
+  const r=(cfg.kalib||[]).filter(e=>e.raw>0.5).map(e=>e.real/e.raw).sort((a,b)=>a-b);
+  if(!r.length)return null;
+  const m=(r.length%2) ? r[(r.length-1)/2] : (r[r.length/2-1]+r[r.length/2])/2;
+  return Math.max(0.3,Math.min(3,m));
 }
 // Säule 2: Prognose-Genauigkeit als mittlerer Fehler der kalibrierten Vorhersage (in %).
 // Erst ab genug Tagen belastbar – zwei zufällig gut getroffene Tage sagen wenig aus.
@@ -3307,7 +3311,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v31"; }
+{ const av=$("app-version"); if(av)av.textContent="v32"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
