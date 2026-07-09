@@ -453,6 +453,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 /* Meine Geräte – Verwaltung (Einstellungen) */
 .mv-zeile{display:flex;align-items:center;gap:10px;background:var(--papier);border-radius:12px;padding:9px 11px;margin-bottom:8px}
 .mv-ic{font-size:20px;flex-shrink:0}
+.mv-ic-btn{border:none;background:var(--karte);border-radius:10px;width:38px;height:38px;line-height:1;cursor:pointer;flex-shrink:0;box-shadow:var(--hairline);position:relative;transition:transform var(--schnell)}
+.mv-ic-btn:active{transform:scale(.9)}
+.mv-ic-btn::after{content:"✎";position:absolute;right:-2px;bottom:-3px;font-size:10px;background:var(--sonne);color:#fff;width:15px;height:15px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.2)}
 .mv-info{flex:1;display:flex;flex-direction:column;min-width:0}
 .mv-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mv-k{font-size:11.5px;color:var(--grau);font-family:var(--mono)}
@@ -899,7 +902,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
   <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
     <div class="frage-kopf"><span class="fk-ic sonne">★</span><span class="fk-titel">Meine Geräte</span></div>
-    <div class="hilfe">Deine gespeicherten Geräte – umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
+    <div class="hilfe">Deine gespeicherten Geräte – Symbol antippen zum Ändern, umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
     <div class="meine-verwaltung" id="meine-verwaltung"></div>
   </div>
   <div class="abschnitt">
@@ -1065,6 +1068,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <div class="frage-knoepfe">
     <button class="frage-abbrechen" id="frage-nein">Abbrechen</button>
     <button class="frage-loeschen" id="frage-ja">Löschen</button>
+  </div>
+</div>
+
+<!-- Symbol-Auswahl (Icon ändern) – öffnet über anderen Sheets, schließt beim Tippen sofort -->
+<div class="sheet" id="sheet-icon" role="dialog" aria-label="Symbol wählen" style="z-index:15">
+  <button class="sheet-schliessen" id="icon-x">✕</button>
+  <h3 id="icon-titel">Symbol wählen</h3>
+  <div class="sub">Tippe ein Symbol – es wird sofort übernommen.</div>
+  <div class="abschnitt" style="margin-top:10px">
+    <div class="g-icons" id="icon-wahl-box"></div>
   </div>
 </div>
 
@@ -2543,6 +2556,7 @@ function hinzufuegenFertig(){
 function sheetZu(){
   if(frageResolve){const r=frageResolve;frageResolve=null;r(false);} // offener Ja/Nein-Dialog = Abbruch
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
+  if(iconResolve){const r=iconResolve;iconResolve=null;r(null);} // offene Symbol-Auswahl = Abbruch
   ausTagesplan=false;
   const warPlanOderGeraete=document.querySelector("#sheet-tagesplan.offen,#sheet-geraete.offen")!=null;
   $("schleier").classList.remove("offen");
@@ -2577,6 +2591,24 @@ function eingabeFertig(wert){
 $("eingabe-ok").onclick=()=>eingabeFertig($("eingabe-feld").value.trim());
 $("eingabe-x").onclick=()=>eingabeFertig(null);
 $("eingabe-feld").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();eingabeFertig($("eingabe-feld").value.trim());}});
+
+/* Symbol-Auswahl als Promise – öffnet ÜBER dem aktuellen Sheet, Tippen wählt + schließt sofort. */
+let iconResolve=null;
+function frageIcon(titel,aktuell){
+  return new Promise(resolve=>{
+    iconResolve=resolve;
+    $("icon-titel").textContent=titel||"Symbol wählen";
+    renderIconWahl("icon-wahl-box",aktuell,ic=>iconFertig(ic));
+    $("schleier").classList.add("offen");$("sheet-icon").classList.add("offen");
+  });
+}
+function iconFertig(wert){
+  const r=iconResolve;iconResolve=null;
+  $("sheet-icon").classList.remove("offen");
+  if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  if(r)r(wert||null);
+}
+$("icon-x").onclick=()=>iconFertig(null);
 
 /* Eigener Ja/Nein-Dialog – öffnet ÜBER dem aktuellen Sheet und schließt nur sich selbst. */
 let frageResolve=null;
@@ -2869,6 +2901,12 @@ function renderKlassen(){
     box.appendChild(b);
   });
 }
+// Symbol eines gespeicherten Geräts überall mitziehen (Vorlage, aktive Liste, Routinen, Verlauf).
+function setzeGeraetIconUeberall(name,icon){
+  [meineGeraete,geraete,routinen].forEach(arr=>(arr||[]).forEach(x=>{ if(x.name===name)x.icon=icon; }));
+  if(cfg.verlauf&&cfg.verlauf[name])cfg.verlauf[name].forEach(e=>{ if(e&&typeof e==="object")e.i=icon; });
+  if(cfg.erledigt)Object.values(cfg.erledigt).forEach(a=>{ if(Array.isArray(a))a.forEach(e=>{ if(e&&e.name===name){ if("icon"in e)e.icon=icon; if("i"in e)e.i=icon; } }); });
+}
 function renderMeineVerwaltung(){
   const box=$("meine-verwaltung"),sec=$("meine-verwaltung-abschnitt");
   if(!box||!sec)return;
@@ -2877,11 +2915,16 @@ function renderMeineVerwaltung(){
   meineGeraete.forEach((m,i)=>{
     const row=document.createElement("div");
     row.className="mv-zeile";
-    row.innerHTML='<span class="mv-ic">'+m.icon+'</span>'+
+    row.innerHTML='<button class="mv-ic-btn" data-ic="'+i+'" aria-label="Symbol von '+m.name+' ändern">'+m.icon+'</button>'+
       '<span class="mv-info"><span class="mv-name">'+m.name+'</span><span class="mv-k">~'+dz(m.kwh)+' kWh · '+dz(m.dauer)+' h</span></span>'+
       '<button class="mv-btn" data-ren="'+i+'" aria-label="'+m.name+' umbenennen">✏️</button>'+
       '<button class="mv-btn" data-del="'+i+'" aria-label="'+m.name+' löschen">🗑</button>';
     box.appendChild(row);
+  });
+  box.querySelectorAll("[data-ic]").forEach(b=>b.onclick=async()=>{
+    const m=meineGeraete[+b.dataset.ic]; if(!m)return;
+    const neu=await frageIcon("Symbol für „"+kurzName(m.name)+"“ wählen",m.icon);
+    if(neu&&neu!==m.icon){ setzeGeraetIconUeberall(m.name,neu); m.icon=neu; speichern();renderMeineVerwaltung();renderChips();aktualisieren(); }
   });
   box.querySelectorAll("[data-ren]").forEach(b=>b.onclick=async()=>{
     const i=+b.dataset.ren;
@@ -2921,8 +2964,23 @@ $("btn-g-fertig").onclick=()=>{
 };
 
 /* Gerät bearbeiten */
-// Auswahl relevanter Symbole (Wäsche, Küche, Geräte)
-const ICON_WAHL=["🌀","👕","🌈","🛏️","🛁","🧺","🧦","🍽️","🍴","🧊","🔌","🔋","🚗","🍞","💡","🔥"];
+// Große Auswahl an Haushalts-Symbolen (Wäsche, Putzen, Küche, Technik, Energie …)
+const ICON_WAHL=[
+  // Wäsche & Kleidung
+  "🌀","👕","🌈","🛏️","🛁","🧺","🧦","👖","👚","👗","🧥","🩳","🧣","🧤",
+  // Putzen & Reinigung
+  "🧹","🧽","🧼","🧴","🪣","🧻","🪥","🚿","🤖","🪟","🧯",
+  // Küche & Kochen
+  "🍽️","🍴","🍞","☕","🫖","🍵","🍳","🥘","🔪","🧇","🧊",
+  // Geräte & Technik
+  "📺","💻","🖥️","🖨️","🔊","🎮","💡",
+  // Wasser, Wärme & Klima
+  "💧","🚰","♨️","🌡️","❄️","🔥",
+  // Energie & Mobilität
+  "⚡","☀️","🔌","🔋","🚗","🛵","🚲","🚜",
+  // Haus & Garten
+  "🌱","🪴","🛋️"
+];
 function renderIconWahl(boxId,aktiv,setzen){
   const box=$(boxId);if(!box)return;box.innerHTML="";
   ICON_WAHL.forEach(ic=>{
@@ -3127,6 +3185,7 @@ if("serviceWorker" in navigator){
   function sheetSchliessen(sheet){
     const id=sheet.id;
     if(id==="sheet-eingabe")return eingabeFertig(null);
+    if(id==="sheet-icon")return iconFertig(null);
     if(id==="sheet-frage")return frageFertig(false);
     if(id==="sheet-geraete")return geraeteSheetZu();
     sheetZu();
@@ -3333,7 +3392,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v33"; }
+{ const av=$("app-version"); if(av)av.textContent="v34"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
