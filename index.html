@@ -960,12 +960,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="schaetzung" id="schaetzung"></div>
   </div>
   <div class="abschnitt" id="programm-speichern-box" hidden>
-    <label class="switch-zeile"><span>★ Als eigenes Programm speichern</span>
+    <div class="frage" style="font-size:13px">Name des Programms <span style="color:var(--grau);font-weight:400">(optional)</span></div>
+    <div class="adresse-zeile"><input id="neu-programm-name" type="text" autocomplete="off" placeholder="z. B. Bunt/Hell 40°" aria-label="Programmname"></div>
+    <label class="switch-zeile" style="margin-top:12px"><span>★ Für nächstes Mal merken</span>
       <span class="switch"><input type="checkbox" id="cb-programm-speichern"><span class="switch-ui"></span></span></label>
-    <div class="hilfe" id="programm-name-zeile" hidden style="margin-top:10px">
-      <div class="adresse-zeile"><input id="neu-programm-name" type="text" autocomplete="off" placeholder="z. B. Bunt/Hell 40°" aria-label="Programmname"></div>
-      <div style="margin-top:6px">Es erscheint künftig unter diesem Gerät als fertiges Programm.</div>
-    </div>
+    <div class="hilfe" style="margin-top:6px">Gemerkte Programme erscheinen künftig unter diesem Gerät als fertige Auswahl.</div>
   </div>
   <button class="fertig" id="btn-g-fertig" hidden>Zum Plan hinzufügen</button>
 </div>
@@ -976,6 +975,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <h3 id="b-titel">Gerät bearbeiten</h3>
   <div class="sub">Werte anpassen oder das genaue Modell suchen lassen.</div>
 
+  <div class="abschnitt">
+    <div class="frage">Name</div>
+    <div class="adresse-zeile"><input id="b-name" type="text" autocomplete="off" aria-label="Gerätename"></div>
+  </div>
   <div class="abschnitt">
     <div class="frage">🔎 Modell nachschlagen</div>
     <div class="hilfe">Hersteller + Modellnummer eingeben (steht auf dem Typenschild in der Tür bzw. auf der Rückseite). „Nachschlagen" öffnet eine Websuche mit den Verbrauchsdaten – den gefundenen Wert unten eintragen. Faustregel: Steht dort „kWh pro 100 Zyklen", einfach durch 100 teilen.</div>
@@ -2849,7 +2852,7 @@ function starteNeuesProgramm(){
   $("klasse-abschnitt").hidden=false;$("schaetzung-box").hidden=true;
   $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
   const cb=$("cb-programm-speichern");if(cb)cb.checked=false;
-  $("programm-name-zeile").hidden=true;const nf=$("neu-programm-name");if(nf)nf.value="";
+  const nf=$("neu-programm-name");if(nf)nf.value="";
 }
 function renderKlassen(){
   const box=$("w-klasse");box.innerHTML="";
@@ -2896,19 +2899,22 @@ $("btn-geraet").onclick=()=>{wahlTyp=null;wahlKlasse=null;renderTypen();
   $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
   sheetAuf("sheet-geraet");};
 $("btn-neues-programm").onclick=starteNeuesProgramm;
-$("cb-programm-speichern").onchange=e=>{ $("programm-name-zeile").hidden=!e.target.checked; };
+// Sobald man dem Programm einen Namen gibt, „merken" automatisch anhaken (kann man wieder abwählen).
+$("neu-programm-name").oninput=e=>{ const cb=$("cb-programm-speichern"); if(cb&&e.target.value.trim())cb.checked=true; };
 $("btn-g-fertig").onclick=()=>{
   if(!wahlTyp||!wahlKlasse)return;
   const kwh=wahlTyp.klassen[wahlKlasse];
-  const dev={typ:wahlTyp.id,icon:wahlTyp.icon,name:wahlTyp.name,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis};
-  // Optional: als eigenes Programm unter „Meine Geräte" speichern (der Hauptkategorie zugeordnet)
+  const nm=(($("neu-programm-name").value||"").trim());
+  // Mit Name: „Hauptkategorie: Name". Ohne Name: nur die Hauptkategorie (einmaliger Eintrag).
+  const progName = nm ? (wahlTyp.name+": "+nm) : wahlTyp.name;
+  const dev={typ:wahlTyp.id,icon:wahlTyp.icon,name:progName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis};
+  // Optional dauerhaft unter „Meine Geräte" merken (der Hauptkategorie zugeordnet).
   const cb=$("cb-programm-speichern");
   if(cb&&cb.checked){
-    let nm=(($("neu-programm-name").value||"").trim())||(kurzName(wahlTyp.name)+" · "+wahlKlasse);
-    const progName=wahlTyp.name+": "+nm; // „Hauptkategorie: Programm" – Untergliederung
-    if(!meineGeraete.some(m=>m.name===progName))
-      meineGeraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:progName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
-    dev.name=progName;
+    const saveName = nm ? progName : (wahlTyp.name+": "+wahlKlasse);
+    if(!meineGeraete.some(m=>m.name===saveName))
+      meineGeraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:saveName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
+    dev.name=saveName;
   }
   geraetAnHeutigenTag(dev);
   hinzufuegenFertig();
@@ -2927,11 +2933,25 @@ function renderIconWahl(boxId,aktiv,setzen){
     box.appendChild(b);
   });
 }
+// Gerät umbenennen inkl. Migration aller namensbezogenen Schlüssel (Name ist überall der Bezug).
+function benenneGeraetUm(g,neu){
+  const alt=g.name; neu=(neu||"").trim();
+  if(!neu||neu===alt)return;
+  const altKey=deviceKey(g);
+  g.name=neu;
+  const neuKey=deviceKey(g);
+  if(cfg.tagAnzahl)Object.values(cfg.tagAnzahl).forEach(m=>{ if(m&&m[alt]!=null){m[neu]=m[alt];delete m[alt];} });
+  if(cfg.verlauf&&cfg.verlauf[alt]){ cfg.verlauf[neu]=(cfg.verlauf[neu]||[]).concat(cfg.verlauf[alt]); delete cfg.verlauf[alt]; }
+  ["uebernommen","abgelehnt","routineSkip"].forEach(kk=>{ if(cfg[kk])Object.values(cfg[kk]).forEach(a=>{ if(Array.isArray(a)){const j=a.indexOf(alt); if(j>=0)a[j]=neu;} }); });
+  if(cfg.erledigt)Object.values(cfg.erledigt).forEach(a=>{ if(Array.isArray(a))a.forEach(e=>{ if(e.name===alt)e.name=neu; }); });
+  if(cfg.plaene)Object.values(cfg.plaene).forEach(a=>{ if(Array.isArray(a))a.forEach(p=>{ if(p.key===altKey)p.key=neuKey; }); });
+}
 function oeffneBearbeiten(i){
   bearbIndex=i;
   const g=geraete[i];
   bearbIcon=g.icon;
   $("b-titel").textContent=g.icon+" "+g.name+" bearbeiten";
+  $("b-name").value=g.name;
   $("b-kwh").value=dz(g.kwh);
   $("b-dauer").value=dz(g.dauer);
   $("b-modell").value="";
@@ -2954,6 +2974,7 @@ $("btn-b-speichern").onclick=()=>{
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
   if(bearbIcon)g.icon=bearbIcon;
+  benenneGeraetUm(g,$("b-name").value); // Name geändert? -> überall mitziehen
   speichern();sheetZu();renderChips();aktualisieren();
 };
 $("btn-b-merken").onclick=async()=>{
@@ -2963,7 +2984,8 @@ $("btn-b-merken").onclick=async()=>{
   if(!isNaN(k)&&k>0)g.kwh=Math.round(k*100)/100;
   if(!isNaN(d)&&d>0&&d<=12)g.dauer=Math.round(d*10)/10;
   if(bearbIcon)g.icon=bearbIcon;
-  const name=((await frageText("Unter Meine Geräte speichern",g.name))||"").trim();
+  const vorschlag=(($("b-name").value||"").trim())||g.name;
+  const name=((await frageText("Unter Meine Geräte speichern",vorschlag))||"").trim();
   if(!name)return;
   meineGeraete.push({typ:g.typ,icon:g.icon,name,kwh:g.kwh,dauer:g.dauer,von:g.von,bis:g.bis});
   speichern();renderChips();aktualisieren();
@@ -3311,7 +3333,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v32"; }
+{ const av=$("app-version"); if(av)av.textContent="v33"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
