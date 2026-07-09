@@ -408,8 +408,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .pl-ic{font-size:18px;flex-shrink:0}
 .pl-info{display:flex;flex-direction:column;min-width:0;flex:1}
 .pl-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-zeit{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tinte);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl-cov{color:var(--grau);font-weight:600} .pl-cov.gut{color:var(--gruen)}
+.pl-zeit{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tinte);line-height:1.35}
+.pl-cov{color:var(--grau);font-weight:600;white-space:nowrap} .pl-cov.gut{color:var(--gruen)}
 .pl-fixtag{color:var(--sonne);font-weight:700;font-family:var(--sans)}
 .pl-akt{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .pl-nudge{display:flex;gap:2px;flex-shrink:0}
@@ -1991,7 +1991,9 @@ function renderDashboard(arr){
   const oeffnePlan=()=>{ausTagesplan=false;sheetAuf("sheet-tagesplan");vielleichtWischHint();};
   const oeffneGeraete=()=>{ausTagesplan=false;sheetAuf("sheet-geraete");};
   const cv=$("dash-curve"); if(cv)cv.onclick=oeffnePlan;
-  dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ r.onclick=oeffnePlan; swipeDash(r,tagKey); });
+  // Jede Zeile (auch bereits gelaufene) führt in den Tagesplan; Wischen nur bei planbaren Zeilen.
+  dash.querySelectorAll(".dash-row").forEach(r=>{ r.onclick=oeffnePlan; });
+  dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ swipeDash(r,tagKey); });
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
   const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
   // Scroll-Hinweis: Liste scrollt intern, wenn mehr Geräte als sichtbar
@@ -2208,7 +2210,7 @@ function renderPlaner(arr){
         '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
           '<span class="pl-ic">'+b.icon+'</span>'+
           '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+kurzName(b.name)+'</span>'+
-            '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
+            '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
           '<span class="pl-akt">'+
             '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
             '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
@@ -3392,7 +3394,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v34"; }
+{ const av=$("app-version"); if(av)av.textContent="v35"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
