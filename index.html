@@ -851,6 +851,11 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
         <div class="hf-sub">Sie merkt sich, was wirklich läuft, erkennt Muster (z. B. Spülmaschine täglich) und <b>schlägt Fälliges von selbst vor</b>.</div></div>
     </div>
     <div class="hilfe-feature">
+      <div class="hf-ic gruen">✓</div>
+      <div class="hf-body"><div class="hf-titel">Läufe bestätigen – auf 15 Min genau</div>
+        <div class="hf-sub">Ist ein geplantes Gerät durch, fragt die App kurz nach. Stell die echte Laufzeit per <b>Schieberegler</b> ein – lief es kürzer, wird die restliche Zeit wieder frei.</div></div>
+    </div>
+    <div class="hilfe-feature">
       <div class="hf-ic grau">🧭</div>
       <div class="hf-body"><div class="hf-titel">Du behältst die Kontrolle</div>
         <div class="hf-sub">Die App <b>berät nur</b> – starten musst du (oder dein Energiemanager). Alles bleibt <b>lokal</b>, kein Konto, keine Cloud.</div></div>
@@ -859,6 +864,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
   <div class="hilfe-tipps">
     <div>👆 <b>Wischen im Tagesplan:</b> nach links = Gerät aus dem Tag, nach rechts = 📌 Zeit festhalten.</div>
+    <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
+    <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
     <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Verlauf</b> (Protokoll).</div>
   </div>
 
@@ -1136,10 +1143,10 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div class="sheet" id="sheet-faellig" role="dialog" aria-label="Fällige Geräte bestätigen" style="z-index:14">
   <button class="sheet-schliessen" id="faellig-x">✕</button>
   <h3>Waren die gelaufen?</h3>
-  <div class="sub">Diese Geräte waren vorhin eingeplant. Bestätige, was gelaufen ist – so lernt die App dazu und plant nichts doppelt.</div>
+  <div class="sub">Vorhin eingeplant. <b>Abgehakt = gelaufen</b> (Zeit per ✏️ anpassbar) · <b>nicht abgehakt = lief nicht</b> und wird aus dem Plan genommen. So lernt die App dazu und blockiert nichts unnötig.</div>
   <div class="abschnitt" style="margin-top:10px"><div id="faellig-liste"></div></div>
-  <button class="fertig" id="faellig-ok">✓ Alle bestätigen</button>
-  <button class="fertig sekundaer" id="faellig-spaeter" style="margin-top:8px">Später</button>
+  <button class="fertig" id="faellig-ok">✓ Übernehmen</button>
+  <button class="fertig sekundaer" id="faellig-spaeter" style="margin-top:8px">Später entscheiden</button>
 </div>
 
 <script>
@@ -1203,6 +1210,9 @@ function ladeGespeichert(){
 const TZ="Europe/Berlin";
 const _tzFmt=new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hour12:false});
 function berlinTeile(d){const o={};_tzFmt.formatToParts(d).forEach(p=>{if(p.type!=="literal")o[p.type]=p.value;});let h=parseInt(o.hour,10);if(h===24)h=0;return{key:o.year+"-"+o.month+"-"+o.day,stunde:h};}
+// Aktuelle Uhrzeit in Berlin als Bruchteil-Stunde (z. B. 9:20 -> 9.33) – für minutengenaue Status.
+const _tzHM=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false});
+function jetztStundeF(){let h=0,m=0;_tzHM.formatToParts(new Date()).forEach(p=>{if(p.type==="hour")h=parseInt(p.value,10);if(p.type==="minute")m=parseInt(p.value,10);});if(h===24)h=0;return h+m/60;}
 function datumKey(d){return berlinTeile(d).key;}
 function heuteStr(){return berlinTeile(new Date()).key;}
 function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
@@ -1828,7 +1838,9 @@ function simGesamt(arr,tagKey){
 }
 // Belegung EINER Maschine (gleicher Gerätetyp) über den Tag: andere geplante Blöcke + schon
 // gelaufene Läufe. Dieselbe Maschine kann nicht parallel laufen. exceptBlk = der bewegte Block.
-function typVon(b){ return (b&&b._key)?b._key.split("|")[0]:(b?b.name:""); }
+// Maschinentyp eines Blocks – wie in autoPlatzierung: typloser Block fällt auf den Namen zurück
+// (sonst gälten alle typlosen Geräte als EINE Maschine).
+function typVon(b){ if(!b)return ""; const t=b._key?b._key.split("|")[0]:(b.typ||""); return t||b.name||""; }
 function maschinenBelegung(typ, exceptBlk){
   const belegt=new Array(24).fill(null);
   platzierungen.forEach(b=>{
@@ -1998,7 +2010,6 @@ function faelligeHeute(){
   const hk=heuteStr(), nowH=berlinTeile(new Date()).stunde;
   const plan=(cfg.plaene&&cfg.plaene[hk])||[];
   const erlZaehl={}; erledigtListe(hk).forEach(e=>{erlZaehl[e.name]=(erlZaehl[e.name]||0)+1;});
-  const skip=new Set((cfg.faelligSkip&&cfg.faelligSkip[hk])||[]);
   const perName={};
   plan.forEach(pl=>{
     const name=(pl.key||"").split("|").slice(1).join("|"); if(!name)return;
@@ -2009,7 +2020,6 @@ function faelligeHeute(){
   });
   const out=[];
   Object.values(perName).forEach(g=>{
-    if(skip.has(g.name))return;
     const offen=g.laeufe.slice(erlZaehl[g.name]||0); // schon bestätigte Durchgänge abziehen
     offen.forEach(l=>out.push({name:g.name,icon:g.icon,kwh:g.kwh,start:l.start,ende:l.ende}));
   });
@@ -2053,8 +2063,13 @@ function faelligZu(){
 if($("faellig-ok"))$("faellig-ok").onclick=()=>{
   const hk=heuteStr();
   faelligState.forEach(it=>{
-    if(it.checked) markiereErledigt(hk,it.name,it.icon,it.start,it.ende-it.start,it.kwh);
-    else { cfg.faelligSkip=cfg.faelligSkip||{}; const l=(cfg.faelligSkip[hk]=cfg.faelligSkip[hk]||[]); if(!l.includes(it.name))l.push(it.name); }
+    if(it.checked){
+      markiereErledigt(hk,it.name,it.icon,it.start,it.ende-it.start,it.kwh); // gelaufen → Historie
+    } else {
+      // Nicht abgehakt = lief nicht → diesen Durchgang aus dem heutigen Plan nehmen (Maschine wird frei).
+      const istRoutine=routinen.some(r=>r.name===it.name && r.aktiv!==false);
+      entferneGeraetVomTag(hk,it.name,istRoutine);
+    }
   });
   speichern();faelligZu();
 };
@@ -2093,6 +2108,7 @@ function renderDashboard(arr){
   const dash=$("dashboard"); if(!dash)return;
   const tagKey = tag==="morgen"?morgenStr():heuteStr();
   const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
+  const jetztF = tag==="heute" ? jetztStundeF() : -1; // minutengenau für „läuft/vorbei"
   const G=himmelGeometrie(arr),{HOR,X,arcY,arcD,surfD,priceD,gridD}=G;
   const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
   // --- Sonnenkurve (antippen öffnet den Tagesplan) ---
@@ -2139,13 +2155,13 @@ function renderDashboard(arr){
   let rows="";
   if(items.length){
     items.forEach(it=>{
-      const zeit = (it.ende!=null? uhrStr(it.start)+"–"+uhrStr(it.ende)+" Uhr" : uhrStr(it.start)+" Uhr");
+      const zeit = it.start>=24 ? "ohne feste Zeit" : (it.ende!=null? uhrStr(it.start)+"–"+uhrStr(it.ende)+" Uhr" : uhrStr(it.start)+" Uhr");
       const kwhStr = it.kwh!=null? " · "+dz(it.kwh.toFixed(1))+" kWh" : "";
       // Status-Badge
       let badge="";
       if(it.done) badge='<span class="dash-badge done">✓ gelaufen</span>';
-      else if(jetztH>=0 && it.start<=jetztH && jetztH<it.ende) badge='<span class="dash-badge run"><i></i>läuft</span>';
-      else if(jetztH>=0 && jetztH>=it.ende) badge='<span class="dash-badge past">vorbei</span>';
+      else if(jetztF>=0 && it.start<=jetztF && jetztF<it.ende) badge='<span class="dash-badge run"><i></i>läuft</span>';
+      else if(jetztF>=0 && jetztF>=it.ende) badge='<span class="dash-badge past">vorbei</span>';
       // Rechts: Deckung (geplant) oder ✓ (erledigt)
       let right;
       if(it.done) right='<span class="dash-check">✓</span>';
@@ -3659,6 +3675,7 @@ seedPresets();
   // „Nicht heute" gilt ausschließlich für den heutigen Tag – niemals für morgen.
   // (Verhindert, dass ein abgelehnter Vorschlag den morgigen Tag dauerhaft blockiert.)
   if(cfg.abgelehnt&&typeof cfg.abgelehnt==="object")Object.keys(cfg.abgelehnt).forEach(d=>{if(d!==hk)delete cfg.abgelehnt[d];});
+  delete cfg.faelligSkip; // Altbestand: wird nicht mehr genutzt (nicht-gelaufen nimmt jetzt aus dem Plan)
 })();
 // Standort-Zeile im Kopf: gesetzte Adresse (Ort) oder Aufforderung; immer antippbar → Einrichtung.
 function standortAnzeige(){
@@ -3670,7 +3687,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v39"; }
+{ const av=$("app-version"); if(av)av.textContent="v40"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
