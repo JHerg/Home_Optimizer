@@ -244,6 +244,20 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .fertig{width:100%;padding:15px;border:none;border-radius:15px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:transform var(--schnell),box-shadow var(--schnell);box-shadow:0 8px 20px -8px rgba(245,160,12,.55)}
 .fertig:active{transform:scale(.98)}
 .fertig.sekundaer{background:var(--papier);color:var(--tinte);box-shadow:none;font-weight:600}
+/* Doppel-Schieberegler (von–bis) für Laufzeiten in 15-Minuten-Schritten */
+.rslider{position:relative;height:32px;margin:4px 13px 0}
+.rslider::before{content:"";position:absolute;left:-9px;right:-9px;top:50%;height:6px;transform:translateY(-50%);background:var(--linie);border-radius:3px}
+.rs-fill{position:absolute;top:50%;height:6px;transform:translateY(-50%);background:var(--sonne);border-radius:3px}
+.rs-handle{position:absolute;top:50%;width:28px;height:28px;transform:translate(-50%,-50%);border-radius:50%;background:var(--karte);border:2px solid var(--sonne);box-shadow:0 2px 7px rgba(20,31,44,.28);cursor:grab;touch-action:none;padding:0;z-index:2}
+.rs-handle:active{cursor:grabbing;transform:translate(-50%,-50%) scale(1.12)}
+.lz-vals{display:flex;align-items:flex-end;justify-content:space-between;margin-top:16px;gap:8px}
+.lz-val{display:flex;flex-direction:column;align-items:center;gap:5px}
+.lz-cap{font-size:11px;color:var(--grau);font-weight:700}
+.lz-step{display:flex;align-items:center;gap:6px;background:var(--papier);border-radius:12px;padding:4px 6px}
+.lz-step button{border:none;background:var(--karte);width:32px;height:32px;border-radius:9px;font-size:18px;font-weight:700;color:var(--tinte);cursor:pointer;box-shadow:var(--hairline)}
+.lz-step button:active{transform:scale(.9)}
+.lz-step b{font-family:var(--mono);font-size:15px;min-width:54px;text-align:center;color:var(--nacht)}
+.lz-dur{font-family:var(--mono);font-size:12px;color:var(--grau);font-weight:600;padding-bottom:9px}
 .fl-row{display:flex;align-items:center;gap:10px;background:var(--papier);border-radius:12px;padding:10px 11px;margin-bottom:8px;cursor:pointer;transition:opacity var(--schnell)}
 .fl-row.aus{opacity:.45}
 .fl-cb{width:22px;height:22px;flex-shrink:0;accent-color:var(--sonne)}
@@ -1097,25 +1111,25 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   </div>
 </div>
 
-<!-- Lauf bestätigen: „gelaufen?" inkl. echter Endzeit (früher fertig) -->
-<div class="sheet" id="sheet-lauf" role="dialog" aria-label="Lauf bestätigen" style="z-index:15">
+<!-- Laufzeit (von–bis) einstellen: Bestätigen eines Laufs ODER nachträglich ändern.
+     Doppel-Schieberegler + ± in 15-Minuten-Schritten. -->
+<div class="sheet" id="sheet-lauf" role="dialog" aria-label="Laufzeit" style="z-index:15">
   <button class="sheet-schliessen" id="lauf-x">✕</button>
   <h3 id="lauf-titel">Gelaufen?</h3>
-  <div class="sub" id="lauf-sub">Wann war das Gerät fertig?</div>
-  <div class="abschnitt" style="margin-top:10px">
-    <div class="wahl" id="lauf-enden"></div>
+  <div class="sub" id="lauf-sub">Stelle die Laufzeit ein – kürzer = die restliche Zeit wird wieder frei.</div>
+  <div class="abschnitt" style="margin-top:16px">
+    <div class="rslider" id="lz-slider">
+      <div class="rs-fill" id="lz-fill"></div>
+      <button type="button" class="rs-handle" id="lz-a" aria-label="Startzeit"></button>
+      <button type="button" class="rs-handle" id="lz-b" aria-label="Endzeit"></button>
+    </div>
+    <div class="lz-vals">
+      <div class="lz-val"><span class="lz-cap">Von</span><div class="lz-step"><button type="button" id="lz-von-m" aria-label="Start früher">−</button><b id="lz-von">7:00</b><button type="button" id="lz-von-p" aria-label="Start später">＋</button></div></div>
+      <div class="lz-dur" id="lz-dur">3 h</div>
+      <div class="lz-val"><span class="lz-cap">Bis</span><div class="lz-step"><button type="button" id="lz-bis-m" aria-label="Ende früher">−</button><b id="lz-bis">10:00</b><button type="button" id="lz-bis-p" aria-label="Ende später">＋</button></div></div>
+    </div>
   </div>
-  <button class="fertig" id="lauf-ok">✓ Als gelaufen bestätigen</button>
-</div>
-
-<!-- Laufzeit eines schon gelaufenen Geräts nachträglich ändern (von–bis) -->
-<div class="sheet" id="sheet-lauf-edit" role="dialog" aria-label="Laufzeit ändern" style="z-index:15">
-  <button class="sheet-schliessen" id="le-x">✕</button>
-  <h3 id="le-titel">Laufzeit ändern</h3>
-  <div class="sub">Wann ist das Gerät wirklich gelaufen? Kürzer = die restliche Zeit wird wieder frei.</div>
-  <div class="abschnitt" style="margin-top:10px"><div class="frage">Start</div><div class="wahl" id="le-start"></div></div>
-  <div class="abschnitt"><div class="frage">Ende</div><div class="wahl" id="le-ende"></div></div>
-  <button class="fertig" id="le-ok">Übernehmen</button>
+  <button class="fertig" id="lauf-ok">✓ Übernehmen</button>
 </div>
 
 <!-- Fällige Läufe (A1): beim Öffnen offene, abgelaufene Geräte bestätigen -->
@@ -1194,6 +1208,8 @@ function heuteStr(){return berlinTeile(new Date()).key;}
 function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
 function euro(v){return v.toFixed(2).replace(".",",")+" €";}
 function dz(v){return String(v).replace(".",",");}
+// Uhrzeit/Dauer aus Bruchteil-Stunde: 8 -> "8", 8.75 -> "8:45" (Viertelstunden-Genauigkeit).
+function uhrStr(x){ let h=Math.floor(x), m=Math.round((x-h)*60); if(m>=60){h++;m-=60;} return m?(h+":"+String(m).padStart(2,"0")):(""+h); }
 
 /* ---------- Routinen (wiederkehrende Geraete) ---------- */
 const WOCHENTAGE=[["Mo",1],["Di",2],["Mi",3],["Do",4],["Fr",5],["Sa",6],["So",0]]; // Wert = getUTCDay
@@ -1375,7 +1391,7 @@ function erledigtGruppen(tagStr){
     const g=map.get(e.name)||{name:e.name,icon:e.icon,n:0,det:[]};
     g.n++;
     const teile=[];
-    if(e.s!=null&&e.e!=null)teile.push(e.s+"–"+e.e+" Uhr");
+    if(e.s!=null&&e.e!=null)teile.push(uhrStr(e.s)+"–"+uhrStr(e.e)+" Uhr");
     if(e.k!=null)teile.push(dz(e.k)+" kWh");
     if(teile.length)g.det.push(teile.join(" · "));
     map.set(e.name,g);
@@ -1704,7 +1720,7 @@ function autoPlatzierung(arr){
     if(e.s==null||e.e==null)return;
     const v=findeVorlage(e.name); const t=(v&&v.typ)||e.name;
     const belegt=belegtVon(t);
-    for(let h=e.s;h<e.e&&h>=0&&h<24;h++)belegt[h]=true;
+    for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++)belegt[h]=true;
   });
   // ---- 1) Verankerte Geräte ZUERST platzieren – sie reservieren ihre Stunden ----
   planGeraete.forEach((g,gi)=>{
@@ -1760,9 +1776,11 @@ function simuliere(arr,bloecke){
   let akku=start;
   const gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
   bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;});
+  // Blöcke stundenweise einordnen – auch bei Viertelstunden-Start/Ende (Bruchteil-Fenster).
   const aktiv = Array.from({length: 24}, () => []);
   bloecke.forEach(b => {
-    for (let i = 0; i < b.dauer; i++) { const h = b.start + i; if (h >= 0 && h < 24) aktiv[h].push(b); }
+    const bs=b.start, be=b.start+(b.echteDauer!=null?b.echteDauer:b.dauer);
+    for(let h=Math.max(0,Math.floor(bs));h<Math.min(24,Math.ceil(be));h++) aktiv[h].push(b);
   });
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
@@ -1771,8 +1789,9 @@ function simuliere(arr,bloecke){
     let dev=0; // Gesamt-Gerätebedarf in kW für diese Stunde
     const devAnteil=new Map(); // Geräte-Leistung in DIESER Stunde (auch Teilstunden) je Block
     aktiv[h].forEach(b=>{
-      const restDauer=b.echteDauer-(h-b.start);
-      const anteil=b.devKW*Math.min(1,Math.max(0,restDauer));
+      const bs=b.start, be=b.start+(b.echteDauer!=null?b.echteDauer:b.dauer);
+      const overlap=Math.max(0,Math.min(be,h+1)-Math.max(bs,h)); // Anteil dieser Stunde, den der Lauf belegt
+      const anteil=b.devKW*overlap;
       devAnteil.set(b,anteil); dev+=anteil;
     });
     // PV: erst Grundlast, dann Geraete
@@ -1796,7 +1815,7 @@ function simuliere(arr,bloecke){
 // Bereits gelaufene Geräte des Tages als Pseudo-Blöcke (mit ihrem gespeicherten Zeitfenster).
 function erledigtBloecke(tagKey){
   return erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
-    const d=Math.max(1,e.e-e.s);
+    const d=Math.max(0.25,e.e-e.s);
     return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
   });
 }
@@ -1820,7 +1839,7 @@ function maschinenBelegung(typ, exceptBlk){
     if(e.s==null||e.e==null)return;
     const v=findeVorlage(e.name); const et=(v&&v.typ)||e.name;
     if(et!==typ)return;
-    for(let h=e.s;h<e.e&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:e.name,s:e.s,e:e.e,done:true};
+    for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:e.name,s:e.s,e:e.e,done:true};
   });
   return belegt;
 }
@@ -1830,7 +1849,7 @@ function belegungsKonflikt(belegt,start,dauer){
   return null;
 }
 function maschinenKonfliktToast(blk,k){
-  zeigeToast(blk.icon+" belegt: "+kurzName(k.name)+" läuft "+k.s+"–"+k.e+" Uhr"+(k.done?" (schon gelaufen)":"")+" – keine Überschneidung",null);
+  zeigeToast(blk.icon+" belegt: "+kurzName(k.name)+" läuft "+uhrStr(k.s)+"–"+uhrStr(k.e)+" Uhr"+(k.done?" (schon gelaufen)":"")+" – keine Überschneidung",null);
 }
 
 /* ---------- Darstellung ---------- */
@@ -1930,7 +1949,7 @@ function erledigtHtml(tagKey){
   return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
     list.map((e,i)=>{
       const teile=[];
-      if(e.s!=null&&e.e!=null)teile.push(e.s+"–"+e.e+" Uhr");
+      if(e.s!=null&&e.e!=null)teile.push(uhrStr(e.s)+"–"+uhrStr(e.e)+" Uhr");
       if(e.k!=null)teile.push(dz(e.k)+" kWh");
       const zeit = teile.length?'<span class="erl-zeit">'+teile.join(" · ")+'</span>':'';
       const editBtn = (e.s!=null&&e.e!=null)?'<button class="erl-edit" data-erl-edit="'+i+'" aria-label="Laufzeit ändern" title="Laufzeit ändern">✎</button>':'';
@@ -1955,7 +1974,7 @@ function wireErledigt(tagKey){
     const i=+b.dataset.erlEdit; const e=l[i]; if(!e||e.s==null||e.e==null)return;
     const v=findeVorlage(e.name);
     const minH=Math.min(e.s, v?v.von:e.s), maxH=Math.max(e.e, v?v.bis:e.e);
-    const res=await frageLaufFenster((e.icon||"")+" "+kurzName(e.name), e.s, e.e, minH, maxH);
+    const res=await frageLaufzeit((e.icon||"")+" "+kurzName(e.name), e.s, e.e, minH, maxH);
     if(!res)return;
     e.s=res.s; e.e=res.e;
     // Lern-Historie dieses Tages an die geänderte Laufzeit anpassen (Startzeit + Dauer)
@@ -2015,15 +2034,16 @@ function renderFaellig(){
       '<input type="checkbox" class="fl-cb" data-i="'+i+'"'+(it.checked?" checked":"")+'>'+
       '<span class="fl-ic">'+it.icon+'</span>'+
       '<span class="fl-info"><span class="fl-nm">'+kurzName(it.name)+'</span>'+
-        '<span class="fl-zeit">'+it.start+"–"+it.ende+' Uhr · '+dz(it.kwh.toFixed(1))+' kWh'+(it.ende<it.plantEnde?" · früher fertig":"")+'</span></span>'+
-      '<button type="button" class="fl-edit" data-edit="'+i+'" aria-label="früher fertig">✏️</button>'+
+        '<span class="fl-zeit">'+uhrStr(it.start)+"–"+uhrStr(it.ende)+' Uhr · '+dz(it.kwh.toFixed(1))+' kWh'+(it.ende<it.plantEnde?" · früher fertig":"")+'</span></span>'+
+      '<button type="button" class="fl-edit" data-edit="'+i+'" aria-label="Laufzeit ändern">✏️</button>'+
     '</label>').join("");
   box.querySelectorAll(".fl-cb").forEach(cb=>cb.onchange=()=>{const i=+cb.dataset.i;faelligState[i].checked=cb.checked;const r=cb.closest(".fl-row");if(r)r.classList.toggle("aus",!cb.checked);});
   box.querySelectorAll("[data-edit]").forEach(b=>b.onclick=async ev=>{
     ev.preventDefault();
     const i=+b.dataset.edit, it=faelligState[i];
-    const ende=await frageLaufEnde(it.name,it.icon,it.start,it.plantEnde);
-    if(ende!=null){it.ende=ende;it.checked=true;renderFaellig();}
+    const v=findeVorlage(it.name); const minH=v?v.von:0, maxH=Math.max(it.plantEnde, v?v.bis:it.plantEnde);
+    const r=await frageLaufzeit(it.icon+" "+kurzName(it.name), it.start, it.ende, Math.min(it.start,minH), maxH);
+    if(r){it.start=r.s;it.ende=r.e;it.checked=true;renderFaellig();}
   });
 }
 function faelligZu(){
@@ -2119,7 +2139,7 @@ function renderDashboard(arr){
   let rows="";
   if(items.length){
     items.forEach(it=>{
-      const zeit = (it.ende!=null? it.start+"–"+it.ende+" Uhr" : it.start+" Uhr");
+      const zeit = (it.ende!=null? uhrStr(it.start)+"–"+uhrStr(it.ende)+" Uhr" : uhrStr(it.start)+" Uhr");
       const kwhStr = it.kwh!=null? " · "+dz(it.kwh.toFixed(1))+" kWh" : "";
       // Status-Badge
       let badge="";
@@ -2151,7 +2171,7 @@ function renderDashboard(arr){
   // Ressourcen-Sicht: Deckung je Stunde (inkl. gelaufener Geräte) + Sonne/Netz-Summen
   let resHtml="";
   if(items.length){
-    const erlPlatz=erl.filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{const d=Math.max(1,e.e-e.s);return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};});
+    const erlPlatz=erl.filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{const d=Math.max(0.25,e.e-e.s);return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};});
     const simTag = simuliere(arr, platzierungen.map(b=>Object.assign({},b)).concat(erlPlatz));
     let dv="";
     simTag.per.forEach(p=>{ let inner=""; if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';} dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>'; });
@@ -2309,7 +2329,7 @@ function renderPlaner(arr){
     // Nichts mehr geplant – aber schon Gelaufenes trotzdem als Deckung je Stunde zeigen.
     let deckHtml="";
     const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
-      const d=Math.max(1,e.e-e.s);
+      const d=Math.max(0.25,e.e-e.s);
       return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
     });
     if(erlPlatz.length){
@@ -2349,7 +2369,7 @@ function renderPlaner(arr){
     el.className="p-blk done";
     el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*40)+"px";
     el.innerHTML='<span class="pbacc"></span><span class="pbi">'+b.icon+'</span><span class="pbp">✓</span>';
-    el.title=b.name+" – gelaufen "+b.start+"–"+(b.start+b.dauer)+" Uhr";
+    el.title=b.name+" – gelaufen "+uhrStr(b.start)+"–"+uhrStr(b.start+b.dauer)+" Uhr";
     bl.appendChild(el);
   });
   function starteDrag(e,blk,el){
@@ -2426,14 +2446,13 @@ function renderPlaner(arr){
     });
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=async()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
-      const plantEnde=b.start+b.dauer;
-      const ende=await frageLaufEnde(b.name,b.icon,b.start,plantEnde); // echte Endzeit wählen
-      if(ende==null)return;
-      markiereErledigt(tagKey,b.name,b.icon,b.start,ende-b.start,b.kwh); // echtes Fenster + kWh; Rest wird frei
+      const r=await frageLaufzeit(b.icon+" "+kurzName(b.name)+" – gelaufen?", b.start, b.start+b.dauer, b.von, b.bis);
+      if(!r)return;
+      markiereErledigt(tagKey,b.name,b.icon,r.s,r.e-r.s,b.kwh); // echtes Fenster (15-Min) + kWh; Rest wird frei
     });
     // Deckungs-Streifen je Stunde – auch bereits gelaufene Geräte (mit gespeichertem Fenster) einbeziehen
     const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
-      const d=Math.max(1,e.e-e.s);
+      const d=Math.max(0.25,e.e-e.s);
       return {name:e.name,icon:e.icon,kwh:e.k,start:e.s,dauer:d,echteDauer:d,devKW:e.k/d,von:0,bis:24};
     });
     const simTag = erlPlatz.length ? simuliere(arr, platzierungen.map(b=>Object.assign({},b)).concat(erlPlatz)) : sim;
@@ -2696,7 +2715,7 @@ function renderVerlauf(){
   // Tabelle (max. 60 jüngste Läufe)
   let rows="";
   alle.slice(0,60).forEach(x=>{
-    const zeit = x.s!=null ? (x.s+"–"+(x.dauer!=null?Math.round(x.s+x.dauer):x.s)+" h") : "–";
+    const zeit = x.s!=null ? (uhrStr(x.s)+(x.dauer!=null?"–"+uhrStr(x.s+x.dauer):"")+" Uhr") : "–";
     const kwh = x.k!=null ? dz(x.k) : "–";
     rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+kwh+'</td></tr>';
   });
@@ -2761,8 +2780,7 @@ function sheetZu(){
   if(frageResolve){const r=frageResolve;frageResolve=null;r(false);} // offener Ja/Nein-Dialog = Abbruch
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
   if(iconResolve){const r=iconResolve;iconResolve=null;r(null);} // offene Symbol-Auswahl = Abbruch
-  if(laufResolve){const r=laufResolve;laufResolve=null;r(null);} // offene Lauf-Bestätigung = Abbruch
-  if(leResolve){const r=leResolve;leResolve=null;r(null);} // offene Laufzeit-Änderung = Abbruch
+  if(laufResolve){const r=laufResolve;laufResolve=null;r(null);} // offene Laufzeit-Auswahl = Abbruch
   ausTagesplan=false;
   const warPlanOderGeraete=document.querySelector("#sheet-tagesplan.offen,#sheet-geraete.offen")!=null;
   $("schleier").classList.remove("offen");
@@ -2816,74 +2834,58 @@ function iconFertig(wert){
 }
 $("icon-x").onclick=()=>iconFertig(null);
 
-/* Lauf bestätigen inkl. echter Endzeit – „wie geplant" oder „früher fertig".
-   Liefert die gewählte Endstunde (Zahl) oder null (Abbruch). */
-let laufResolve=null, laufWahl=null;
-function frageLaufEnde(name,icon,start,plantEnde){
+/* Laufzeit (von–bis) einstellen – Doppel-Schieberegler + ± in 15-Minuten-Schritten.
+   Für „Lauf bestätigen" UND „nachträglich ändern". Liefert {s,e} oder null (Abbruch). */
+const LZ_STEP=0.25; // 15 Minuten
+let laufResolve=null, lzS=0, lzE=1, lzMin=0, lzMax=24;
+function lzSnap(x){return Math.round(x/LZ_STEP)*LZ_STEP;}
+function lzPct(v){return (v-lzMin)/(lzMax-lzMin)*100;}
+function frageLaufzeit(titel, s0, e0, minH, maxH){
   return new Promise(resolve=>{
     laufResolve=resolve;
-    const jetztH = tag==="heute" ? berlinTeile(new Date()).stunde : -1;
-    $("lauf-titel").textContent=icon+" "+kurzName(name);
-    $("lauf-sub").textContent="Von "+start+" Uhr geplant bis "+plantEnde+" Uhr. Wann war es fertig?";
-    // Standard: wie geplant. Lief es (heute) schon vor dem Planende, jetzt-Stunde vorschlagen.
-    laufWahl = (jetztH>start && jetztH<plantEnde) ? jetztH : plantEnde;
-    const box=$("lauf-enden");box.innerHTML="";
-    for(let h=start+1;h<=plantEnde;h++){
-      const b=document.createElement("button");b.type="button";
-      b.textContent=h+" Uhr"+(h===plantEnde?" · wie geplant":"");
-      if(h===laufWahl)b.classList.add("aktiv");
-      b.onclick=()=>{ laufWahl=h; box.querySelectorAll("button").forEach(x=>x.classList.toggle("aktiv",x===b)); };
-      box.appendChild(b);
-    }
+    lzMin=Math.max(0,Math.floor(minH)); lzMax=Math.min(24,Math.ceil(maxH));
+    lzS=lzSnap(Math.max(lzMin,Math.min(lzMax-LZ_STEP,s0)));
+    lzE=lzSnap(Math.max(lzS+LZ_STEP,Math.min(lzMax,e0)));
+    $("lauf-titel").textContent=titel;
+    lzRender();
     $("schleier").classList.add("offen");$("sheet-lauf").classList.add("offen");
   });
 }
+function lzRender(){
+  $("lz-von").textContent=uhrStr(lzS)+" Uhr";
+  $("lz-bis").textContent=uhrStr(lzE)+" Uhr";
+  $("lz-dur").textContent=uhrStr(lzE-lzS)+" h";
+  const a=lzPct(lzS), b=lzPct(lzE);
+  $("lz-a").style.left=a+"%"; $("lz-b").style.left=b+"%";
+  const f=$("lz-fill"); f.style.left=a+"%"; f.style.width=(b-a)+"%";
+}
+function lzSetVon(v){ lzS=Math.max(lzMin,Math.min(lzE-LZ_STEP,lzSnap(v))); lzRender(); }
+function lzSetBis(v){ lzE=Math.max(lzS+LZ_STEP,Math.min(lzMax,lzSnap(v))); lzRender(); }
 function laufFertig(wert){
   const r=laufResolve;laufResolve=null;
   $("sheet-lauf").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
   if(r)r(wert);
 }
-$("lauf-ok").onclick=()=>laufFertig(laufWahl);
+$("lauf-ok").onclick=()=>laufFertig({s:lzS,e:lzE});
 $("lauf-x").onclick=()=>laufFertig(null);
-
-/* Laufzeit (von–bis) eines schon gelaufenen Geräts nachträglich ändern.
-   Liefert {s,e} oder null. Ende muss größer als Start sein. */
-let leResolve=null, leS=0, leE=0, leMin=0, leMax=24;
-function frageLaufFenster(titel,s0,e0,minH,maxH){
-  return new Promise(resolve=>{
-    leResolve=resolve;
-    leMin=Math.max(0,minH); leMax=Math.min(24,maxH);
-    leS=Math.max(leMin,Math.min(leMax-1,s0)); leE=Math.max(leS+1,Math.min(leMax,e0));
-    $("le-titel").textContent=titel||"Laufzeit ändern";
-    leRender();
-    $("schleier").classList.add("offen");$("sheet-lauf-edit").classList.add("offen");
+$("lz-von-m").onclick=()=>lzSetVon(lzS-LZ_STEP);
+$("lz-von-p").onclick=()=>lzSetVon(lzS+LZ_STEP);
+$("lz-bis-m").onclick=()=>lzSetBis(lzE-LZ_STEP);
+$("lz-bis-p").onclick=()=>lzSetBis(lzE+LZ_STEP);
+function lzDrag(handle,setter){
+  handle.addEventListener("pointerdown",e=>{
+    e.preventDefault();
+    const rect=$("lz-slider").getBoundingClientRect();
+    try{handle.setPointerCapture(e.pointerId);}catch(_){}
+    const move=ev=>{ const p=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width)); setter(lzMin+p*(lzMax-lzMin)); };
+    move(e);
+    const up=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
+    window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
   });
 }
-function leRender(){
-  const sb=$("le-start"); sb.innerHTML="";
-  for(let h=leMin;h<=leMax-1;h++){
-    const b=document.createElement("button");b.type="button";b.textContent=h+" Uhr";
-    if(h===leS)b.classList.add("aktiv");
-    b.onclick=()=>{ leS=h; if(leE<=leS)leE=leS+1; leRender(); };
-    sb.appendChild(b);
-  }
-  const eb=$("le-ende"); eb.innerHTML="";
-  for(let h=leS+1;h<=leMax;h++){
-    const b=document.createElement("button");b.type="button";b.textContent=h+" Uhr";
-    if(h===leE)b.classList.add("aktiv");
-    b.onclick=()=>{ leE=h; leRender(); };
-    eb.appendChild(b);
-  }
-}
-function leFertig(wert){
-  const r=leResolve;leResolve=null;
-  $("sheet-lauf-edit").classList.remove("offen");
-  if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
-  if(r)r(wert);
-}
-$("le-ok").onclick=()=>leFertig({s:leS,e:leE});
-$("le-x").onclick=()=>leFertig(null);
+lzDrag($("lz-a"),lzSetVon);
+lzDrag($("lz-b"),lzSetBis);
 
 /* Eigener Ja/Nein-Dialog – öffnet ÜBER dem aktuellen Sheet und schließt nur sich selbst. */
 let frageResolve=null;
@@ -3461,7 +3463,6 @@ if("serviceWorker" in navigator){
     if(id==="sheet-eingabe")return eingabeFertig(null);
     if(id==="sheet-icon")return iconFertig(null);
     if(id==="sheet-lauf")return laufFertig(null);
-    if(id==="sheet-lauf-edit")return leFertig(null);
     if(id==="sheet-faellig")return faelligZu(); // Wisch nach unten = „Später"
     if(id==="sheet-frage")return frageFertig(false);
     if(id==="sheet-geraete")return geraeteSheetZu();
@@ -3669,7 +3670,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v38"; }
+{ const av=$("app-version"); if(av)av.textContent="v39"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
