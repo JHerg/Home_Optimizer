@@ -350,6 +350,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .p-blk.full .pbp{color:var(--gruen)} .p-blk.full .pbacc{background:var(--gruen)}
 .p-blk.part .pbp{color:#B4780A} .p-blk.part .pbacc{background:var(--sonne)}
 .p-blk.zieht{cursor:grabbing;transform:scale(1.06);box-shadow:0 12px 24px -8px rgba(20,31,44,.55);z-index:6}
+.p-blk.blockiert{box-shadow:0 0 0 2px var(--rot);background:var(--rot-hell,#fde8e6)}
 .p-blk .pbb{position:absolute;top:3px;right:4px;font-size:10px}
 .p-blk .pbpin{position:absolute;top:2px;right:3px;font-size:10px}
 .p-blk.fix{box-shadow:0 0 0 1.5px var(--sonne)} .p-blk.fix .pbacc{background:var(--sonne)}
@@ -1794,6 +1795,31 @@ function simGesamt(arr,tagKey){
   const bl = erl.length ? platzierungen.map(b=>Object.assign({},b)).concat(erl) : platzierungen;
   return bl.length ? simuliere(arr,bl) : null;
 }
+// Belegung EINER Maschine (gleicher Gerätetyp) über den Tag: andere geplante Blöcke + schon
+// gelaufene Läufe. Dieselbe Maschine kann nicht parallel laufen. exceptBlk = der bewegte Block.
+function typVon(b){ return (b&&b._key)?b._key.split("|")[0]:(b?b.name:""); }
+function maschinenBelegung(typ, exceptBlk){
+  const belegt=new Array(24).fill(null);
+  platzierungen.forEach(b=>{
+    if(b===exceptBlk || typVon(b)!==typ)return;
+    for(let h=b.start;h<b.start+b.dauer&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:b.name,s:b.start,e:b.start+b.dauer,done:false};
+  });
+  erledigtListe(tagKeyAktuell()).forEach(e=>{
+    if(e.s==null||e.e==null)return;
+    const v=findeVorlage(e.name); const et=(v&&v.typ)||e.name;
+    if(et!==typ)return;
+    for(let h=e.s;h<e.e&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:e.name,s:e.s,e:e.e,done:true};
+  });
+  return belegt;
+}
+// Kollidiert das Fenster [start, start+dauer) mit einer belegten Stunde? Gibt den Konflikt-Lauf oder null.
+function belegungsKonflikt(belegt,start,dauer){
+  for(let h=start;h<start+dauer&&h>=0&&h<24;h++) if(belegt[h])return belegt[h];
+  return null;
+}
+function maschinenKonfliktToast(blk,k){
+  zeigeToast(blk.icon+" belegt: "+kurzName(k.name)+" läuft "+k.s+"–"+k.e+" Uhr"+(k.done?" (schon gelaufen)":"")+" – keine Überschneidung",null);
+}
 
 /* ---------- Darstellung ---------- */
 function renderChips(){
@@ -2304,12 +2330,18 @@ function renderPlaner(arr){
     const rect=$("planer-leiste").getBoundingClientRect(),hw=rect.width/24,x0=e.clientX,s0=blk.start;
     try{el.setPointerCapture(e.pointerId);}catch(_){}
     el.classList.add("zieht");
+    const belegt=maschinenBelegung(typVon(blk),blk); // Stunden, in denen dieselbe Maschine schon läuft
+    let konflikt=null;
     const move=ev=>{
       const dh=Math.round((ev.clientX-x0)/hw);
       const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dh));
-      if(ns!==blk.start){blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+ns+"–"+(ns+blk.dauer)+" Uhr)";updateSim();}
+      if(ns===blk.start)return;
+      const k=belegungsKonflikt(belegt,ns,blk.dauer);
+      if(k){konflikt=k;el.classList.add("blockiert");return;} // nicht in belegte Stunden ziehen
+      el.classList.remove("blockiert");
+      blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+ns+"–"+(ns+blk.dauer)+" Uhr)";updateSim();
     };
-    const up=()=>{el.classList.remove("zieht");speicherePlan();window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
+    const up=()=>{el.classList.remove("zieht","blockiert");speicherePlan();if(konflikt)maschinenKonfliktToast(blk,konflikt);window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
   }
   function updateSim(){
@@ -2359,7 +2391,10 @@ function renderPlaner(arr){
     $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
       const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
-      if(ns!==b.start){b.start=ns;speicherePlan();renderPlaner(arr);}
+      if(ns===b.start)return;
+      const k=belegungsKonflikt(maschinenBelegung(typVon(b),b),ns,b.dauer);
+      if(k){maschinenKonfliktToast(b,k);return;} // dieselbe Maschine ist in der Zielzeit belegt
+      b.start=ns;speicherePlan();renderPlaner(arr);
     });
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=async()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
@@ -3566,7 +3601,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v36"; }
+{ const av=$("app-version"); if(av)av.textContent="v37"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
