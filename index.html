@@ -444,7 +444,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .erledigt-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:var(--grau);padding:5px 2px}
 .erledigt-zeile span{text-decoration:line-through;opacity:.75}
 .erledigt-zeile .erl-zeit{display:inline-block;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--tinte);opacity:1;margin-left:8px}
+.erledigt-zeile .erl-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .erledigt-zeile button{border:none;background:none;font-size:12px;font-weight:600;color:var(--netz);cursor:pointer;flex-shrink:0;padding:2px 4px}
+.erledigt-zeile .erl-edit{font-size:14px;text-decoration:none}
 .pl-deck{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;width:82px}
 .pl-meter{display:flex;width:100%;height:6px;border-radius:99px;overflow:hidden;background:rgba(20,31,44,.08)}
 .pl-meter span{display:block;height:100%}
@@ -1104,6 +1106,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="wahl" id="lauf-enden"></div>
   </div>
   <button class="fertig" id="lauf-ok">✓ Als gelaufen bestätigen</button>
+</div>
+
+<!-- Laufzeit eines schon gelaufenen Geräts nachträglich ändern (von–bis) -->
+<div class="sheet" id="sheet-lauf-edit" role="dialog" aria-label="Laufzeit ändern" style="z-index:15">
+  <button class="sheet-schliessen" id="le-x">✕</button>
+  <h3 id="le-titel">Laufzeit ändern</h3>
+  <div class="sub">Wann ist das Gerät wirklich gelaufen? Kürzer = die restliche Zeit wird wieder frei.</div>
+  <div class="abschnitt" style="margin-top:10px"><div class="frage">Start</div><div class="wahl" id="le-start"></div></div>
+  <div class="abschnitt"><div class="frage">Ende</div><div class="wahl" id="le-ende"></div></div>
+  <button class="fertig" id="le-ok">Übernehmen</button>
 </div>
 
 <!-- Fällige Läufe (A1): beim Öffnen offene, abgelaufene Geräte bestätigen -->
@@ -1911,28 +1923,44 @@ function wireUngeplant(tagKey){
     markiereErledigt(tagKey,u.name,u.icon,undefined,undefined,u.kwh);
   });
 }
-// "Heute schon gelaufen"-Liste (nach Gerät gruppiert, mit Anzahl)
+// "Heute schon gelaufen"-Liste – jeder Durchgang einzeln, mit Laufzeit-Änderung (✎) und Zurück.
 function erledigtHtml(tagKey){
-  const gruppen=erledigtGruppen(tagKey);
-  if(!gruppen.length)return "";
+  const list=erledigtListe(tagKey);
+  if(!list.length)return "";
   return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
-    gruppen.map(g=>{
-      const zeit = g.det.length ? '<span class="erl-zeit">'+g.det.join(' | ')+'</span>' : (g.n>1?'<span class="erl-zeit">'+g.n+'×</span>':'');
-      return '<div class="erledigt-zeile"><span>'+g.icon+' '+g.name+zeit+'</span><button data-undo-name="'+encodeURIComponent(g.name)+'">zurück</button></div>';
+    list.map((e,i)=>{
+      const teile=[];
+      if(e.s!=null&&e.e!=null)teile.push(e.s+"–"+e.e+" Uhr");
+      if(e.k!=null)teile.push(dz(e.k)+" kWh");
+      const zeit = teile.length?'<span class="erl-zeit">'+teile.join(" · ")+'</span>':'';
+      const editBtn = (e.s!=null&&e.e!=null)?'<button class="erl-edit" data-erl-edit="'+i+'" aria-label="Laufzeit ändern" title="Laufzeit ändern">✎</button>':'';
+      return '<div class="erledigt-zeile"><span class="erl-nm">'+e.icon+' '+kurzName(e.name)+zeit+'</span>'+editBtn+'<button class="erl-undo" data-erl-undo="'+i+'">zurück</button></div>';
     }).join("")+
     '</div>';
 }
 function wireErledigt(tagKey){
-  document.querySelectorAll('#planer-rest [data-undo-name]').forEach(b=>b.onclick=()=>{
-    const name=decodeURIComponent(b.dataset.undoName);
+  const box=document.getElementById("planer-rest"); if(!box)return;
+  box.querySelectorAll("[data-erl-undo]").forEach(b=>b.onclick=()=>{
     const l=cfg.erledigt&&cfg.erledigt[tagKey];if(!l)return;
-    const idx=l.findIndex(e=>e.name===name); // nur EINEN Durchgang zurückholen
-    if(idx>=0)l.splice(idx,1);
+    const i=+b.dataset.erlUndo; const e=l[i]; if(!e)return;
+    const name=e.name; l.splice(i,1); // genau diesen Durchgang zurückholen
     if(!l.length)delete cfg.erledigt[tagKey];
     // War es der letzte Durchgang dieses Geräts heute? Dann auch aus der Lern-Historie nehmen.
-    const nochDa=(cfg.erledigt[tagKey]||[]).some(e=>e.name===name);
-    if(!nochDa && cfg.verlauf && cfg.verlauf[name]) cfg.verlauf[name]=cfg.verlauf[name].filter(e=>vDatum(e)!==tagKey);
+    const nochDa=(cfg.erledigt[tagKey]||[]).some(x=>x.name===name);
+    if(!nochDa && cfg.verlauf && cfg.verlauf[name]) cfg.verlauf[name]=cfg.verlauf[name].filter(x=>vDatum(x)!==tagKey);
     speichern();platzSig="";aktualisieren();
+  });
+  box.querySelectorAll("[data-erl-edit]").forEach(b=>b.onclick=async()=>{
+    const l=cfg.erledigt&&cfg.erledigt[tagKey];if(!l)return;
+    const i=+b.dataset.erlEdit; const e=l[i]; if(!e||e.s==null||e.e==null)return;
+    const v=findeVorlage(e.name);
+    const minH=Math.min(e.s, v?v.von:e.s), maxH=Math.max(e.e, v?v.bis:e.e);
+    const res=await frageLaufFenster((e.icon||"")+" "+kurzName(e.name), e.s, e.e, minH, maxH);
+    if(!res)return;
+    e.s=res.s; e.e=res.e;
+    // Lern-Historie dieses Tages an die geänderte Laufzeit anpassen (Startzeit + Dauer)
+    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s);
+    speichern();platzSig="";aktualisieren(); // echtes Fenster fließt in Belegung/Reservierung ein → Rest wird frei
   });
 }
 function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
@@ -2734,6 +2762,7 @@ function sheetZu(){
   if(eingabeResolve){const r=eingabeResolve;eingabeResolve=null;r(null);} // offene Eingabe = Abbruch
   if(iconResolve){const r=iconResolve;iconResolve=null;r(null);} // offene Symbol-Auswahl = Abbruch
   if(laufResolve){const r=laufResolve;laufResolve=null;r(null);} // offene Lauf-Bestätigung = Abbruch
+  if(leResolve){const r=leResolve;leResolve=null;r(null);} // offene Laufzeit-Änderung = Abbruch
   ausTagesplan=false;
   const warPlanOderGeraete=document.querySelector("#sheet-tagesplan.offen,#sheet-geraete.offen")!=null;
   $("schleier").classList.remove("offen");
@@ -2817,6 +2846,44 @@ function laufFertig(wert){
 }
 $("lauf-ok").onclick=()=>laufFertig(laufWahl);
 $("lauf-x").onclick=()=>laufFertig(null);
+
+/* Laufzeit (von–bis) eines schon gelaufenen Geräts nachträglich ändern.
+   Liefert {s,e} oder null. Ende muss größer als Start sein. */
+let leResolve=null, leS=0, leE=0, leMin=0, leMax=24;
+function frageLaufFenster(titel,s0,e0,minH,maxH){
+  return new Promise(resolve=>{
+    leResolve=resolve;
+    leMin=Math.max(0,minH); leMax=Math.min(24,maxH);
+    leS=Math.max(leMin,Math.min(leMax-1,s0)); leE=Math.max(leS+1,Math.min(leMax,e0));
+    $("le-titel").textContent=titel||"Laufzeit ändern";
+    leRender();
+    $("schleier").classList.add("offen");$("sheet-lauf-edit").classList.add("offen");
+  });
+}
+function leRender(){
+  const sb=$("le-start"); sb.innerHTML="";
+  for(let h=leMin;h<=leMax-1;h++){
+    const b=document.createElement("button");b.type="button";b.textContent=h+" Uhr";
+    if(h===leS)b.classList.add("aktiv");
+    b.onclick=()=>{ leS=h; if(leE<=leS)leE=leS+1; leRender(); };
+    sb.appendChild(b);
+  }
+  const eb=$("le-ende"); eb.innerHTML="";
+  for(let h=leS+1;h<=leMax;h++){
+    const b=document.createElement("button");b.type="button";b.textContent=h+" Uhr";
+    if(h===leE)b.classList.add("aktiv");
+    b.onclick=()=>{ leE=h; leRender(); };
+    eb.appendChild(b);
+  }
+}
+function leFertig(wert){
+  const r=leResolve;leResolve=null;
+  $("sheet-lauf-edit").classList.remove("offen");
+  if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  if(r)r(wert);
+}
+$("le-ok").onclick=()=>leFertig({s:leS,e:leE});
+$("le-x").onclick=()=>leFertig(null);
 
 /* Eigener Ja/Nein-Dialog – öffnet ÜBER dem aktuellen Sheet und schließt nur sich selbst. */
 let frageResolve=null;
@@ -3394,6 +3461,7 @@ if("serviceWorker" in navigator){
     if(id==="sheet-eingabe")return eingabeFertig(null);
     if(id==="sheet-icon")return iconFertig(null);
     if(id==="sheet-lauf")return laufFertig(null);
+    if(id==="sheet-lauf-edit")return leFertig(null);
     if(id==="sheet-faellig")return faelligZu(); // Wisch nach unten = „Später"
     if(id==="sheet-frage")return frageFertig(false);
     if(id==="sheet-geraete")return geraeteSheetZu();
@@ -3601,7 +3669,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v37"; }
+{ const av=$("app-version"); if(av)av.textContent="v38"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
