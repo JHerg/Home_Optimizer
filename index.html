@@ -1728,14 +1728,14 @@ function autoPlatzierung(arr){
   //         Danach ist die Maschine wieder frei – ein weiterer Waschgang wird dahinter platziert. ----
   erledigtListe(tagKeyAktuell()).forEach(e=>{
     if(e.s==null||e.e==null)return;
-    const v=findeVorlage(e.name); const t=(v&&v.typ)||e.name;
-    const belegt=belegtVon(t);
+    const v=findeVorlage(e.name);
+    const belegt=belegtVon(maschineKey(v&&v.typ, e.name));
     for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++)belegt[h]=true;
   });
   // ---- 1) Verankerte Geräte ZUERST platzieren – sie reservieren ihre Stunden ----
   planGeraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
-    const belegt=belegtVon(g.typ||g.name);
+    const belegt=belegtVon(maschineKey(g.typ,g.name));
     for(let n=0;n<g.anzahl;n++){
       if(!fixSet.has(key+"#"+n))continue;
       const start=Math.max(g.von,Math.min(g.bis-dauer,startMap.get(key+"#"+n)));
@@ -1746,7 +1746,7 @@ function autoPlatzierung(arr){
   // ---- 2) Übrige Läufe: gespeicherte Position (nicht verankert) oder frische Sonnen-Optimierung ----
   planGeraete.forEach((g,gi)=>{
     const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
-    const belegt=belegtVon(g.typ||g.name); // gleicher Typ = eine Maschine (verankerte Stunden bereits belegt)
+    const belegt=belegtVon(maschineKey(g.typ,g.name)); // gleiche Maschine (Sammelkategorie: pro Name)
     let naechsterStart = g.von, platziert = 0;
     for(let n=0;n<g.anzahl;n++){
       if(fixSet.has(key+"#"+n)){ // in Schritt 1 verankert platziert
@@ -1836,21 +1836,30 @@ function simGesamt(arr,tagKey){
   const bl = erl.length ? platzierungen.map(b=>Object.assign({},b)).concat(erl) : platzierungen;
   return bl.length ? simuliere(arr,bl) : null;
 }
-// Belegung EINER Maschine (gleicher Gerätetyp) über den Tag: andere geplante Blöcke + schon
-// gelaufene Läufe. Dieselbe Maschine kann nicht parallel laufen. exceptBlk = der bewegte Block.
-// Maschinentyp eines Blocks – wie in autoPlatzierung: typloser Block fällt auf den Namen zurück
-// (sonst gälten alle typlosen Geräte als EINE Maschine).
-function typVon(b){ if(!b)return ""; const t=b._key?b._key.split("|")[0]:(b.typ||""); return t||b.name||""; }
-function maschinenBelegung(typ, exceptBlk){
+// Belegung EINER Maschine über den Tag: andere geplante Blöcke + schon gelaufene Läufe.
+// Dieselbe Maschine kann nicht parallel laufen. exceptBlk = der bewegte Block.
+// „Maschinen-Schlüssel": normalerweise der Gerätetyp (alle Waschprogramme = eine Waschmaschine).
+// Sonderfall Sammelkategorie „Anderes Gerät" (typ "so") und typlose Alt-Geräte: pro NAME, denn
+// zwei verschiedene „andere Geräte" (z. B. Poolpumpe + Luftentfeuchter) sind eigene Maschinen.
+const SAMMEL_TYP="so";
+function maschineKey(typ,name){ return (typ && typ!==SAMMEL_TYP) ? typ : ("~"+(name||"")); }
+function typVon(b){
+  if(!b)return "";
+  let typ,name;
+  if(b._key){ const i=b._key.indexOf("|"); typ=b._key.slice(0,i); name=b._key.slice(i+1); }
+  else { typ=b.typ||""; name=b.name||""; }
+  return maschineKey(typ,name);
+}
+function maschinenBelegung(key, exceptBlk){
   const belegt=new Array(24).fill(null);
   platzierungen.forEach(b=>{
-    if(b===exceptBlk || typVon(b)!==typ)return;
+    if(b===exceptBlk || typVon(b)!==key)return;
     for(let h=b.start;h<b.start+b.dauer&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:b.name,s:b.start,e:b.start+b.dauer,done:false};
   });
   erledigtListe(tagKeyAktuell()).forEach(e=>{
     if(e.s==null||e.e==null)return;
-    const v=findeVorlage(e.name); const et=(v&&v.typ)||e.name;
-    if(et!==typ)return;
+    const v=findeVorlage(e.name); const ek=maschineKey(v&&v.typ, e.name);
+    if(ek!==key)return;
     for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:e.name,s:e.s,e:e.e,done:true};
   });
   return belegt;
@@ -3687,7 +3696,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v40"; }
+{ const av=$("app-version"); if(av)av.textContent="v41"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
