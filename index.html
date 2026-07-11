@@ -270,6 +270,14 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .loeschen-knopf{width:100%;padding:13px;border:1.5px solid var(--rot);border-radius:15px;background:transparent;color:var(--rot);font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;transition:background var(--schnell)}
 .loeschen-knopf:active{background:var(--rot-hell)}
 details.experte{margin-top:8px;background:var(--papier);border-radius:14px;padding:14px 16px}
+/* Preis-Wissen: typische Börsenpreis-Tagesverläufe (aufklappbar im Tarif-Block) */
+.preiswissen{margin-top:16px}
+.pw-chart{width:100%;height:120px;display:block;background:var(--papier);border-radius:12px;margin-top:12px}
+.pw-achse{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--grau);margin:4px 2px 8px}
+.pw-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--grau);font-weight:600;margin:2px 0 10px}
+.pw-leg i{display:inline-block;width:16px;border-top:2.5px solid var(--grau);margin-right:5px;vertical-align:middle;border-radius:2px}
+.pw-tipp{font-size:12px;color:var(--tinte);line-height:1.5;margin-bottom:7px}
+.pw-tipp b{color:var(--nacht)}
 details.experte summary{font-size:12.5px;font-weight:600;color:var(--grau);cursor:pointer;list-style:none}
 details.experte summary::-webkit-details-marker{display:none}
 details.experte summary::after{content:"⌄";float:right;transition:transform var(--weich)}
@@ -872,6 +880,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div>👆 <b>Wischen im Tagesplan:</b> nach links = Gerät aus dem Tag, nach rechts = 📌 Zeit festhalten.</div>
     <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
     <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
+    <div>💶 <b>Dynamischer Tarif:</b> Wie Börsenpreise im Sommer/Winter typisch verlaufen, zeigt „Einrichten → 📈 Preis-Wissen".</div>
     <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Verlauf</b> (Protokoll).</div>
   </div>
 
@@ -907,6 +916,21 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
       <div class="frage" style="font-size:13px">Aufschlag deines Anbieters</div>
       <div class="hilfe">Der Börsenpreis ist der reine Einkaufspreis. Dein Anbieter packt darauf einen festen 'Aufschlag' (Netz, Steuern, Service). Die Summe ist dein tatsächlicher Preis pro kWh aus dem Netz.</div>
       <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
+      <details class="experte preiswissen">
+        <summary>📈 Preis-Wissen: typische Tagesverläufe</summary>
+        <svg class="pw-chart" id="pw-chart" viewBox="0 0 100 60" preserveAspectRatio="none" aria-label="Typische Börsenpreis-Verläufe über den Tag je Jahreszeit"></svg>
+        <div class="pw-achse"><span>0</span><span>6</span><span>12</span><span>18</span><span>24 Uhr</span></div>
+        <div class="pw-leg">
+          <span><i style="border-top-color:var(--sonne)"></i>☀️ Sommer</span>
+          <span><i style="border-top-style:dashed"></i>🍂 Übergang</span>
+          <span><i style="border-top-color:var(--netz)"></i>❄️ Winter</span>
+        </div>
+        <div class="pw-tipp">☀️ <b>Sommer:</b> Die PV-Schwemme drückt die Preise <b>mittags (11–16 Uhr)</b> stark – manchmal bis unter null. Deine eigene Sonne und das Börsen-Tief fallen zusammen: einfach mittags laufen lassen.</div>
+        <div class="pw-tipp">❄️ <b>Winter:</b> Kaum Sonne – am günstigsten ist es <b>nachts (ca. 2–5 Uhr)</b>, am teuersten der Abendhöcker <b>17–19 Uhr</b>. Praxis: E-Auto/Speicher nachts laden, den frühen Abend meiden.</div>
+        <div class="pw-tipp">🍂 <b>Übergang:</b> Mischform – Mittagstal vorhanden, aber flacher; nachts ebenfalls günstig. Grundmuster immer: <b>zwei teure Höcker</b> morgens (6–9 Uhr) und abends (17–21 Uhr).</div>
+        <div class="pw-tipp">💡 Quer dazu: <b>Wochenenden</b> und <b>windige Tage</b> sind meist günstiger als Werktage.</div>
+        <div class="hilfe" style="margin-top:4px">Schematische Typkurven (normiert, ohne Cent-Werte) – kein Live-Preis. Die echten Preise für heute &amp; morgen zeigt dir die lila Linie im Tagesplan.</div>
+      </details>
     </div>
     <div id="tarif-fest" hidden>
       <div class="frage" style="font-size:13px">Dein fester Arbeitspreis</div>
@@ -2984,6 +3008,25 @@ function tarifUI(){
   if($("tarif-dynamisch"))$("tarif-dynamisch").hidden=fest;
   if($("tarif-fest"))$("tarif-fest").hidden=!fest;
 }
+/* Preis-Wissen: normierte Typkurven der Börsenpreise je Jahreszeit (rein schematisch, 0..1).
+   25 Stützpunkte (0–24 Uhr, letzter = erster: der Tag geht nahtlos in den nächsten über). */
+(function(){
+  const svg=$("pw-chart"); if(!svg)return;
+  const wrap=v=>v.concat([v[0]]);
+  const kurven=[
+    {farbe:"var(--sonne)",dash:"",v:wrap([.45,.42,.40,.38,.38,.42,.52,.60,.58,.45,.30,.18,.10,.08,.10,.18,.30,.45,.58,.65,.68,.60,.52,.48])},   // Sommer: tiefes Mittagstal (PV)
+    {farbe:"var(--grau)",dash:"3 3",v:wrap([.42,.38,.35,.34,.35,.42,.58,.70,.72,.62,.50,.42,.38,.36,.38,.45,.55,.70,.80,.78,.68,.58,.50,.45])}, // Übergang: Mischform
+    {farbe:"var(--netz)",dash:"",v:wrap([.45,.40,.35,.33,.34,.40,.55,.75,.85,.80,.72,.68,.65,.63,.65,.70,.80,.95,1,.95,.82,.70,.60,.50])}       // Winter: Nacht-Tief, Abendhöcker
+  ];
+  let inner='<g stroke="var(--linie)" stroke-width=".4" opacity=".5">';
+  [0,6,12,18,24].forEach(h=>{const x=(h/24*100).toFixed(1);inner+='<line x1="'+x+'" y1="6" x2="'+x+'" y2="56"/>';});
+  inner+='</g>';
+  kurven.forEach(k=>{
+    const pts=k.v.map((v,h)=>(h/24*100).toFixed(1)+","+(55-45*v).toFixed(1)).join(" ");
+    inner+='<polyline points="'+pts+'" fill="none" stroke="'+k.farbe+'" stroke-width="1.6"'+(k.dash?' stroke-dasharray="'+k.dash+'"':'')+' stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+  });
+  svg.innerHTML=inner;
+})();
 function renderWahl(boxId,liste,aktiv,setzen){
   const box=$(boxId);box.innerHTML="";
   liste.forEach(([label,wert])=>{
@@ -3750,7 +3793,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v43"; }
+{ const av=$("app-version"); if(av)av.textContent="v44"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
