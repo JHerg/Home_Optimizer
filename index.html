@@ -903,9 +903,8 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div class="hilfe">Hast du einen dynamischen (stündlich wechselnden) Börsentarif oder einen festen Arbeitspreis?</div>
     <div class="wahl segmented" id="w-tarif" style="margin-bottom:14px"></div>
     <div id="tarif-dynamisch">
-      <div class="frage" style="font-size:13px">Dein dynamischer Stromanbieter</div>
-      <div class="hilfe">Alle dynamischen Tarife rechnen mit demselben Börsenpreis (EPEX-Spot). Die Auswahl dient der Anzeige – die Börsendaten kommen über die aWATTar-Schnittstelle.</div>
-      <div class="wahl" id="w-anbieter" style="margin-bottom:16px"></div>
+      <div class="hilfe">Alle dynamischen Tarife (Tibber, Ostrom, Rabot …) rechnen mit demselben Börsenpreis (EPEX-Spot, geholt über aWATTar). Nur der Aufschlag deines Anbieters unterscheidet sich – trag ihn hier ein.</div>
+      <div class="frage" style="font-size:13px">Aufschlag deines Anbieters</div>
       <div class="hilfe">Der Börsenpreis ist der reine Einkaufspreis. Dein Anbieter packt darauf einen festen 'Aufschlag' (Netz, Steuern, Service). Die Summe ist dein tatsächlicher Preis pro kWh aus dem Netz.</div>
       <div class="zahl-feld"><input id="f-aufschlag" value="18" inputmode="decimal"><span class="einheit">ct/kWh Aufschlag auf den Börsenpreis</span></div>
     </div>
@@ -1163,7 +1162,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 const $=id=>document.getElementById(id);
 
 let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},anbieter:"Ostrom",tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:""};
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:""};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -2820,7 +2819,7 @@ async function laden(force){
   letzterLoad=Date.now();
   const qs=$("quelle-stand"); if(qs)qs.textContent="Stand "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
   aktualisieren(); // blendet die Statuszeile aus – daher den Preis-Hinweis DANACH setzen
-  $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : (preisFehler ? cfg.anbieter+" (offline)" : cfg.anbieter);
+  $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : (preisFehler ? "Börse (offline)" : "Börse (EPEX-Spot)");
   $("quelle-sonne").textContent = r0.label;
   $("pv-fallback-hinweis").hidden = !r0.warnung;
   const st=$("status");
@@ -2979,7 +2978,6 @@ $("frage-nein").onclick=()=>frageFertig(false);
 /* Einrichtung */
 const richtungen=[["Süd",0],["Südwest",45],["West",90],["Südost",-45],["Ost",-90],["Nord",180]];
 const neigungen=[["Flach (~10°)",10],["Leicht geneigt (~25°)",25],["Normal steil (~35°)",35],["Steil (~45°)",45]];
-const anbieterListe=[["Ostrom","Ostrom"],["Tibber","Tibber"],["aWATTar","aWATTar"],["Rabot","Rabot"],["Octopus","Octopus"],["Anderer","Anderer"]];
 const tarifListe=[["Dynamisch","dynamisch"],["Fester Preis","fest"]];
 function tarifUI(){
   const fest=cfg.tarif==="fest";
@@ -3097,7 +3095,6 @@ $("btn-einrichten").onclick=()=>{
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-pvquelle",pvQuellen,cfg.pvQuelle||"fs",setzePvQuelle); pvQuelleHinweis();
-  renderWahl("w-anbieter",anbieterListe,cfg.anbieter,v=>{cfg.anbieter=v;$("quelle-preis").textContent=v;});
   renderWahl("w-tarif",tarifListe,cfg.tarif,v=>{cfg.tarif=v;tarifUI();});
   tarifUI();
   renderMeineVerwaltung();
@@ -3753,7 +3750,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v42"; }
+{ const av=$("app-version"); if(av)av.textContent="v43"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
