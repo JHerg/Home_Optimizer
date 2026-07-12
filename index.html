@@ -1085,6 +1085,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
         <div class="regler-kopf"><span>🔋 Speicherstand heute morgen</span><b id="rg-akku-val">5,0 kWh</b></div>
         <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
       </div>
+      <details class="experte" style="margin-top:12px">
+        <summary>ⓘ Wie der Speicher gerechnet wird</summary>
+        <div class="hilfe" style="margin-top:10px">✅ <b>Wird berücksichtigt:</b> In Sonnenkurve, Deckung &amp; Eigenverbrauch deckt der Speicher jede Stunde die Defizite – auch nachts und im Winter – bis er leer ist, danach kommt Netzstrom.</div>
+        <div class="hilfe" style="margin-top:8px">🌅 <b>Startwert:</b> dein oben eingestellter „Speicherstand heute morgen" – <b>keine Live-Messung</b> (ohne EMS-Anbindung). Der Tag wird von diesem Wert aus hochgerechnet; für <b>morgen</b> ist es eine Schätzung.</div>
+        <div class="hilfe" style="margin-top:8px">🎯 <b>Geräte-Empfehlung:</b> plant weiterhin <b>nur nach Sonne</b>, nicht nach Speicherstand – die App sagt also nicht „starte jetzt, weil der Speicher voll ist".</div>
+      </details>
     </div>
   </div>
   <div class="abschnitt">
@@ -4399,7 +4405,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v54"; }
+{ const av=$("app-version"); if(av)av.textContent="v55"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
