@@ -3212,6 +3212,10 @@ async function laden(force){
   const preisFehler=(preisRes.status==="rejected");
   letzterLoad=Date.now();
   const qs=$("quelle-stand"); if(qs)qs.textContent="Stand "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  // Frische Sonnen-/Preisdaten sind da → Platzierung neu rechnen. Sonst bliebe ein zuvor mit noch
+  // leeren Daten (z. B. Erststart vor der Adresseingabe) erzeugter „nicht einplanbar"-Stand hängen,
+  // weil die Signatur (Tag+Geräte) sich nicht ändert. Manuelle Positionen bleiben via cfg.plaene erhalten.
+  platzSig="";
   aktualisieren(); // blendet die Statuszeile aus – daher den Preis-Hinweis DANACH setzen
   $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : (preisFehler ? "Börse (offline)" : "Börse (EPEX-Spot)");
   $("quelle-sonne").textContent = r0.label;
@@ -4413,7 +4417,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v56"; }
+{ const av=$("app-version"); if(av)av.textContent="v57"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
