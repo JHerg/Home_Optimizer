@@ -1562,6 +1562,25 @@ function laufBilanz(arr,start,dauer,kwh){
   son=Math.min(son,kwh);
   return { son:Math.round(son*1000)/1000, spar:Math.round(sparCt*10)/10 };
 }
+// --- Rückwirkende SCHÄTZUNG für Alt-Läufe (keine echten Sonnen-/Preisdaten mehr vorhanden) ---
+const SCHAETZ_PREIS_CT=30; // pauschaler Netzpreis-Richtwert (ct/kWh) für geschätzte frühere Läufe
+function sonnenFenster(monat){ // typisches „gute Sonne"-Fenster [von,bis,stärke] je Monat (1–12)
+  if(monat>=5&&monat<=8) return [8,19,0.9];              // Sommer
+  if(monat===11||monat===12||monat<=2) return [10,15,0.4]; // Winter (schwach, kurz)
+  return [9,17,0.7];                                     // Übergang
+}
+function schaetzeLaufBilanz(dateStr,start,dauer,kwh){
+  if(start==null||!dauer||!kwh)return null;
+  const monat=parseInt((dateStr||"").slice(5,7),10)||6;
+  const f=sonnenFenster(monat), be=start+dauer; let inSonne=0;
+  for(let h=Math.floor(start);h<Math.ceil(be);h++){
+    const overlap=Math.max(0,Math.min(be,h+1)-Math.max(start,h));
+    if(h>=f[0]&&h<f[1])inSonne+=overlap;
+  }
+  const anteil=Math.max(0,Math.min(1,(inSonne/dauer)*f[2]));
+  const son=Math.round(kwh*anteil*1000)/1000;
+  return { son, spar:Math.round(son*SCHAETZ_PREIS_CT*10)/10, est:1 };
+}
 function protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bilanz){
   cfg.verlauf=cfg.verlauf||{};
   let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>vDatum(e)!==tagKey); // gleicher Tag: ersetzen
@@ -2874,7 +2893,7 @@ function renderVerlauf(){
     (cfg.verlauf[name]||[]).forEach(e=>{
       const d=vDatum(e); if(!d)return; const obj=(typeof e==="object");
       alle.push({ name, icon:(obj&&e.i)?e.i:(v?v.icon:"•"), dauer:(obj&&e.du!=null)?e.du:(v?v.dauer:null),
-        d, s:obj?e.s:null, k:obj?e.k:null, son:(obj&&e.son!=null)?e.son:null, spar:(obj&&e.spar!=null)?e.spar:null });
+        d, s:obj?e.s:null, k:obj?e.k:null, son:(obj&&e.son!=null)?e.son:null, spar:(obj&&e.spar!=null)?e.spar:null, est:(obj&&e.est)?1:0 });
     });
   });
   if(!alle.length){
@@ -2886,8 +2905,8 @@ function renderVerlauf(){
   const fenster = bilanzZeitraum==="woche"?7:(bilanzZeitraum==="monat"?30:99999);
   const imFenster=x=>(heuteMs-Date.parse(x.d+"T12:00:00Z"))<fenster*86400000;
   const F=alle.filter(imFenster);
-  let son=0,netz=0,sparCt=0,bewertet=0;
-  F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son); if(x.spar!=null)sparCt+=x.spar; } });
+  let son=0,netz=0,sparCt=0,bewertet=0,hatEst=false;
+  F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son); if(x.spar!=null)sparCt+=x.spar; if(x.est)hatEst=true; } });
   const quote=(son+netz)>0?Math.round(son/(son+netz)*100):0;
   const co2=son*CO2_FAKTOR, serie=serieTage(alle);
   const zLbl = bilanzZeitraum==="woche"?"diese Woche":(bilanzZeitraum==="monat"?"diesen Monat":"insgesamt");
@@ -2917,7 +2936,7 @@ function renderVerlauf(){
       '<div class="wk-balken-titel">Sonne genutzt · letzte 7 Tage</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
       (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
-      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. Werte seit Aufzeichnung; ältere Läufe ohne Auswertung zählen nur in der Tabelle.</div>'+
+      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
     '</div>'+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -3875,6 +3894,18 @@ function seedPresets(){
     geraete.forEach(g=>{ if((g.anzahl||0)>0 && m[g.name]==null) m[g.name]=g.anzahl; });
     cfg.tagAnzahlMig1=true;geaendert=true;
   }
+  // „Deine Wirkung" rückwirkend: Alt-Läufe mit Start/kWh, aber ohne Bilanz, einmalig schätzen.
+  if(!cfg.wirkungBackfill1){
+    if(cfg.verlauf)Object.keys(cfg.verlauf).forEach(name=>{
+      (cfg.verlauf[name]||[]).forEach(e=>{
+        if(e&&typeof e==="object"&&e.son==null&&e.s!=null&&e.k!=null){
+          const b=schaetzeLaufBilanz(e.d,e.s,(e.du!=null?e.du:1),e.k);
+          if(b){e.son=b.son;e.spar=b.spar;e.est=1;}
+        }
+      });
+    });
+    cfg.wirkungBackfill1=true;geaendert=true;
+  }
   if(geaendert)speichern();
 }
 
@@ -4002,7 +4033,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v47"; }
+{ const av=$("app-version"); if(av)av.textContent="v48"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
