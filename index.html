@@ -280,6 +280,13 @@ details.experte{margin-top:8px;background:var(--papier);border-radius:14px;paddi
 .pw-tipp b{color:var(--nacht)}
 /* Demo-Tour: Startknopf in der Hilfe + Steuer-Overlay */
 .demo-start-btn{background:var(--papier);color:var(--knopf);box-shadow:none;font-weight:700}
+/* Vertrauen / Social Proof (#10) */
+.vertrauen{background:var(--papier);border-radius:15px;padding:14px;margin:16px 0 6px}
+.vt-titel{font-size:13.5px;font-weight:700;color:var(--nacht);margin-bottom:10px}
+.vt-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.vt-chips span{background:var(--karte);border:.5px solid var(--linie);border-radius:999px;padding:6px 11px;font-size:11.5px;font-weight:600;color:var(--tinte)}
+.vt-tx{font-size:12px;color:var(--grau);line-height:1.55}
+.teilen-btn{background:var(--gruen-hell);color:var(--gruen);box-shadow:none;font-weight:700}
 #demo-overlay{position:fixed;inset:0;z-index:40;pointer-events:none}
 #demo-overlay .demo-badge{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--nacht);color:#fff;font-size:11px;font-weight:700;padding:5px 13px;border-radius:999px;box-shadow:var(--schatten);letter-spacing:.02em}
 #demo-overlay .demo-bar{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:var(--karte);border:1.5px solid var(--sonne);border-radius:18px;box-shadow:0 -6px 26px rgba(16,35,58,.20), var(--schatten-lg);padding:12px 13px;pointer-events:auto}
@@ -681,6 +688,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .eo-eingang{animation:eo-eingang .5s cubic-bezier(.22,.61,.36,1) both}
 #konfetti{position:fixed;inset:0;z-index:45;pointer-events:none}
 @media (prefers-reduced-motion: reduce){ .skel{animation:none} .eo-eingang{animation:none} }
+/* Barrierefreiheit (#8a): sichtbarer Fokus nur für Tastatur/Switch-Control (nicht bei Touch) */
+button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.tab:focus-visible,label:focus-visible{outline:3px solid var(--sonne);outline-offset:2px;border-radius:9px}
+@media (prefers-contrast: more){ :root{--grau:#4A5867} :root[data-theme="dark"]{--grau:#AEBCCA} }
 .vl-lern{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
 .vl-lern:last-of-type{border-bottom:none;margin-bottom:8px}
 .vl-ic{font-size:19px;line-height:1;flex-shrink:0}
@@ -786,7 +796,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <button class="knopf-aktualisieren" id="btn-einrichten" aria-label="Einrichten" title="Einrichten">⚙️</button>
   </div>
 </div>
-<div class="status" id="status" hidden>Lade Sonnen- und Preisdaten…</div>
+<div class="status" id="status" role="status" aria-live="polite" hidden>Lade Sonnen- und Preisdaten…</div>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Die gewählte Sonnenquelle war nicht erreichbar – die Prognose kommt gerade von der Ausweichquelle und kann ungenauer sein, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
 
@@ -927,9 +937,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
     <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
     <div>💶 <b>Dynamischer Tarif:</b> Wie Börsenpreise im Sommer/Winter typisch verlaufen, zeigt „Einrichten → 📈 Preis-Wissen".</div>
-    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Verlauf</b> (Protokoll).</div>
+    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
   </div>
 
+  <div class="vertrauen">
+    <div class="vt-titel">🔒 Warum du der App vertrauen kannst</div>
+    <div class="vt-chips"><span>📵 Kein Konto</span><span>🏠 100 % lokal</span><span>🚫 Kein Tracking</span><span>☁️ Keine Cloud</span></div>
+    <div class="vt-tx">Alles läuft direkt in deinem Browser – deine Daten bleiben auf deinem Gerät. Offene, überprüfbare Datenquellen (Open-Meteo, aWATTar, OpenStreetMap). Die App <b>berät nur</b> – starten musst du selbst.</div>
+  </div>
+
+  <button class="hilfe-fertig teilen-btn" id="btn-teilen">❤️ Gefällt dir? App teilen</button>
   <button class="hilfe-fertig demo-start-btn" id="btn-demo-start">▶ Demo-Tour ansehen (läuft automatisch ab)</button>
   <button class="hilfe-fertig" data-zu>Los geht's</button>
 </div>
@@ -3603,10 +3620,14 @@ $("btn-b-loeschen").onclick=async()=>{
 /* Tag-Umschalter (Heute / Morgen / Woche) */
 function setzeTag(t){
   tag=t;
-  document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===t)); // schwebende Tab-Leiste
+  document.querySelectorAll(".tabbar .tab").forEach(b=>{const an=b.dataset.tag===t; b.classList.toggle("on",an); b.setAttribute("aria-selected",an?"true":"false");}); // schwebende Tab-Leiste
   aktualisieren();
 }
-document.querySelectorAll(".tabbar .tab").forEach(b=>b.onclick=()=>setzeTag(b.dataset.tag));
+document.querySelectorAll(".tabbar .tab").forEach(b=>{
+  b.setAttribute("role","tab"); b.setAttribute("aria-selected",b.dataset.tag===tag?"true":"false");
+  const svg=b.querySelector("svg"); if(svg)svg.setAttribute("aria-hidden","true");
+  b.onclick=()=>setzeTag(b.dataset.tag);
+});
 document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag)); // Startzustand markieren
 
 /* Routinen anlegen / bearbeiten */
@@ -4024,6 +4045,17 @@ function demoEnde(){
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag));
   aktualisieren();
 }
+// #10: App teilen – echtes Teilen (Web Share, iOS-fähig) statt erfundener Reviews.
+function appTeilen(){
+  const url=location.href.split("#")[0];
+  const daten={title:"Energie-Optimierer", text:"Plane deine Geräte in die Sonne und spare Netzstrom – 100 % lokal, kein Konto.", url};
+  try{
+    if(navigator.share){ navigator.share(daten).catch(()=>{}); return; }
+  }catch(e){}
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>zeigeToast("🔗 Link kopiert – zum Teilen einfügen",null)).catch(()=>zeigeToast(url,null)); }
+  else zeigeToast(url,null);
+}
+if($("btn-teilen"))$("btn-teilen").onclick=appTeilen;
 if($("btn-demo-start"))$("btn-demo-start").onclick=demoStart;
 if($("demo-prev"))$("demo-prev").onclick=()=>demoGoto(demoIdx-1,true);
 if($("demo-next"))$("demo-next").onclick=()=>demoGoto(demoIdx+1,true);
@@ -4084,7 +4116,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v49"; }
+{ const av=$("app-version"); if(av)av.textContent="v50"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();

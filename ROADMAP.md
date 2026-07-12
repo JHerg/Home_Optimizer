@@ -16,8 +16,8 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 |---|------|---------|--------|----------------|--------|--------|
 | 2 | „Deine Wirkung"-Statistik: € gespart, kWh in die Sonne verschoben, CO₂, Serie/Streak | niedrig–mittel | hoch | nein | 🟢 Sofort | ✅ v47 |
 | 6 | Motion & Haptik: Vibration beim Bestätigen, Federanimationen, Konfetti bei 100 %, Skeleton-Loader | niedrig | mittel | nein | 🟢 Sofort | ✅ v49 |
-| 8a | Barrierefreiheit: Dynamic Type/Schriftgröße, VoiceOver, Kontrast | niedrig–mittel | mittel | nein | 🟢 Sofort | ⬜ |
-| 10 | Vertrauen/Social Proof: Testimonials, „100 % lokal" prominenter, Bewertungs-Prompt | niedrig | niedrig–mittel | nein | 🟢 Sofort | ⬜ |
+| 8a | Barrierefreiheit: Dynamic Type/Schriftgröße, VoiceOver, Kontrast | niedrig–mittel | mittel | nein | 🟢 Sofort | ✅ v50 |
+| 10 | Vertrauen/Social Proof: „100 % lokal" prominenter + App-teilen (Web Share); KEINE erfundenen Testimonials | niedrig | niedrig–mittel | nein | 🟢 Sofort | ✅ v50 |
 | 4 | Onboarding-„Aha" in 30 s: geführter Erststart (Adresse → sofort deine Sonne) | mittel | mittel–hoch | nein | 🟡 Mittel | ⬜ |
 | 7 | Wochen-/Mehrtages-Ausblick: „bester Tag diese Woche" (nur Sonne/Wetter über morgen hinaus) | mittel | mittel | nein | 🟡 Mittel | ⬜ |
 | 1 | Proaktive Push-Erinnerungen / Timing-Nudges | hoch | sehr hoch | ja (VAPID) | 🔴 Groß | ⬜ |
