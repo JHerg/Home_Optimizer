@@ -650,6 +650,27 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .vl-bilanz{background:var(--gruen-hell);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--tinte);margin-bottom:16px}
 .vl-bilanz b{color:var(--gruen);font-weight:700}
 .vl-titel{font-size:12px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 8px}
+/* „Deine Wirkung"-Bilanz */
+.wirkung{margin-bottom:18px}
+.wk-seg{display:flex;background:var(--papier);border:.5px solid var(--linie);border-radius:12px;padding:3px;margin-bottom:14px}
+.wk-seg-b{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 6px;font-size:12.5px;font-weight:600;color:var(--grau);cursor:pointer;transition:background var(--schnell),color var(--schnell)}
+.wk-seg-b.an{background:var(--karte);color:var(--nacht);box-shadow:0 1px 3px rgba(20,31,44,.16),0 0 0 .5px rgba(20,31,44,.05)}
+.wk-hero{text-align:center;background:var(--gruen-hell);border-radius:16px;padding:16px 12px;margin-bottom:12px}
+.wk-euro{display:block;font-size:34px;font-weight:800;color:var(--gruen);line-height:1.05;letter-spacing:-.02em}
+.wk-hero-lbl{display:block;font-size:12px;color:var(--grau);font-weight:600;margin-top:3px}
+.wk-kacheln{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.wk-kachel{background:var(--papier);border-radius:13px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+.wk-k-ic{font-size:20px}
+.wk-k-tx{display:flex;flex-direction:column;gap:2px}
+.wk-k-tx b{font-size:14px;font-weight:800;color:var(--nacht);font-family:var(--mono)}
+.wk-k-tx span{font-size:10px;color:var(--grau);line-height:1.25}
+.wk-balken-titel{font-size:11px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
+.wk-balken{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:64px;padding:0 2px;margin-bottom:12px}
+.wk-bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.wk-bar{width:100%;max-width:26px;background:linear-gradient(var(--sonne),var(--gruen));border-radius:5px 5px 3px 3px;min-height:4px;transition:height var(--weich)}
+.wk-bd{font-size:10px;color:var(--grau);font-family:var(--mono)}
+.wk-teilen{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--tinte);font-weight:600;text-align:center;margin-bottom:10px}
+.wk-hinweis{font-size:10.5px;color:var(--grau);line-height:1.5}
 .vl-lern{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
 .vl-lern:last-of-type{border-bottom:none;margin-bottom:8px}
 .vl-ic{font-size:19px;line-height:1;flex-shrink:0}
@@ -803,7 +824,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 </section>
 
 <section class="karte" id="karte-verlauf" hidden>
-  <div class="untertitel" style="margin-top:2px">Was tatsächlich gelaufen ist – daraus lernt die App deine Rhythmen. Alles bleibt lokal auf deinem Gerät.</div>
+  <div class="untertitel" style="margin-top:2px">Deine Wirkung: gespartes Geld, genutzte Sonne, vermiedenes CO₂ – plus alle Läufe, aus denen die App lernt. Alles bleibt lokal auf deinem Gerät.</div>
   <div id="verlauf-inhalt"></div>
 </section>
 
@@ -812,7 +833,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="tab" data-tag="heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/></svg><span>Heute</span></button>
   <button class="tab" data-tag="morgen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><path d="M12 9V4M12 4l-2 2M12 4l2 2M3 18h18M5.5 14l1.4-1.4M18.5 14l-1.4-1.4"/></svg><span>Morgen</span></button>
   <button class="tab" data-tag="woche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9h17M8 3v3M16 3v3"/></svg><span>Woche</span></button>
-  <button class="tab" data-tag="verlauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v4h4"/><path d="M12 8v4l3 2"/></svg><span>Verlauf</span></button>
+  <button class="tab" data-tag="verlauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v4h4"/><path d="M12 8v4l3 2"/></svg><span>Bilanz</span></button>
 </nav>
 
 <!-- Einrichtung -->
@@ -1523,11 +1544,30 @@ function deviceKey(g){return (g.typ||"")+"|"+g.name;}
 function vDatum(e){return typeof e==="string"?e:(e&&e.d);}
 // Ein bestätigter Lauf (Häkchen "schon gelaufen") wird selbstständig protokolliert:
 // Tag, Startstunde, kWh, Icon und Laufzeit – damit der Verlauf auch nach Gerätelöschung vollständig bleibt.
-function protokolliereLauf(name,tagKey,start,kwh,icon,dauer){
+const CO2_FAKTOR=0.38; // kg CO₂ je kWh Netzstrom (dt. Strommix, grober Richtwert)
+// Sonnen-/Netz-Bilanz EINES Laufs im Moment der Bestätigung (aus dem Tages-Datensatz arr):
+// wie viel freie Sonne den Lauf deckte (kWh) und wie viel Netzstrom-Geld das spart (ct).
+function laufBilanz(arr,start,dauer,kwh){
+  if(!arr||start==null||!dauer||!kwh)return null;
+  const devKW=kwh/dauer, base=Math.max(0,(cfg.schwelle||0)/1000), be=start+dauer;
+  let son=0, sparCt=0;
+  for(let h=Math.floor(start);h<Math.ceil(be)&&h<24;h++){
+    if(h<0)continue; const s=arr[h]; if(!s)continue;
+    const overlap=Math.max(0,Math.min(be,h+1)-Math.max(start,h));       // Std-Anteil dieser Stunde
+    const frei=Math.max(0,(s.pv||0)/1000-base);                         // freie Sonne (kW) über Grundlast
+    const sonKwhH=Math.min(devKW,frei)*overlap;
+    son+=sonKwhH;
+    if(s.voll!=null)sparCt+=sonKwhH*s.voll;                             // gesparter Netzeinkauf (ct)
+  }
+  son=Math.min(son,kwh);
+  return { son:Math.round(son*1000)/1000, spar:Math.round(sparCt*10)/10 };
+}
+function protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bilanz){
   cfg.verlauf=cfg.verlauf||{};
   let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>vDatum(e)!==tagKey); // gleicher Tag: ersetzen
   const e={d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)};
   if(icon)e.i=icon; if(dauer!=null)e.du=dauer;
+  if(bilanz){ if(bilanz.son!=null)e.son=bilanz.son; if(bilanz.spar!=null)e.spar=bilanz.spar; }
   l.push(e);
   l.sort((a,b)=>vDatum(a)<vDatum(b)?-1:1);
   if(l.length>60)l=l.slice(l.length-60);            // Speicher deckeln
@@ -2101,7 +2141,7 @@ function wireErledigt(tagKey){
     if(!res)return;
     e.s=res.s; e.e=res.e;
     // Lern-Historie dieses Tages an die geänderte Laufzeit anpassen (Startzeit + Dauer)
-    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s);
+    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s,laufBilanz(aktuelleStunden,e.s,e.e-e.s,e.k));
     speichern();platzSig="";aktualisieren(); // echtes Fenster fließt in Belegung/Reservierung ein → Rest wird frei
   });
 }
@@ -2112,7 +2152,8 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   if(start!=null){e.s=start; if(dauer!=null)e.e=start+dauer;} // Laufzeitfenster für Übersicht + Lernen
   if(kwh!=null)e.k=kwh;                       // benötigte Energie des Durchgangs
   cfg.erledigt[tagKey].push(e);              // ein Eintrag = ein erledigter Durchgang
-  protokolliereLauf(name,tagKey,start,kwh,icon,dauer); // dauerhaft fürs Lernen (Rhythmus, Uhrzeit, kWh, Icon)
+  const bil=laufBilanz(aktuelleStunden,start,dauer,kwh); // Sonnen-/Spar-Bilanz dieses Laufs mitloggen
+  protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bil); // dauerhaft fürs Lernen + „Deine Wirkung"
   speichern();platzSig="";aktualisieren();
 }
 /* ===== A1: Fällige Läufe – beim Öffnen offene, zeitlich abgelaufene Geräte bestätigen ===== */
@@ -2641,7 +2682,7 @@ function aktualisieren(){
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
     const eb=$("kopf-eyebrow"); if(eb)eb.textContent="Energie-Optimierer";
     if(tag==="woche"){ $("titel").textContent="Woche"; renderWoche(); }
-    else { $("titel").textContent="Verlauf"; renderVerlauf(); }
+    else { $("titel").textContent="Bilanz"; renderVerlauf(); }
     return;
   }
   tageskarten(true);
@@ -2815,43 +2856,73 @@ function alsRoutineUebernehmen(name){
 function kurzDatum(d){ return WOCHENTAG_KURZ[wochentagVonKey(d)]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."; }
 function kurzName(n){ return n.replace(/^[^:]+:\s*/,""); }
 // Verlaufs-Reiter: gelernte Rhythmen + vollständige Lauf-Tabelle (Tag · Gerät · Zeit · kWh).
+let bilanzZeitraum="woche"; // "woche" | "monat" | "gesamt"
+function vortagStr(d){ return new Date(Date.parse(d+"T12:00:00Z")-86400000).toISOString().slice(0,10); }
+// Serie: aufeinanderfolgende Tage (bis heute/gestern) mit mind. einem sonnig gedeckten Lauf.
+function serieTage(alle){
+  const set=new Set(alle.filter(x=>x.son>0).map(x=>x.d));
+  let cur=heuteStr(); if(!set.has(cur))cur=vortagStr(cur);
+  let n=0; while(set.has(cur)){ n++; cur=vortagStr(cur); }
+  return n;
+}
 function renderVerlauf(){
   const box=$("verlauf-inhalt"); if(!box)return;
   const namen=Object.keys(cfg.verlauf||{});
-  // Alle Läufe flach + chronologisch (neueste zuerst)
   const alle=[];
   namen.forEach(name=>{
     const v=findeVorlage(name);
     (cfg.verlauf[name]||[]).forEach(e=>{
-      const d=vDatum(e); if(!d)return;
-      const obj=(typeof e==="object");
-      const s=obj?e.s:null, k=obj?e.k:null;
-      const icon=(obj&&e.i)?e.i:(v?v.icon:"•");
-      const dauer=(obj&&e.du!=null)?e.du:(v?v.dauer:null);
-      alle.push({name, icon, dauer, d, s, k});
+      const d=vDatum(e); if(!d)return; const obj=(typeof e==="object");
+      alle.push({ name, icon:(obj&&e.i)?e.i:(v?v.icon:"•"), dauer:(obj&&e.du!=null)?e.du:(v?v.dauer:null),
+        d, s:obj?e.s:null, k:obj?e.k:null, son:(obj&&e.son!=null)?e.son:null, spar:(obj&&e.spar!=null)?e.spar:null });
     });
   });
   if(!alle.length){
-    box.innerHTML='<div class="vl-leer">Noch nichts protokolliert.<br>Sobald du ein Gerät als „✓ schon gelaufen" abhakst, erscheint es hier – und die App lernt daraus deinen Rhythmus.</div>';
+    box.innerHTML='<div class="vl-leer">Noch keine Daten.<br>Sobald du Läufe als „✓ gelaufen" bestätigst, füllt sich hier deine <b>Wirkung</b> – gespartes Geld, genutzte Sonne, vermiedenes CO₂ – und die App lernt deinen Rhythmus.</div>';
     return;
   }
   alle.sort((a,b)=> a.d<b.d?1:(a.d>b.d?-1:((b.s||0)-(a.s||0))));
-  // Wochenbilanz (letzte 7 Tage)
-  const heute=Date.parse(heuteStr()+"T12:00:00Z");
-  const woche=alle.filter(x=>(heute-Date.parse(x.d+"T12:00:00Z"))<7*86400000);
-  const wKwh=woche.reduce((a,x)=>a+(x.k||0),0);
-  // Tabelle (max. 60 jüngste Läufe)
+  const heuteMs=Date.parse(heuteStr()+"T12:00:00Z");
+  const fenster = bilanzZeitraum==="woche"?7:(bilanzZeitraum==="monat"?30:99999);
+  const imFenster=x=>(heuteMs-Date.parse(x.d+"T12:00:00Z"))<fenster*86400000;
+  const F=alle.filter(imFenster);
+  let son=0,netz=0,sparCt=0,bewertet=0;
+  F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son); if(x.spar!=null)sparCt+=x.spar; } });
+  const quote=(son+netz)>0?Math.round(son/(son+netz)*100):0;
+  const co2=son*CO2_FAKTOR, serie=serieTage(alle);
+  const zLbl = bilanzZeitraum==="woche"?"diese Woche":(bilanzZeitraum==="monat"?"diesen Monat":"insgesamt");
+  // 7-Tage-Balken (Sonnen-kWh je Tag)
+  let maxTag=0.001; const tage=[];
+  for(let i=6;i>=0;i--){ const dk=new Date(heuteMs-i*86400000).toISOString().slice(0,10);
+    const sum=alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0); tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
+  const balken=tage.map(t=>{const wd=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(t.dk+"T12:00:00Z").getUTCDay()];
+    return '<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd">'+wd+'</span></div>';}).join("");
+  const seg=(w,l)=>'<button class="wk-seg-b'+(bilanzZeitraum===w?" an":"")+'" data-z="'+w+'">'+l+'</button>';
+  const kachel=(ic,wert,lbl)=>'<div class="wk-kachel"><span class="wk-k-ic">'+ic+'</span><span class="wk-k-tx"><b>'+wert+'</b><span>'+lbl+'</span></span></div>';
+  // Tabelle
   let rows="";
   alle.slice(0,60).forEach(x=>{
     const zeit = x.s!=null ? (uhrStr(x.s)+(x.dauer!=null?"–"+uhrStr(x.s+x.dauer):"")+" Uhr") : "–";
-    const kwh = x.k!=null ? dz(x.k) : "–";
-    rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+kwh+'</td></tr>';
+    rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+(x.k!=null?dz(x.k):"–")+'</td></tr>';
   });
   box.innerHTML=
-    '<div class="vl-bilanz">Letzte 7 Tage: <b>'+woche.length+'</b> '+(woche.length===1?'Lauf':'Läufe')+' · <b>'+dz(wKwh.toFixed(1))+' kWh</b> in die Sonne verschoben</div>'+
+    '<div class="wirkung">'+
+      '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("gesamt","Gesamt")+'</div>'+
+      '<div class="wk-hero"><span class="wk-euro" data-eur="'+(sparCt/100)+'">'+euro(sparCt/100)+'</span><span class="wk-hero-lbl">gespart · '+zLbl+'</span></div>'+
+      '<div class="wk-kacheln">'+
+        kachel("☀️",dz(son.toFixed(1))+" kWh",'aus eigener Sonne'+(son+netz>0?" · "+quote+"%":""))+
+        kachel("🌱",dz(co2.toFixed(1))+" kg",'CO₂ vermieden')+
+        kachel("🔥",serie+(serie===1?" Tag":" Tage"),'Serie')+
+      '</div>'+
+      '<div class="wk-balken-titel">Sonne genutzt · letzte 7 Tage</div>'+
+      '<div class="wk-balken">'+balken+'</div>'+
+      (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
+      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. Werte seit Aufzeichnung; ältere Läufe ohne Auswertung zählen nur in der Tabelle.</div>'+
+    '</div>'+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-  box.querySelectorAll(".vl-bilanz b").forEach((b,i)=>zaehlElement(b,"vlbil"+i));
+  box.querySelectorAll(".wk-seg-b").forEach(b=>b.onclick=()=>{ bilanzZeitraum=b.dataset.z; renderVerlauf(); });
+  box.querySelectorAll(".wk-kachel b, .wk-hero .wk-euro").forEach((el,i)=>zaehlElement(el,"wk"+bilanzZeitraum+i));
 }
 let letzterLoad=0;
 async function laden(force){
@@ -3931,7 +4002,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v46"; }
+{ const av=$("app-version"); if(av)av.textContent="v47"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
