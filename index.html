@@ -282,8 +282,9 @@ details.experte{margin-top:8px;background:var(--papier);border-radius:14px;paddi
 .demo-start-btn{background:var(--papier);color:var(--knopf);box-shadow:none;font-weight:700}
 #demo-overlay{position:fixed;inset:0;z-index:40;pointer-events:none}
 #demo-overlay .demo-badge{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--nacht);color:#fff;font-size:11px;font-weight:700;padding:5px 13px;border-radius:999px;box-shadow:var(--schatten);letter-spacing:.02em}
-#demo-overlay .demo-bar{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:18px;box-shadow:var(--schatten-lg);padding:13px 15px;pointer-events:auto}
-.demo-cap{font-size:13.5px;color:var(--nacht);line-height:1.45;font-weight:500;min-height:38px}
+#demo-overlay .demo-bar{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:var(--karte);border:1.5px solid var(--sonne);border-radius:18px;box-shadow:0 -6px 26px rgba(16,35,58,.20), var(--schatten-lg);padding:12px 13px;pointer-events:auto}
+.demo-cap-kopf{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--sonne);margin-bottom:7px}
+.demo-cap{font-size:14px;color:var(--nacht);line-height:1.5;font-weight:500;min-height:40px;background:var(--papier);border-left:3px solid var(--sonne);border-radius:11px;padding:11px 13px}
 .demo-cap b{font-weight:700}
 .demo-ctrl{display:flex;align-items:center;gap:8px;margin-top:11px}
 .demo-prog{font-family:var(--mono);font-size:11px;color:var(--grau);margin-right:auto}
@@ -1199,6 +1200,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 <div id="demo-overlay" hidden>
   <div class="demo-badge">▶ Demo-Tour</div>
   <div class="demo-bar">
+    <div class="demo-cap-kopf">💡 Demo · was gerade passiert</div>
     <div class="demo-cap" id="demo-cap"></div>
     <div class="demo-ctrl">
       <span class="demo-prog" id="demo-prog"></span>
@@ -3929,7 +3931,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v45"; }
+{ const av=$("app-version"); if(av)av.textContent="v46"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
