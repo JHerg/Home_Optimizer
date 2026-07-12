@@ -678,6 +678,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .wk-bd{font-size:10px;color:var(--grau);font-family:var(--mono)}
 .wk-teilen{background:var(--karte);border:1px solid var(--linie);border-radius:12px;padding:10px 12px;font-size:12.5px;color:var(--tinte);font-weight:600;text-align:center;margin-bottom:10px}
 .wk-hinweis{font-size:10.5px;color:var(--grau);line-height:1.5}
+/* Bilanz-Umfang: nur selbst geplante Geräte/Routinen (kein EMS-Hintergrund) */
+.wk-scope{display:flex;align-items:flex-start;gap:6px;font-size:11.5px;color:var(--grau);line-height:1.4;margin:-4px 2px 12px;text-align:left}
+.wk-scope b{color:var(--tinte);font-weight:700}
+details.wk-scope-det{margin:11px 0 0;background:var(--papier);border-radius:12px;padding:11px 13px}
+details.wk-scope-det summary{font-size:12px;font-weight:700;color:var(--tinte);cursor:pointer;list-style:none}
+details.wk-scope-det summary::-webkit-details-marker{display:none}
+details.wk-scope-det summary::after{content:"⌄";float:right;transition:transform var(--weich)}
+details.wk-scope-det[open] summary::after{transform:rotate(180deg)}
+.wk-scope-det .sc-row{display:flex;gap:8px;margin-top:10px}
+.wk-scope-det .sc-ic{flex-shrink:0;font-size:14px;line-height:1.4}
+.wk-scope-det .sc-tx{font-size:11.5px;color:var(--grau);line-height:1.45}
+.wk-scope-det .sc-tx b{color:var(--nacht);font-weight:700}
+.wk-scope-det .sc-tip{margin-top:10px;padding-top:9px;border-top:1px dashed var(--linie);font-size:11px;color:var(--grau);line-height:1.45}
+.wk-scope-det .sc-tip b{color:var(--tinte);font-weight:700}
 /* Motion & Feier (#6) – dezent, respektiert „Bewegung reduzieren" */
 @keyframes eo-shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
 .skel{border-radius:14px;background:linear-gradient(90deg,var(--papier) 25%,var(--linie) 50%,var(--papier) 75%);background-size:360px 100%;animation:eo-shimmer 1.15s linear infinite}
@@ -3127,6 +3141,7 @@ function renderVerlauf(){
     '<div class="wirkung">'+
       '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("gesamt","Gesamt")+'</div>'+
       '<div class="wk-hero"><span class="wk-euro" data-eur="'+(sparCt/100)+'">'+euro(sparCt/100)+'</span><span class="wk-hero-lbl">gespart · '+zLbl+'</span></div>'+
+      '<div class="wk-scope">🎯 <span>Zählt nur deine <b>eingeplanten Geräte &amp; Routinen</b> – nicht die vom EMS gesteuerten Hintergrundverbraucher.</span></div>'+
       '<div class="wk-kacheln">'+
         kachel("☀️",dz(son.toFixed(1))+" kWh",'aus eigener Sonne'+(son+netz>0?" · "+quote+"%":""))+
         kachel("🌱",dz(co2.toFixed(1))+" kg",'CO₂ vermieden')+
@@ -3136,6 +3151,13 @@ function renderVerlauf(){
       '<div class="wk-balken">'+balken+'</div>'+
       (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
       '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<details class="wk-scope-det">'+
+        '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
+        '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
+        '<div class="sc-row"><span class="sc-ic">🚫</span><span class="sc-tx"><b>Zählt (noch) nicht:</b> Wärmepumpe, Speicher-/Akku-Ladung und andere automatische Dauerlasten – die steuert dein <b>Energiemanager (EMS)</b> selbst. Ohne EMS-Anbindung kann die App sie nicht messen.</span></div>'+
+        '<div class="sc-row"><span class="sc-ic">🏠</span><span class="sc-tx">Deine <b>Grundlast</b> (Kühlschrank, WP im Hintergrund …) rechnen wir vorab von der freien Sonne ab – gezählt wird nur, was deine geplanten Geräte <b>zusätzlich</b> aus der Sonne holen.</span></div>'+
+        '<div class="sc-tip">⚠️ Läuft im Hintergrund gerade mehr als deine eingestellte Grundlast (z. B. die Wärmepumpe heizt), kann die angezeigte Sonnen-Nutzung etwas <b>zu hoch</b> sein – ohne EMS merkt die App das nicht. Tipp: die <b>Grundlast im Schnitt etwas höher</b> ansetzen, dann passt es über den Tag betrachtet besser.</div>'+
+      '</details>'+
     '</div>'+
     '<div class="vl-titel">Alle Läufe</div>'+
     '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -4257,8 +4279,8 @@ const DEMO_STEPS=[
     run:()=>{ demoClose(); setzeTag("woche"); const b=$("woche-ausblick"); if(b)b.scrollIntoView({block:"start"}); demoSpot("#woche-ausblick"); }, wait:8000 },
   { cap:"🔁 <b>Routinen & Rhythmen:</b> Feste Abläufe (z. B. Bettwäsche freitags) trägst du einmal ein – darunter erkennt die App auch <b>selbst gelernte Muster</b> aus deinen Läufen.",
     run:()=>{ demoClose(); setzeTag("woche"); const r=$("routine-liste"); if(r)r.scrollIntoView({block:"center"}); demoSpot("#routine-liste"); }, wait:7500 },
-  { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – <b>gespartes Geld</b>, genutzte Sonne, vermiedenes CO₂ und deine <b>Serie</b>. Motiviert, dranzubleiben.",
-    run:()=>{ demoClose(); setzeTag("verlauf"); const w=document.querySelector(".wirkung"); if(w)w.scrollIntoView({block:"start"}); demoSpot(".wirkung"); }, wait:8500 },
+  { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – gespartes Geld, Sonne, CO₂, Serie. <b>Wichtig:</b> gezählt wird nur, was <b>du selbst einplanst</b> – Wärmepumpe & Speicher steuert dein EMS und sind hier bewusst nicht dabei.",
+    run:()=>{ demoClose(); setzeTag("verlauf"); const d=document.querySelector(".wk-scope-det"); if(d)d.open=true; const w=document.querySelector(".wirkung"); if(w)w.scrollIntoView({block:"start"}); demoSpot(".wk-scope"); }, wait:9500 },
   { cap:"✅ <b>Das war's!</b> Du steuerst, die App berät – alles bleibt <b>lokal auf deinem Gerät</b>. Tippe „Beenden“, dann bist du wieder in deiner echten Ansicht.",
     run:()=>{ demoClose(); setzeTag("heute"); }, wait:9000 }
 ];
@@ -4366,7 +4388,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v52"; }
+{ const av=$("app-version"); if(av)av.textContent="v53"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();

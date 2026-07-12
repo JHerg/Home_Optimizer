@@ -33,6 +33,11 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
   kWh in die Sonne verschoben, CO₂ (kWh × Faktor), Serie/Streak.
 - **Aufwand niedrig–mittel:** reine Client-Rechnung, Daten vorhanden; neue Ansicht/Sektion.
 - **Nutzen hoch:** stärkster Retention-/Emotions-/Teil-Hebel.
+- **Umfang ehrlich gekennzeichnet (v53):** Bilanz zählt nur selbst eingeplante
+  Geräte + Routinen. Dezente Scope-Zeile + Aufklapp-Info „Was zählt hier rein?"
+  (EMS-Hintergrundlasten wie Wärmepumpe/Speicher sind nicht enthalten; Grundlast
+  wird vorab abgezogen; WP-Vorbehalt = Sonnen-Nutzung ggf. leicht zu hoch). Auch in
+  der Demo als Hinweis. Voller Haushalts-Blick erst mit EMS-Anbindung (→ #5).
 
 ### #6 Motion & Haptik  🟢
 - **Was:** `navigator.vibrate` beim Bestätigen, sanfte Federübergänge, Konfetti bei
