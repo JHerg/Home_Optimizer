@@ -976,6 +976,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
         <div class="hf-sub">Ist ein geplantes Gerät durch, fragt die App kurz nach. Stell die echte Laufzeit per <b>Schieberegler</b> ein – lief es kürzer, wird die restliche Zeit wieder frei.</div></div>
     </div>
     <div class="hilfe-feature">
+      <div class="hf-ic sonne">🗓️</div>
+      <div class="hf-body"><div class="hf-titel">Den besten Tag der Woche finden</div>
+        <div class="hf-sub">Der <b>Woche</b>-Reiter zeigt oben einen 7-Tage-Sonnen-Ausblick – so legst du Wäsche & Co. auf den <b>sonnigsten Tag</b>. In der <b>Bilanz</b> siehst du, was du schon gespart hast.</div></div>
+    </div>
+    <div class="hilfe-feature">
       <div class="hf-ic grau">🧭</div>
       <div class="hf-body"><div class="hf-titel">Du behältst die Kontrolle</div>
         <div class="hf-sub">Die App <b>berät nur</b> – starten musst du (oder dein Energiemanager). Alles bleibt <b>lokal</b>, kein Konto, keine Cloud.</div></div>
@@ -987,7 +992,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
     <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
     <div>💶 <b>Dynamischer Tarif:</b> Wie Börsenpreise im Sommer/Winter typisch verlaufen, zeigt „Einrichten → 📈 Preis-Wissen".</div>
-    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
+    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Sonnen-Ausblick, Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
   </div>
 
   <div class="vertrauen">
@@ -4198,18 +4203,28 @@ const DEMO_ROUTINEN=[
   {typ:"wm",icon:"🛏️",name:"Waschmaschine: Bettwäsche 60°",kwh:1.1,dauer:3,von:6,bis:22,wochentag:5,rhythmus:1,aktiv:true}
 ];
 function demoTag(off){ return new Date(Date.parse(heuteStr()+"T12:00:00Z")+off*86400000).toISOString().slice(0,10); }
+// Demo-Lauf inkl. Wirkung (Sonne/Ersparnis), damit die Bilanz-Ansicht in der Tour echte Zahlen zeigt.
+function demoLauf(o,s,k,i,du){ const son=Math.round(k*0.72*100)/100; return {d:demoTag(o),s,k,i,du,son,spar:Math.round(son*30*10)/10}; }
 function demoVerlauf(){
   return {
-    "Spülmaschine":[-8,-7,-6,-5,-4,-3,-2,-1].map(o=>({d:demoTag(o),s:12,k:0.9,i:"🍽️",du:2})), // täglich -> fällig
-    "Waschmaschine":[-9,-6,-3].map(o=>({d:demoTag(o),s:11,k:0.9,i:"🌀",du:3})),               // alle 3 Tage -> fällig
-    "Trockner":[-4,-2].map(o=>({d:demoTag(o),s:14,k:1.6,i:"🧺",du:2}))                          // erst 2 Läufe -> Kaltstart
+    "Spülmaschine":[-8,-7,-6,-5,-4,-3,-2,-1].map(o=>demoLauf(o,12,0.9,"🍽️",2)), // täglich -> fällig
+    "Waschmaschine":[-9,-6,-3].map(o=>demoLauf(o,11,0.9,"🌀",3)),               // alle 3 Tage -> fällig
+    "Trockner":[-4,-2].map(o=>demoLauf(o,14,1.6,"🧺",2))                          // erst 2 Läufe -> Kaltstart
   };
+}
+// 7-Tage-Sonnen-Ausblick für die Demo (kein Netzabruf) – Tag +3 klar als bester Sonnentag.
+function demoWoche(){
+  const rad=[16,9,22,26,7,15,18], code=[1,3,0,0,61,2,1], tmax=[21,19,24,26,17,20,22];
+  const a=[]; for(let i=0;i<7;i++)a.push({key:demoTag(i),rad:rad[i],code:code[i],tmax:tmax[i]}); return a;
 }
 function demoDatenEinspielen(){
   const spot=[6,5,4,4,5,7,10,13,14,12,8,5,3,2,4,6,9,13,15,14,11,9,8,7]; // ct/kWh: Nacht tief, 2 Höcker, Mittagstal
   [heuteStr(),morgenStr()].forEach(dk=>{
     for(let h=0;h<24;h++){ const x=(h-13)/4.2; daten.pv[dk+"-"+h]=(h>=5&&h<=20)?Math.max(0,Math.round(5200*Math.exp(-x*x))):0; daten.preise[dk+"-"+h]=spot[h]; }
   });
+  // Demo-Standort + Wochen-Ausblick setzen, damit alle Ansichten (auch ohne echte Adresse) etwas zeigen.
+  cfg.lat=52.52; cfg.lon=13.40; cfg.adresse="Demostraße 1, 12345 Musterstadt";
+  wochenSonne=demoWoche();
 }
 function demoClose(){ document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen")); const sc=$("schleier"); if(sc)sc.classList.remove("offen"); const wh=$("wisch-hint"); if(wh)wh.classList.remove("an"); }
 function ladeDemoBasis(){
@@ -4228,8 +4243,8 @@ function demoSpot(sel){ demoSpotClear(); const e=sel&&document.querySelector(sel
 const DEMO_STEPS=[
   { cap:"👋 <b>Willkommen!</b> Diese App sagt dir, wann du Geräte laufen lassen solltest, um deine eigene <b>Sonne maximal zu nutzen</b> – und Netzstrom zu sparen.",
     run:()=>{ demoClose(); setzeTag("heute"); }, wait:6500 },
-  { cap:"⚙️ <b>Einmal einrichten:</b> Adresse, Dachausrichtung, Stromtarif und Grundlast – daraus berechnet die App deine <b>freie Sonne</b>.",
-    run:()=>{ demoClose(); setzeTag("heute"); if($("btn-einrichten"))$("btn-einrichten").click(); }, wait:7000 },
+  { cap:"⚙️ <b>Einmal einrichten:</b> Adresse, Dachausrichtung, Stromtarif und Grundlast – daraus berechnet die App deine <b>freie Sonne</b>. Beim allerersten Start zeigt sie dir schon nach der Adresse sofort deine <b>beste Sonnenzeit heute</b>.",
+    run:()=>{ demoClose(); setzeTag("heute"); if($("btn-einrichten"))$("btn-einrichten").click(); }, wait:7500 },
   { cap:"📈 Beim dynamischen Tarif zeigt <b>„Preis-Wissen“</b>, wie Börsenpreise übers Jahr verlaufen – im Winter z. B. nachts günstig.",
     run:()=>{ if(!$("sheet-einrichten").classList.contains("offen")&&$("btn-einrichten"))$("btn-einrichten").click(); const d=document.querySelector(".preiswissen"); if(d){d.open=true; d.scrollIntoView({block:"center"});} demoSpot(".preiswissen"); }, wait:7000 },
   { cap:"➕ <b>Heute einplanen:</b> Du wählst ein Gerät – die App legt es automatisch in die <b>sonnigsten & günstigsten Stunden</b>. Ziehen verschiebt es.",
@@ -4238,8 +4253,12 @@ const DEMO_STEPS=[
     run:()=>{ demoClose(); setzeTag("morgen"); }, wait:6500 },
   { cap:"🔁 <b>Die App lernt:</b> Aus deinen bestätigten Läufen erkennt sie deinen Rhythmus und <b>schlägt Fälliges von selbst vor</b> – ein Tipp genügt.",
     run:()=>{ demoClose(); setzeTag("heute"); aktualisieren(); demoSpot("#dash-vorschlag"); }, wait:7500 },
-  { cap:"🗓️ <b>Routinen & Woche:</b> Feste Abläufe (z. B. Bettwäsche freitags) trägst du einmal ein – der Wochen-Reiter zeigt Routinen und erkannte Rhythmen.",
-    run:()=>{ demoClose(); setzeTag("woche"); }, wait:7000 },
+  { cap:"☀️ <b>Wochen-Ausblick:</b> Der <b>Woche</b>-Reiter zeigt oben die nächsten 7 Tage – welcher Tag am meisten Sonne bringt. So legst du Wäsche & Co. gezielt auf den <b>besten Sonnentag</b>.",
+    run:()=>{ demoClose(); setzeTag("woche"); const b=$("woche-ausblick"); if(b)b.scrollIntoView({block:"start"}); demoSpot("#woche-ausblick"); }, wait:8000 },
+  { cap:"🔁 <b>Routinen & Rhythmen:</b> Feste Abläufe (z. B. Bettwäsche freitags) trägst du einmal ein – darunter erkennt die App auch <b>selbst gelernte Muster</b> aus deinen Läufen.",
+    run:()=>{ demoClose(); setzeTag("woche"); const r=$("routine-liste"); if(r)r.scrollIntoView({block:"center"}); demoSpot("#routine-liste"); }, wait:7500 },
+  { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – <b>gespartes Geld</b>, genutzte Sonne, vermiedenes CO₂ und deine <b>Serie</b>. Motiviert, dranzubleiben.",
+    run:()=>{ demoClose(); setzeTag("verlauf"); const w=document.querySelector(".wirkung"); if(w)w.scrollIntoView({block:"start"}); demoSpot(".wirkung"); }, wait:8500 },
   { cap:"✅ <b>Das war's!</b> Du steuerst, die App berät – alles bleibt <b>lokal auf deinem Gerät</b>. Tippe „Beenden“, dann bist du wieder in deiner echten Ansicht.",
     run:()=>{ demoClose(); setzeTag("heute"); }, wait:9000 }
 ];
@@ -4257,7 +4276,7 @@ function demoGoto(i, jump){
 function demoSetPlay(on){ demoPlaying=on; if($("demo-play"))$("demo-play").textContent=on?"⏸":"▶"; if(on)demoGoto(demoIdx,true); else clearTimeout(demoTimer); }
 function demoStart(){
   if(demoAktiv)return;
-  demoSnap={ zustand:JSON.stringify({cfg,geraete,meineGeraete,routinen}), daten:JSON.stringify(daten), tag };
+  demoSnap={ zustand:JSON.stringify({cfg,geraete,meineGeraete,routinen}), daten:JSON.stringify(daten), tag, wochen:wochenSonne };
   demoAktiv=true; demoPlaying=true; demoIdx=0;
   demoDatenEinspielen();
   demoClose(); $("demo-overlay").hidden=false; if($("demo-play"))$("demo-play").textContent="⏸";
@@ -4270,7 +4289,7 @@ function demoEnde(){
   try{ const z=JSON.parse(demoSnap.zustand);
     for(const k in cfg)delete cfg[k]; Object.assign(cfg,z.cfg);
     geraete=z.geraete; meineGeraete=z.meineGeraete; routinen=z.routinen;
-    daten=JSON.parse(demoSnap.daten); tag=demoSnap.tag;
+    daten=JSON.parse(demoSnap.daten); tag=demoSnap.tag; wochenSonne=demoSnap.wochen;
   }catch(e){}
   demoSnap=null; platzSig=""; demoClose();
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag));
@@ -4347,7 +4366,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v51"; }
+{ const av=$("app-version"); if(av)av.textContent="v52"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
