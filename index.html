@@ -722,6 +722,55 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 :root[data-theme="dark"] .vs-nein{background:rgba(255,255,255,.08)}
 :root[data-theme="dark"] .vs-nein{background:rgba(255,255,255,.08)}
 
+/* Wochen-Sonnen-Ausblick (#7) */
+.wa-block{margin-bottom:18px}
+.wa-titel{font-size:15px;font-weight:700;color:var(--nacht)}
+.wa-sub{font-size:11.5px;color:var(--grau);line-height:1.4;margin:3px 0 12px}
+.wa-best{display:flex;align-items:center;gap:10px;background:radial-gradient(120% 100% at 0% 0%,rgba(245,168,12,.16),rgba(245,168,12,0) 62%),var(--karte);border:1px solid var(--sonne);border-radius:13px;padding:10px 12px;margin-bottom:12px}
+.wa-best-ic{font-size:22px;line-height:1;flex-shrink:0}
+.wa-best-tx{min-width:0}
+.wa-best-tx b{font-size:13px;color:var(--nacht);font-weight:700}
+.wa-best-tx span{display:block;font-size:11.5px;color:var(--grau);line-height:1.35;margin-top:1px}
+.wa-strip{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.wa-tag{flex:1 1 0;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 3px;border-radius:12px;border:1px solid transparent}
+.wa-tag.heute{background:rgba(10,132,255,.06);border-color:var(--linie)}
+.wa-tag.best{background:var(--sonne-hell);border-color:var(--sonne)}
+.wa-wd{font-size:11px;font-weight:700;color:var(--tinte)}
+.wa-ic{font-size:17px;line-height:1}
+.wa-bar-wrap{width:10px;height:54px;border-radius:6px;background:var(--linie);display:flex;align-items:flex-end;overflow:hidden}
+.wa-bar{width:100%;border-radius:6px;background:linear-gradient(180deg,var(--sonne),#F5C542);min-height:2px}
+.wa-tmp{font-size:10px;color:var(--grau);font-family:var(--mono)}
+.wa-hinweis{font-size:11px;color:var(--grau);line-height:1.4;margin-top:10px;padding-top:9px;border-top:1px dashed var(--linie)}
+.wa-leer{font-size:12.5px;color:var(--grau);line-height:1.45;padding:4px 0}
+.wa-leer.fehler{color:var(--grau)}
+:root[data-theme="dark"] .wa-tag.heute{background:rgba(10,132,255,.13)}
+
+/* Willkommen / Onboarding-„Aha" (#4) */
+.wk-sheet{text-align:center}
+.wk-step{animation:sheet-auf var(--weich)}
+.wk-hero-ic{font-size:46px;line-height:1;margin:4px 0 10px;filter:drop-shadow(0 6px 14px rgba(245,160,12,.4))}
+.wk-h{font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--nacht);margin-bottom:8px;line-height:1.2}
+.wk-p{font-size:14px;color:var(--tinte);line-height:1.5;max-width:340px;margin:0 auto 16px}
+.wk-trust{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-bottom:20px}
+.wk-trust span{font-size:11px;font-weight:600;color:var(--tinte);background:var(--sonne-hell);border-radius:999px;padding:5px 11px}
+.wk-label{font-size:13px;font-weight:700;color:var(--nacht);text-align:left;margin-bottom:7px}
+.wk-sheet .adresse-zeile{margin-bottom:8px}
+.wk-info{font-size:11.5px;color:var(--grau);line-height:1.4;text-align:left;min-height:16px}
+.wk-info.fehler{color:var(--rot)}
+.wk-reveal-ic{font-size:40px;line-height:1;margin:2px 0 8px;animation:wk-pop .6s var(--weich)}
+.wk-reveal-lbl{font-size:12px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.06em}
+.wk-reveal-zeit{font-size:29px;font-weight:800;color:var(--sonne);letter-spacing:-.02em;margin:3px 0 14px}
+#wk-kurve{margin:0 auto 14px;max-width:360px}
+.wk-mini{position:relative;width:100%;height:98px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,var(--sonne-hell),transparent);border:.5px solid var(--linie)}
+.wk-mini svg{position:absolute;inset:0;width:100%;height:100%}
+.wk-mini-fenster{position:absolute;top:0;bottom:0;background:rgba(245,160,12,.18);border-left:1.5px dashed var(--sonne);border-right:1.5px dashed var(--sonne)}
+.wk-reveal-tx{font-size:14px;color:var(--tinte);line-height:1.5;max-width:340px;margin:0 auto 18px}
+.wk-reveal-tx b{color:var(--nacht)}
+.wk-spaeter{display:block;width:100%;margin-top:10px;border:none;background:transparent;color:var(--grau);font-size:13.5px;font-weight:600;padding:8px;cursor:pointer}
+@keyframes wk-pop{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+:root[data-theme="dark"] .wk-trust span{color:#FFD98A}
+@media (prefers-reduced-motion: reduce){ .wk-reveal-ic,.wk-step{animation:none} }
+
 /* Dark Mode – folgt der Systemeinstellung */
 :root[data-theme="dark"]{
   --nacht:#EAF1FA; --tinte:#B7C4D2; --papier:#0A1420; --karte:#18242F;
@@ -831,6 +880,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 </details>
 
 <section class="karte" id="karte-woche" hidden>
+  <div class="wa-block" id="woche-ausblick" hidden></div>
   <div class="rh-legende rh-legende-top"><span class="rh-leg-lbl">So liest du die Punkte:</span><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster fälliger Lauf</span></div>
 
   <div class="karten-kopf" style="margin-top:2px"><h2 style="font-size:15px">🔁 Feste Routinen</h2></div>
@@ -1067,6 +1117,31 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     </div>
   </details>
   <button class="fertig" id="btn-fertig">Fertig – neu berechnen</button>
+</div>
+
+<!-- Willkommen / Onboarding-„Aha" (#4): Adresse → sofort die eigene Sonne sehen -->
+<div class="sheet wk-sheet" id="sheet-willkommen" role="dialog" aria-label="Willkommen" style="z-index:12">
+  <div class="wk-step" id="wk-step-1">
+    <div class="wk-hero-ic">☀️</div>
+    <h3 class="wk-h">Willkommen beim Energie-Optimierer</h3>
+    <p class="wk-p">Finde die beste Zeit, deine Geräte laufen zu lassen – dann, wenn deine Sonne scheint oder der Strom günstig ist.</p>
+    <div class="wk-trust"><span>🔒 Kein Konto</span><span>📵 Kein Tracking</span><span>📱 100 % lokal</span></div>
+    <div class="wk-label">Wo wohnst du?</div>
+    <div class="adresse-zeile">
+      <input id="wk-adresse" value="" placeholder="Straße Hausnr., PLZ Ort" aria-label="Adresse">
+      <button id="wk-suchen">Suchen</button>
+    </div>
+    <div class="wk-info" id="wk-info">Nur für die Sonnen-Prognose – deine Adresse bleibt auf deinem Gerät.</div>
+  </div>
+  <div class="wk-step" id="wk-step-2" hidden>
+    <div class="wk-reveal-ic" id="wk-rev-ic">☀️</div>
+    <div class="wk-reveal-lbl" id="wk-rev-lbl">Deine beste Sonnenzeit heute</div>
+    <div class="wk-reveal-zeit" id="wk-zeit">–</div>
+    <div id="wk-kurve"></div>
+    <div class="wk-reveal-tx" id="wk-tx">…</div>
+    <button class="fertig" id="wk-weiter">Perfekt – jetzt einrichten</button>
+    <button class="wk-spaeter" id="wk-spaeter">Später einrichten</button>
+  </div>
 </div>
 
 <!-- Gerät hinzufügen -->
@@ -1834,6 +1909,90 @@ async function geocode(adresse){
   const j=await r.json();
   if(!j.length)throw new Error("Adresse nicht gefunden");
   return{lat:parseFloat(j[0].lat),lon:parseFloat(j[0].lon),name:j[0].display_name};
+}
+
+/* ---------- Wochen-/Mehrtages-Ausblick (#7): 7-Tage-Sonne/Wetter ---------- */
+const CACHE_WOCHE="eo-woche-cache";
+let wochenSonne=null, wochenSonneLaeuft=false;
+// WMO-Wettercode -> [Emoji, Kurztext]
+function wetterIcon(code){
+  if(code==null)return ["🌤️","wechselhaft"];
+  if(code===0)return ["☀️","klar"];
+  if(code<=2)return ["🌤️","meist sonnig"];
+  if(code===3)return ["☁️","bewölkt"];
+  if(code<=48)return ["🌫️","neblig"];
+  if(code<=57)return ["🌦️","Niesel"];
+  if(code<=67)return ["🌧️","Regen"];
+  if(code<=77)return ["🌨️","Schnee"];
+  if(code<=82)return ["🌦️","Schauer"];
+  if(code<=86)return ["🌨️","Schneeschauer"];
+  return ["⛈️","Gewitter"];
+}
+async function holeWochenSonne(){
+  const u="https://api.open-meteo.com/v1/forecast?latitude="+cfg.lat+"&longitude="+cfg.lon+
+    "&daily=shortwave_radiation_sum,weather_code,temperature_2m_max&forecast_days=7&timezone=Europe%2FBerlin";
+  const r=await fetch(u); if(!r.ok)throw new Error("Open-Meteo HTTP "+r.status);
+  const j=await r.json(); const d=j.daily||{}; const t=d.time||[];
+  if(!t.length)throw new Error("Open-Meteo leer");
+  return t.map((key,i)=>({ key,
+    rad:(d.shortwave_radiation_sum||[])[i], code:(d.weather_code||[])[i], tmax:(d.temperature_2m_max||[])[i] }));
+}
+async function ladeWochenSonne(force){
+  if(cfg.lat==null||cfg.lon==null)return null;
+  try{ const c=JSON.parse(localStorage.getItem(CACHE_WOCHE)||"null");
+    if(!force && c && c.sig===pvSignatur() && c.arr && c.arr[0] && c.arr[0].key===heuteStr() && (Date.now()-c.ts)<3*3600*1000){
+      wochenSonne=c.arr; return c.arr;
+    }
+  }catch(e){}
+  if(wochenSonneLaeuft)return wochenSonne;
+  wochenSonneLaeuft=true;
+  try{
+    const arr=await holeWochenSonne();
+    wochenSonne=arr;
+    try{localStorage.setItem(CACHE_WOCHE,JSON.stringify({sig:pvSignatur(),ts:Date.now(),arr}));}catch(e){}
+    return arr;
+  } finally { wochenSonneLaeuft=false; }
+}
+function wdLangVonKey(key){
+  if(key===heuteStr())return "heute";
+  if(key===morgenStr())return "morgen";
+  return new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long"});
+}
+function renderWochenAusblick(){
+  const box=$("woche-ausblick"); if(!box)return;
+  if(cfg.lat==null){ box.hidden=true; return; }
+  box.hidden=false;
+  const kopf='<div class="wa-titel">☀️ Sonnen-Ausblick</div>'+
+    '<div class="wa-sub">Die kommenden Tage – wann sich Wäsche, Spülmaschine &amp; Co. am meisten aus der eigenen Sonne lohnen.</div>';
+  const arr=wochenSonne;
+  if(!arr){
+    box.innerHTML=kopf+'<div class="wa-leer">Lade Wetter-Ausblick …</div>';
+    ladeWochenSonne()
+      .then(()=>{ if(tag==="woche")renderWochenAusblick(); })
+      .catch(()=>{ if(tag==="woche")box.innerHTML=kopf+'<div class="wa-leer fehler">Wetter-Ausblick gerade nicht erreichbar – bitte später noch einmal in den Woche-Tab schauen.</div>'; });
+    return;
+  }
+  const maxRad=Math.max(1,...arr.map(d=>d.rad||0));
+  let bestI=0; for(let i=1;i<arr.length;i++){ if((arr[i].rad||0)>(arr[bestI].rad||0))bestI=i; }
+  const cells=arr.map((d,i)=>{
+    const ic=wetterIcon(d.code)[0];
+    const hpct=Math.round((d.rad||0)/maxRad*100);
+    const heute=d.key===heuteStr();
+    const cls="wa-tag"+(heute?" heute":"")+(i===bestI?" best":"");
+    const wd=heute?"Heute":(d.key===morgenStr()?"Morgen":WOCHENTAG_KURZ[wochentagVonKey(d.key)]);
+    const tmp=(d.tmax!=null)?Math.round(d.tmax)+"°":"";
+    return '<div class="'+cls+'"><div class="wa-wd">'+wd+'</div><div class="wa-ic">'+ic+'</div>'+
+      '<div class="wa-bar-wrap"><div class="wa-bar" style="height:'+hpct+'%"></div></div>'+
+      '<div class="wa-tmp">'+tmp+'</div></div>';
+  }).join("");
+  const best=arr[bestI], bw=wetterIcon(best.code), wann=wdLangVonKey(best.key);
+  box.innerHTML=kopf+
+    '<div class="wa-best"><div class="wa-best-ic">'+bw[0]+'</div><div class="wa-best-tx">'+
+      '<b>Bester Sonnentag: '+wann.charAt(0).toUpperCase()+wann.slice(1)+'</b>'+
+      '<span>'+bw[1]+(best.tmax!=null?', bis '+Math.round(best.tmax)+'°':'')+' – ideal, um sonnenhungrige Geräte zu legen.</span>'+
+    '</div></div>'+
+    '<div class="wa-strip">'+cells+'</div>'+
+    '<div class="wa-hinweis">Balken = erwartete Sonnenstärke (Globalstrahlung, DWD-Modell). <b>Börsen-Strompreise</b> gibt es nur für heute &amp; morgen – der Ausblick darüber hinaus zeigt <b>nur Sonne &amp; Wetter</b>.</div>';
 }
 
 /* Modell nachschlagen: öffnet eine freie Websuche – keine KI, keine Konten nötig */
@@ -2768,6 +2927,7 @@ function routineBanner(tagStr){
   el.innerHTML="🔁 Heute geplant: "+teile.join(" · ");
 }
 function renderWoche(){
+  renderWochenAusblick();
   renderRoutineListe();
   renderRhythmen();
 }
@@ -3334,6 +3494,77 @@ $("btn-fertig").onclick=()=>{
   cfg.fsKey=$("f-fs-key").value.trim();
   speichern();
   sheetZu();laden();
+};
+
+/* ---------- Onboarding-„Aha" (#4): geführter Erststart, Adresse → sofort die eigene Sonne ---------- */
+function oeffneWillkommen(){
+  $("wk-adresse").value=cfg.adresse||"";
+  $("wk-step-1").hidden=false; $("wk-step-2").hidden=true;
+  const info=$("wk-info"); info.className="wk-info";
+  info.textContent="Nur für die Sonnen-Prognose – deine Adresse bleibt auf deinem Gerät.";
+  sheetAuf("sheet-willkommen");
+  setTimeout(()=>{try{$("wk-adresse").focus();}catch(_){}} ,120);
+}
+// Mini-Sonnenkurve für die „Aha"-Enthüllung, mit hervorgehobenem besten Fenster [hs,he).
+function wkKurve(arr,hs,he){
+  const G=himmelGeometrie(arr);
+  const fenster=(he>hs)?'<div class="wk-mini-fenster" style="left:'+(hs/24*100).toFixed(1)+'%;width:'+((he-hs)/24*100).toFixed(1)+'%"></div>':'';
+  return '<div class="wk-mini">'+fenster+
+    '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
+      '<defs><linearGradient id="wk-surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--sonne)" stop-opacity=".4"/><stop offset="100%" stop-color="var(--sonne)" stop-opacity="0"/></linearGradient></defs>'+
+      '<path d="'+G.surfD+'" fill="url(#wk-surf)"></path>'+
+      '<path d="'+G.arcD+'" fill="none" stroke="var(--sonne)" stroke-width="1.4" stroke-linecap="round" vector-effect="non-scaling-stroke"></path>'+
+    '</svg></div>';
+}
+async function wkEnthuelle(){
+  $("wk-step-1").hidden=true; $("wk-step-2").hidden=false;
+  $("wk-rev-lbl").textContent="Rechne deine Sonne …";
+  $("wk-zeit").textContent="…"; $("wk-kurve").innerHTML=""; $("wk-tx").textContent="";
+  try{ await ladePV(); }catch(e){}
+  const arr=stunden(heuteStr());
+  const maxPv=Math.max(0,...arr.map(s=>s.pv||0));
+  if(maxPv<200){
+    // Wenig Sonne heute (Winter/bedeckt) – ehrlich sagen und auf den Wochen-Ausblick verweisen.
+    $("wk-rev-ic").textContent="🌥️";
+    $("wk-rev-lbl").textContent="Heute ist wenig Sonne";
+    $("wk-zeit").textContent="";
+    $("wk-kurve").innerHTML=wkKurve(arr,0,0);
+    $("wk-tx").innerHTML="Macht nichts – im <b>Woche-Tab</b> siehst du gleich, welcher Tag diese Woche am meisten Sonne bringt. Dann läuft deine Wäsche fast gratis.";
+  } else {
+    const grenze=maxPv*0.6; let hs=24,he=0;
+    for(let h=0;h<24;h++){ if(arr[h].pv>=grenze){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
+    if(hs>=he){hs=11;he=15;}
+    $("wk-rev-ic").textContent="☀️";
+    $("wk-rev-lbl").textContent="Deine beste Sonnenzeit heute";
+    $("wk-zeit").textContent=hs+"–"+he+" Uhr";
+    $("wk-kurve").innerHTML=wkKurve(arr,hs,he);
+    $("wk-tx").innerHTML="In dieser Zeit liefert dein Dach am meisten Strom – dann läuft z. B. eine <b>Waschmaschine fast gratis</b> aus deiner eigenen Sonne.";
+    haptik(15);
+  }
+  const ic=$("wk-rev-ic"); ic.classList.remove("wk-reveal-ic"); void ic.offsetWidth; if(magBewegung())ic.classList.add("wk-reveal-ic");
+}
+$("wk-suchen").onclick=async()=>{
+  const info=$("wk-info"); info.className="wk-info"; info.textContent="Suche …";
+  try{
+    const erg=await geocode($("wk-adresse").value);
+    cfg.lat=erg.lat; cfg.lon=erg.lon; cfg.adresse=erg.name;
+    standortAnzeige(); speichern();
+    await wkEnthuelle();
+  }catch(e){
+    cfg.lat=null; cfg.lon=null;
+    info.className="wk-info fehler";
+    info.textContent="✗ "+e.message+" – bitte Schreibweise prüfen (Straße Hausnummer, PLZ Ort).";
+  }
+};
+$("wk-adresse").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("wk-suchen").onclick(); } });
+$("wk-weiter").onclick=()=>{
+  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; speichern();
+  document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));
+  $("btn-einrichten").onclick(); // volle Einrichtung – Adresse ist schon gesetzt
+};
+$("wk-spaeter").onclick=()=>{
+  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; speichern();
+  sheetZu(); laden();
 };
 
 /* Alle löschen */
@@ -4116,13 +4347,16 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v50"; }
+{ const av=$("app-version"); if(av)av.textContent="v51"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
 // sonst beim allerersten Mal die Kurzanleitung (jederzeit über „?" erreichbar).
-if(cfg.lat==null){ setTimeout(()=>$("btn-einrichten").onclick(),450); }
+if(cfg.lat==null){
+  if(!cfg.onboardingGesehen){ setTimeout(oeffneWillkommen,350); }   // #4: geführter Erststart mit Sonnen-Vorschau
+  else { setTimeout(()=>$("btn-einrichten").onclick(),450); }        // Onboarding schon gesehen, aber Adresse fehlt
+}
 else if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; speichern(); }
 })();
 </script>

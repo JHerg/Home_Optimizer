@@ -18,8 +18,8 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 | 6 | Motion & Haptik: Vibration beim Bestätigen, Federanimationen, Konfetti bei 100 %, Skeleton-Loader | niedrig | mittel | nein | 🟢 Sofort | ✅ v49 |
 | 8a | Barrierefreiheit: Dynamic Type/Schriftgröße, VoiceOver, Kontrast | niedrig–mittel | mittel | nein | 🟢 Sofort | ✅ v50 |
 | 10 | Vertrauen/Social Proof: „100 % lokal" prominenter + App-teilen (Web Share); KEINE erfundenen Testimonials | niedrig | niedrig–mittel | nein | 🟢 Sofort | ✅ v50 |
-| 4 | Onboarding-„Aha" in 30 s: geführter Erststart (Adresse → sofort deine Sonne) | mittel | mittel–hoch | nein | 🟡 Mittel | ⬜ |
-| 7 | Wochen-/Mehrtages-Ausblick: „bester Tag diese Woche" (nur Sonne/Wetter über morgen hinaus) | mittel | mittel | nein | 🟡 Mittel | ⬜ |
+| 4 | Onboarding-„Aha" in 30 s: geführter Erststart (Adresse → sofort deine Sonne) | mittel | mittel–hoch | nein | 🟡 Mittel | ✅ v51 |
+| 7 | Wochen-/Mehrtages-Ausblick: „bester Tag diese Woche" (nur Sonne/Wetter über morgen hinaus) | mittel | mittel | nein | 🟡 Mittel | ✅ v51 |
 | 1 | Proaktive Push-Erinnerungen / Timing-Nudges | hoch | sehr hoch | ja (VAPID) | 🔴 Groß | ⬜ |
 | 8b | Englisch / i18n (Textextraktion, großer Umbau) | hoch | hoch (nur Auslands-Ziel) | nein | 🔴 Groß | ⬜ |
 | 3 | Store-Wrapper (PWABuilder/Capacitor) + ASO (Icon, Screenshots, Review) | hoch, extern | hoch (nur wenn Store wörtlich Ziel) | – | 🔴 Groß | ⬜ |
@@ -48,15 +48,28 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
   (nur im Store-Kontext sinnvoll).
 - **Aufwand niedrig; Nutzen niedrig–mittel;** teils schon vorhanden.
 
-### #4 Onboarding-„Aha" in 30 s  🟡
+### #4 Onboarding-„Aha" in 30 s  🟡 ✅ v51
 - **Was:** geführter Erststart statt Formular; Adresse → sofortige Sonnen-Vorschau.
-  Demo-Mechanik wiederverwendbar.
-- **Aufwand mittel; Nutzen mittel–hoch** (Conversion, erster Eindruck).
+- **Umgesetzt (v51):** eigenes Willkommen-Sheet (`#sheet-willkommen`). Schritt 1 =
+  warmer Einstieg + Vertrauens-Chips (kein Konto/kein Tracking/100 % lokal) + ein
+  Adressfeld. Nach „Suchen" (Geocoding) direkt Schritt 2: `ladePV()` holt die echte
+  Sonne, daraus wird das beste Sonnenfenster von heute berechnet und mit
+  Mini-Sonnenkurve (`wkKurve`, Fenster hervorgehoben) + „fast gratis"-Text gezeigt.
+  Wenig-Sonne-Fall (Winter/bedeckt) wird ehrlich abgefangen und auf den
+  Wochen-Ausblick verwiesen. Danach „Perfekt – jetzt einrichten" (volle Einrichtung,
+  Adresse schon gesetzt) oder „Später einrichten". Erststart zeigt Willkommen statt
+  direkt das Formular (`cfg.onboardingGesehen`).
 
-### #7 Wochen-/Mehrtages-Ausblick  🟡
+### #7 Wochen-/Mehrtages-Ausblick  🟡 ✅ v51
 - **Was:** 3–7-Tage-Sonnen/Wetter-Trend, „bester Tag diese Woche". Preise nur bis
   morgen (aWATTar) → ehrlich kennzeichnen.
-- **Aufwand mittel; Nutzen mittel** (Differenzierung, Vorausplanung).
+- **Umgesetzt (v51):** neuer „Sonnen-Ausblick" oben im Woche-Tab (`#woche-ausblick`).
+  `holeWochenSonne()` holt bei Open-Meteo die tägliche Globalstrahlung + Wettercode +
+  Max-Temperatur für 7 Tage (`ladeWochenSonne`, 3-h-Cache pro Standort). Anzeige:
+  7-Tage-Streifen mit Wetter-Emoji, relativem Sonnenstärke-Balken und Temperatur,
+  bester Tag amber hervorgehoben + Callout „Bester Sonnentag: …". Ehrlicher Hinweis,
+  dass es Börsenpreise nur für heute & morgen gibt – der Ausblick zeigt darüber
+  hinaus nur Sonne & Wetter.
 
 ### #1 Proaktive Push-Erinnerungen  🔴
 - **Was:** „Jetzt läuft die Sonne …", „morgen 12–15 Uhr günstig".
