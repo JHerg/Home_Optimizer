@@ -579,6 +579,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dc-sun{position:absolute;width:34px;height:34px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;background:radial-gradient(circle at 38% 34%,#FFF3D2,#FFC24D 46%,var(--sonne) 82%);box-shadow:0 0 0 6px rgba(245,160,12,.20),0 0 34px 9px rgba(245,160,12,.34)}
 .dc-now{position:absolute;z-index:4;top:5px;transform:translateX(-50%);font-size:10.5px;font-weight:700;color:#8A5A06;background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);font-variant-numeric:tabular-nums;white-space:nowrap}
 .dc-hint{position:absolute;z-index:4;right:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--grau);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:3px}
+.dc-batt-leg{position:absolute;z-index:4;left:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--netz);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);white-space:nowrap}
 :root[data-theme="dark"] .dc-now{color:#FFD489}
 .dash-hero{display:flex;align-items:center;gap:14px;padding:13px 18px}
 .dh-big{flex:1;min-width:0}
@@ -2180,6 +2181,17 @@ function simuliere(arr,bloecke){
   }
   return {per,cap,akkuStart:start,akkuEnde:akku,sonneKwh,akkuKwh,netzKwh,netzCt,hausNetzKwh};
 }
+// SVG-Pfad (Fläche im Himmel) für den Speicher-Füllstand über den Tag. Leer, wenn Speicher aus
+// oder keine Kapazität. Genutzt von Startseiten-Kurve UND Tagesplan-Chart (dezelbe Optik).
+function akkuPfadD(sim, G){
+  if(!(cfg.akku_an && sim && sim.cap>0)) return "";
+  const HOR=G.HOR, X=G.X;
+  const yb=v=>(HOR-(Math.max(0,Math.min(sim.cap,v))/sim.cap)*(HOR-24));
+  let d="M0 "+yb(sim.akkuStart).toFixed(1);
+  sim.per.forEach(p=>{ d+=" L"+X(p.h+1).toFixed(2)+" "+yb(p.akku).toFixed(1); });
+  d+=" L100 "+HOR+" L0 "+HOR+" Z";
+  return d;
+}
 // Bereits gelaufene Geräte des Tages als Pseudo-Blöcke (mit ihrem gespeicherten Zeitfenster).
 function erledigtBloecke(tagKey){
   return erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
@@ -2490,6 +2502,10 @@ function renderDashboard(arr){
   const jetztF = tag==="heute" ? jetztStundeF() : -1; // minutengenau für „läuft/vorbei"
   const G=himmelGeometrie(arr),{HOR,X,arcY,arcD,surfD,priceD,gridD}=G;
   const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
+  // --- Speicher-Füllstand als dezente Fläche (nur wenn Speicher aktiv), aus Sonne + Grundlast (+ geplante Läufe) ---
+  const battD = cfg.akku_an ? akkuPfadD(simuliere(arr, platzierungen.map(b=>Object.assign({},b))), G) : "";
+  const battLeg = (cfg.akku_an && battD)
+    ? '<span class="dc-batt-leg">🔋 Speicher'+(tag==="morgen"?' · geschätzt':'')+'</span>' : '';
   // --- Sonnenkurve (antippen öffnet den Tagesplan) ---
   const nowX=jetztH>=0?X(jetztH+0.5):-1;
   const jetztStr=jetztH>=0?"jetzt · "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}):"";
@@ -2500,10 +2516,11 @@ function renderDashboard(arr){
     '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
       '<defs><linearGradient id="dc-surf" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--sonne)" stop-opacity=".32"/><stop offset="100%" stop-color="var(--sonne)" stop-opacity="0"/></linearGradient></defs>'+
       '<g stroke="var(--linie)" stroke-width=".4" opacity=".5">'+gridD+'</g>'+
+      (battD?'<path d="'+battD+'" fill="var(--netz)" fill-opacity=".16" stroke="var(--netz)" stroke-opacity=".4" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"></path>':'')+
       '<path d="'+surfD+'" fill="url(#dc-surf)"></path>'+
       '<path d="'+arcD+'" fill="none" stroke="var(--sonne)" stroke-width="1" stroke-dasharray="1.6 2.2" stroke-linecap="round" opacity=".9" vector-effect="non-scaling-stroke"></path>'+
       (priceD?'<path d="'+priceD+'" fill="none" stroke="var(--preis-linie)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>':'')+
-    '</svg>'+sunHtml+
+    '</svg>'+sunHtml+battLeg+
     '<span class="dc-hint">Tagesplan öffnen ›</span></button>';
   $("dash-curve-wrap").innerHTML=curveHtml;
   // --- Hero: großer Tagesertrag + Eigenverbrauch-Ring ---
@@ -2708,7 +2725,7 @@ function renderPlaner(arr){
     '<div class="lane" id="planer-leiste" style="height:'+laneH+'px">'+laneInner+'</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher</span>':'')+preisLeg+'</div>'+
+    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher'+(tag==="morgen"?' (geschätzt)':'')+'</span>':'')+preisLeg+'</div>'+
     statsHtml+budgetHtml;
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
@@ -2723,6 +2740,8 @@ function renderPlaner(arr){
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
   });
   if(!hatBloecke){
+    // Speicher-Kurve auch ohne eingeplante Geräte zeichnen – der Speicher lädt/entlädt ja aus Sonne + Grundlast.
+    const bp0=document.getElementById("pl-batt"); if(bp0)bp0.setAttribute("d", akkuPfadD(simuliere(arr,[]), G));
     // Nichts mehr geplant – aber schon Gelaufenes trotzdem als Deckung je Stunde zeigen.
     let deckHtml="";
     const erlPlatz=erledigtListe(tagKey).filter(e=>e.s!=null&&e.e!=null&&e.k!=null).map(e=>{
@@ -2793,15 +2812,7 @@ function renderPlaner(arr){
     const sim=simuliere(arr,platzierungen);
     // Speicher-Füllstand als Fläche im Himmel (nur wenn aktiv); Blöcke nach Deckung einfärben
     const bp=document.getElementById("pl-batt");
-    if(bp){
-      if(akkuAn && sim.cap>0){
-        const yb=v=>(HOR-(Math.max(0,Math.min(sim.cap,v))/sim.cap)*(HOR-24));
-        let d="M0 "+yb(sim.akkuStart).toFixed(1);
-        sim.per.forEach(p=>{d+=" L"+X(p.h+1).toFixed(2)+" "+yb(p.akku).toFixed(1);});
-        d+=" L100 "+HOR+" L0 "+HOR+" Z";
-        bp.setAttribute("d",d);
-      }else bp.setAttribute("d","");
-    }
+    if(bp)bp.setAttribute("d", akkuPfadD(sim, G));
     platzierungen.forEach(b=>{
       if(!b._el)return;
       const g=b.kwh>0?Math.round((b._sun+b._batt)/b.kwh*100):0;
@@ -4388,7 +4399,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v53"; }
+{ const av=$("app-version"); if(av)av.textContent="v54"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
