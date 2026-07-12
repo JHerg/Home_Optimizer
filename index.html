@@ -278,6 +278,20 @@ details.experte{margin-top:8px;background:var(--papier);border-radius:14px;paddi
 .pw-leg i{display:inline-block;width:16px;border-top:2.5px solid var(--grau);margin-right:5px;vertical-align:middle;border-radius:2px}
 .pw-tipp{font-size:12px;color:var(--tinte);line-height:1.5;margin-bottom:7px}
 .pw-tipp b{color:var(--nacht)}
+/* Demo-Tour: Startknopf in der Hilfe + Steuer-Overlay */
+.demo-start-btn{background:var(--papier);color:var(--knopf);box-shadow:none;font-weight:700}
+#demo-overlay{position:fixed;inset:0;z-index:40;pointer-events:none}
+#demo-overlay .demo-badge{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--nacht);color:#fff;font-size:11px;font-weight:700;padding:5px 13px;border-radius:999px;box-shadow:var(--schatten);letter-spacing:.02em}
+#demo-overlay .demo-bar{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border:.5px solid var(--glass-rand);border-radius:18px;box-shadow:var(--schatten-lg);padding:13px 15px;pointer-events:auto}
+.demo-cap{font-size:13.5px;color:var(--nacht);line-height:1.45;font-weight:500;min-height:38px}
+.demo-cap b{font-weight:700}
+.demo-ctrl{display:flex;align-items:center;gap:8px;margin-top:11px}
+.demo-prog{font-family:var(--mono);font-size:11px;color:var(--grau);margin-right:auto}
+.demo-btn{border:none;background:var(--karte);color:var(--tinte);border-radius:11px;min-width:42px;height:38px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:var(--hairline);transition:transform var(--schnell)}
+.demo-btn:active{transform:scale(.92)}
+.demo-btn.demo-ende{font-size:13px;padding:0 13px;color:var(--netz);font-weight:700}
+.demo-spot{outline:3px solid var(--sonne)!important;outline-offset:2px;border-radius:12px;animation:demopulse 1.2s ease-in-out infinite}
+@keyframes demopulse{0%,100%{outline-color:var(--sonne)}50%{outline-color:rgba(245,160,12,.15)}}
 details.experte summary{font-size:12.5px;font-weight:600;color:var(--grau);cursor:pointer;list-style:none}
 details.experte summary::-webkit-details-marker{display:none}
 details.experte summary::after{content:"⌄";float:right;transition:transform var(--weich)}
@@ -884,6 +898,7 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
     <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Routinen &amp; erkannte Rhythmen) · <b>Verlauf</b> (Protokoll).</div>
   </div>
 
+  <button class="hilfe-fertig demo-start-btn" id="btn-demo-start">▶ Demo-Tour ansehen (läuft automatisch ab)</button>
   <button class="hilfe-fertig" data-zu>Los geht's</button>
 </div>
 
@@ -1180,6 +1195,21 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
   <button class="fertig sekundaer" id="faellig-spaeter" style="margin-top:8px">Später entscheiden</button>
 </div>
 
+<!-- Demo-Tour: Steuer-Overlay (Auto-Play mit Pause/Weiter) -->
+<div id="demo-overlay" hidden>
+  <div class="demo-badge">▶ Demo-Tour</div>
+  <div class="demo-bar">
+    <div class="demo-cap" id="demo-cap"></div>
+    <div class="demo-ctrl">
+      <span class="demo-prog" id="demo-prog"></span>
+      <button class="demo-btn" id="demo-prev" aria-label="Zurück">↶</button>
+      <button class="demo-btn" id="demo-play" aria-label="Pause / Weiter">⏸</button>
+      <button class="demo-btn" id="demo-next" aria-label="Weiter">↷</button>
+      <button class="demo-btn demo-ende" id="demo-x">Beenden</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 "use strict";
@@ -1212,6 +1242,7 @@ let geraete=[
 let meineGeraete=[]; // selbst gespeicherte Geraete ("Meine Geräte")
 let routinen=[]; // wiederkehrende Routinen (Wochentag + Rhythmus)
 let daten={preise:{},pv:{}};
+var demoAktiv=false; // Demo-Tour aktiv? (früh deklariert, damit speichern() es beim Boot kennt)
 let tag="heute"; // "heute" | "morgen" | "woche"
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null,bearbIcon=null;
 let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
@@ -1224,6 +1255,7 @@ let routineEntwurf=null,routineEdit=null; // Zustand des Routine-Sheets
 /* ---------- Speichern / Laden (localStorage) ---------- */
 const SPEICHER_KEY="energie-optimierer-v1";
 function speichern(){
+  if(demoAktiv)return; // Demo-Tour läuft nur im Speicher – echte Daten nie überschreiben
   try{localStorage.setItem(SPEICHER_KEY,JSON.stringify({cfg,geraete,meineGeraete,routinen}));}catch(e){}
 }
 function ladeGespeichert(){
@@ -1405,6 +1437,7 @@ function swipeDash(zeile,tagKey){
 // Einführungs-Popup „Wischen": beim ersten Öffnen des Tagesplans pro App-Start, bis dauerhaft ausgeblendet.
 let wischHintSession=false;
 function vielleichtWischHint(){
+  if(demoAktiv) return; // während der Demo-Tour keine Einführungs-Popups
   if(cfg.wischHintWeg || wischHintSession) return;
   if(!platzierungen.length) return;                      // ohne Geräte nichts zu demonstrieren
   setTimeout(()=>{ if($("sheet-tagesplan").classList.contains("offen")) zeigeWischHint(); }, 450);
@@ -2103,6 +2136,7 @@ function faelligeHeute(){
 }
 let faelligGezeigt=false, faelligState=[];
 function vielleichtFaellig(){
+  if(demoAktiv)return;                           // während der Demo-Tour kein Pop-up
   if(faelligGezeigt)return;
   if(cfg.lat==null)return;                       // Onboarding hat Vorrang
   if(document.querySelector(".sheet.offen"))return;
@@ -3771,6 +3805,108 @@ function seedPresets(){
   if(geaendert)speichern();
 }
 
+/* ==================== Demo-Tour ====================
+   Geführte Auto-Play-Tour, die die App vorführt. Läuft komplett im Speicher
+   (speichern() ist während der Tour gesperrt), spielt eine synthetische Sonnen-/
+   Preiskurve + Demo-Geräte/Verlauf ein und stellt beim Beenden ALLES zurück.
+   Standort/Anlage/Tarif des Nutzers bleiben erhalten – nur Geräte/Verlauf sind Demo. */
+const DEMO_GERAETE=[
+  {typ:"wm",icon:"🌀",name:"Waschmaschine",kwh:0.9,dauer:3,von:6,bis:22,anzahl:0},
+  {typ:"sp",icon:"🍽️",name:"Spülmaschine",kwh:0.9,dauer:2,von:6,bis:23,anzahl:0},
+  {typ:"tr",icon:"🧺",name:"Trockner",kwh:1.6,dauer:2,von:6,bis:22,anzahl:0}
+];
+const DEMO_MEINE=[
+  {typ:"wm",icon:"🌈",name:"Waschmaschine: Bunt/Hell 40°",kwh:0.7,dauer:2.5,von:6,bis:22},
+  {typ:"sp",icon:"🍽️",name:"Spülmaschine",kwh:0.9,dauer:2,von:6,bis:23}
+];
+const DEMO_ROUTINEN=[
+  {typ:"wm",icon:"🛏️",name:"Waschmaschine: Bettwäsche 60°",kwh:1.1,dauer:3,von:6,bis:22,wochentag:5,rhythmus:1,aktiv:true}
+];
+function demoTag(off){ return new Date(Date.parse(heuteStr()+"T12:00:00Z")+off*86400000).toISOString().slice(0,10); }
+function demoVerlauf(){
+  return {
+    "Spülmaschine":[-8,-7,-6,-5,-4,-3,-2,-1].map(o=>({d:demoTag(o),s:12,k:0.9,i:"🍽️",du:2})), // täglich -> fällig
+    "Waschmaschine":[-9,-6,-3].map(o=>({d:demoTag(o),s:11,k:0.9,i:"🌀",du:3})),               // alle 3 Tage -> fällig
+    "Trockner":[-4,-2].map(o=>({d:demoTag(o),s:14,k:1.6,i:"🧺",du:2}))                          // erst 2 Läufe -> Kaltstart
+  };
+}
+function demoDatenEinspielen(){
+  const spot=[6,5,4,4,5,7,10,13,14,12,8,5,3,2,4,6,9,13,15,14,11,9,8,7]; // ct/kWh: Nacht tief, 2 Höcker, Mittagstal
+  [heuteStr(),morgenStr()].forEach(dk=>{
+    for(let h=0;h<24;h++){ const x=(h-13)/4.2; daten.pv[dk+"-"+h]=(h>=5&&h<=20)?Math.max(0,Math.round(5200*Math.exp(-x*x))):0; daten.preise[dk+"-"+h]=spot[h]; }
+  });
+}
+function demoClose(){ document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen")); const sc=$("schleier"); if(sc)sc.classList.remove("offen"); const wh=$("wisch-hint"); if(wh)wh.classList.remove("an"); }
+function ladeDemoBasis(){
+  geraete=JSON.parse(JSON.stringify(DEMO_GERAETE));
+  meineGeraete=JSON.parse(JSON.stringify(DEMO_MEINE));
+  routinen=JSON.parse(JSON.stringify(DEMO_ROUTINEN));
+  cfg.verlauf=demoVerlauf();
+  cfg.tagAnzahl={}; cfg.plaene={}; cfg.erledigt={}; cfg.uebernommen={}; cfg.abgelehnt={}; cfg.routineSkip={};
+  platzSig=""; tag="heute"; demoClose();
+  document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag==="heute"));
+  aktualisieren();
+}
+function demoSpotClear(){ document.querySelectorAll(".demo-spot").forEach(e=>e.classList.remove("demo-spot")); }
+function demoSpot(sel){ demoSpotClear(); const e=sel&&document.querySelector(sel); if(e)e.classList.add("demo-spot"); }
+// --- Drehbuch: jede Szene setzt ihren Zustand selbst (deltabasiert nach vorne; bei Sprüngen Replay ab Basis) ---
+const DEMO_STEPS=[
+  { cap:"👋 <b>Willkommen!</b> Diese App sagt dir, wann du Geräte laufen lassen solltest, um deine eigene <b>Sonne maximal zu nutzen</b> – und Netzstrom zu sparen.",
+    run:()=>{ demoClose(); setzeTag("heute"); }, wait:6500 },
+  { cap:"⚙️ <b>Einmal einrichten:</b> Adresse, Dachausrichtung, Stromtarif und Grundlast – daraus berechnet die App deine <b>freie Sonne</b>.",
+    run:()=>{ demoClose(); setzeTag("heute"); if($("btn-einrichten"))$("btn-einrichten").click(); }, wait:7000 },
+  { cap:"📈 Beim dynamischen Tarif zeigt <b>„Preis-Wissen“</b>, wie Börsenpreise übers Jahr verlaufen – im Winter z. B. nachts günstig.",
+    run:()=>{ if(!$("sheet-einrichten").classList.contains("offen")&&$("btn-einrichten"))$("btn-einrichten").click(); const d=document.querySelector(".preiswissen"); if(d){d.open=true; d.scrollIntoView({block:"center"});} demoSpot(".preiswissen"); }, wait:7000 },
+  { cap:"➕ <b>Heute einplanen:</b> Du wählst ein Gerät – die App legt es automatisch in die <b>sonnigsten & günstigsten Stunden</b>. Ziehen verschiebt es.",
+    run:()=>{ demoClose(); setzeTag("heute"); geraetAnHeutigenTag({typ:"wm",icon:"🌀",name:"Waschmaschine",kwh:0.9,dauer:3,von:6,bis:22}); aktualisieren(); sheetAuf("sheet-tagesplan"); demoSpot("#planer-leiste"); }, wait:8000 },
+  { cap:"🌤️ <b>Morgen vorausplanen:</b> Sobald die Preise für morgen da sind, kannst du auch den nächsten Tag schon vorbereiten.",
+    run:()=>{ demoClose(); setzeTag("morgen"); }, wait:6500 },
+  { cap:"🔁 <b>Die App lernt:</b> Aus deinen bestätigten Läufen erkennt sie deinen Rhythmus und <b>schlägt Fälliges von selbst vor</b> – ein Tipp genügt.",
+    run:()=>{ demoClose(); setzeTag("heute"); aktualisieren(); demoSpot("#dash-vorschlag"); }, wait:7500 },
+  { cap:"🗓️ <b>Routinen & Woche:</b> Feste Abläufe (z. B. Bettwäsche freitags) trägst du einmal ein – der Wochen-Reiter zeigt Routinen und erkannte Rhythmen.",
+    run:()=>{ demoClose(); setzeTag("woche"); }, wait:7000 },
+  { cap:"✅ <b>Das war's!</b> Du steuerst, die App berät – alles bleibt <b>lokal auf deinem Gerät</b>. Tippe „Beenden“, dann bist du wieder in deiner echten Ansicht.",
+    run:()=>{ demoClose(); setzeTag("heute"); }, wait:9000 }
+];
+let demoIdx=0, demoPlaying=true, demoTimer=null, demoSnap=null;
+function demoCaption(i){ if($("demo-cap"))$("demo-cap").innerHTML=DEMO_STEPS[i].cap; if($("demo-prog"))$("demo-prog").textContent=(i+1)+" / "+DEMO_STEPS.length; }
+function demoGoto(i, jump){
+  clearTimeout(demoTimer); demoSpotClear();
+  if(i>=DEMO_STEPS.length){ demoEnde(); return; }
+  if(i<0)i=0;
+  if(jump){ ladeDemoBasis(); for(let j=0;j<i;j++)DEMO_STEPS[j].run(); }
+  DEMO_STEPS[i].run();
+  demoIdx=i; demoCaption(i);
+  if(demoPlaying)demoTimer=setTimeout(()=>demoGoto(i+1,false), DEMO_STEPS[i].wait||6500);
+}
+function demoSetPlay(on){ demoPlaying=on; if($("demo-play"))$("demo-play").textContent=on?"⏸":"▶"; if(on)demoGoto(demoIdx,true); else clearTimeout(demoTimer); }
+function demoStart(){
+  if(demoAktiv)return;
+  demoSnap={ zustand:JSON.stringify({cfg,geraete,meineGeraete,routinen}), daten:JSON.stringify(daten), tag };
+  demoAktiv=true; demoPlaying=true; demoIdx=0;
+  demoDatenEinspielen();
+  demoClose(); $("demo-overlay").hidden=false; if($("demo-play"))$("demo-play").textContent="⏸";
+  demoGoto(0,true);
+}
+function demoEnde(){
+  clearTimeout(demoTimer); demoSpotClear();
+  if($("demo-overlay"))$("demo-overlay").hidden=true;
+  demoAktiv=false;
+  try{ const z=JSON.parse(demoSnap.zustand);
+    for(const k in cfg)delete cfg[k]; Object.assign(cfg,z.cfg);
+    geraete=z.geraete; meineGeraete=z.meineGeraete; routinen=z.routinen;
+    daten=JSON.parse(demoSnap.daten); tag=demoSnap.tag;
+  }catch(e){}
+  demoSnap=null; platzSig=""; demoClose();
+  document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag));
+  aktualisieren();
+}
+if($("btn-demo-start"))$("btn-demo-start").onclick=demoStart;
+if($("demo-prev"))$("demo-prev").onclick=()=>demoGoto(demoIdx-1,true);
+if($("demo-next"))$("demo-next").onclick=()=>demoGoto(demoIdx+1,true);
+if($("demo-play"))$("demo-play").onclick=()=>demoSetPlay(!demoPlaying);
+if($("demo-x"))$("demo-x").onclick=demoEnde;
+
 ladeGespeichert();
 seedPresets();
 // Abgehakte Einträge nur für heute behalten; gespeicherte Pläne für heute+morgen (ältere weg)
@@ -3793,7 +3929,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v44"; }
+{ const av=$("app-version"); if(av)av.textContent="v45"; }
 renderChips();
 laden();
 // Erststart-Führung: ohne Adresse direkt in die Einrichtung (einziger Pflicht-Schritt);
