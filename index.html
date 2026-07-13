@@ -3135,8 +3135,13 @@ function renderVerlauf(){
   }
   alle.sort((a,b)=> a.d<b.d?1:(a.d>b.d?-1:((b.s||0)-(a.s||0))));
   const heuteMs=Date.parse(heuteStr()+"T12:00:00Z");
-  const fenster = bilanzZeitraum==="woche"?7:(bilanzZeitraum==="monat"?30:99999);
-  const imFenster=x=>(heuteMs-Date.parse(x.d+"T12:00:00Z"))<fenster*86400000;
+  // Kalender-Grenzen (Europe/Berlin): „Woche" beginnt Montag 0 Uhr neu, „Monat" am 1.
+  const hkStr=heuteStr();
+  const wdHeute=new Date(hkStr+"T12:00:00Z").getUTCDay();               // 0=So..6=Sa
+  const montagKey=new Date(heuteMs-((wdHeute===0?6:wdHeute-1))*86400000).toISOString().slice(0,10);
+  const monatKey=hkStr.slice(0,8)+"01";
+  const startKey = bilanzZeitraum==="woche"?montagKey:(bilanzZeitraum==="monat"?monatKey:"0000-00-00");
+  const imFenster=x=> x.d>=startKey && x.d<=hkStr;
   const F=alle.filter(imFenster);
   let son=0,netz=0,sparCt=0,bewertet=0,hatEst=false;
   F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son); if(x.spar!=null)sparCt+=x.spar; if(x.est)hatEst=true; } });
@@ -3146,12 +3151,20 @@ function renderVerlauf(){
   if(serie>(cfg.serieRekord||0)){ const alt=cfg.serieRekord||0; cfg.serieRekord=serie; speichern();
     if(!demoAktiv && serie>=3 && tag==="verlauf") feiere("🔥 "+serie+" Tage am Stück – dein Rekord!"); }
   const zLbl = bilanzZeitraum==="woche"?"diese Woche":(bilanzZeitraum==="monat"?"diesen Monat":"insgesamt");
-  // 7-Tage-Balken (Sonnen-kWh je Tag)
+  // Balken: bei „Woche" die aktuelle Kalenderwoche (Mo–So, künftige Tage leer), sonst die letzten 7 Tage.
   let maxTag=0.001; const tage=[];
-  for(let i=6;i>=0;i--){ const dk=new Date(heuteMs-i*86400000).toISOString().slice(0,10);
-    const sum=alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0); tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
-  const balken=tage.map(t=>{const wd=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(t.dk+"T12:00:00Z").getUTCDay()];
-    return '<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd">'+wd+'</span></div>';}).join("");
+  if(bilanzZeitraum==="woche"){
+    const monMs=Date.parse(montagKey+"T12:00:00Z");
+    for(let i=0;i<7;i++){ const dk=new Date(monMs+i*86400000).toISOString().slice(0,10);
+      const sum = dk<=hkStr ? alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0) : 0;
+      tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
+  }else{
+    for(let i=6;i>=0;i--){ const dk=new Date(heuteMs-i*86400000).toISOString().slice(0,10);
+      const sum=alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0); tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
+  }
+  const balkenTitel = bilanzZeitraum==="woche" ? "Sonne genutzt · diese Woche (Mo–So)" : "Sonne genutzt · letzte 7 Tage";
+  const balken=tage.map(t=>{const wd=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(t.dk+"T12:00:00Z").getUTCDay()], heute=(t.dk===hkStr);
+    return '<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd"'+(heute?' style="color:var(--sonne);font-weight:800"':'')+'>'+wd+'</span></div>';}).join("");
   const seg=(w,l)=>'<button class="wk-seg-b'+(bilanzZeitraum===w?" an":"")+'" data-z="'+w+'">'+l+'</button>';
   const kachel=(ic,wert,lbl)=>'<div class="wk-kachel"><span class="wk-k-ic">'+ic+'</span><span class="wk-k-tx"><b>'+wert+'</b><span>'+lbl+'</span></span></div>';
   // Tabelle
@@ -3170,10 +3183,10 @@ function renderVerlauf(){
         kachel("🌱",dz(co2.toFixed(1))+" kg",'CO₂ vermieden')+
         kachel("🔥",serie+(serie===1?" Tag":" Tage"),'Serie')+
       '</div>'+
-      '<div class="wk-balken-titel">Sonne genutzt · letzte 7 Tage</div>'+
+      '<div class="wk-balken-titel">'+balkenTitel+'</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
       (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
-      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1. – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
@@ -4417,7 +4430,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v57"; }
+{ const av=$("app-version"); if(av)av.textContent="v58"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
