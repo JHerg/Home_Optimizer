@@ -1439,6 +1439,14 @@ function uhrStr(x){ let h=Math.floor(x), m=Math.round((x-h)*60); if(m>=60){h++;m
 const WOCHENTAGE=[["Mo",1],["Di",2],["Mi",3],["Do",4],["Fr",5],["Sa",6],["So",0]]; // Wert = getUTCDay
 const WOCHENTAG_KURZ={0:"So",1:"Mo",2:"Di",3:"Mi",4:"Do",5:"Fr",6:"Sa"};
 function wochentagVonKey(tagStr){return new Date(tagStr+"T12:00:00Z").getUTCDay();} // 0=So..6=Sa
+// ISO-8601-Kalenderwoche (Mo–So, Woche 1 = die mit dem ersten Donnerstag) aus "YYYY-MM-DD".
+function isoKW(tagStr){
+  const d=new Date(tagStr+"T12:00:00Z");
+  d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)+3);           // Donnerstag dieser Woche
+  const ersterDo=new Date(Date.UTC(d.getUTCFullYear(),0,4));
+  ersterDo.setUTCDate(ersterDo.getUTCDate()-((ersterDo.getUTCDay()+6)%7)+3);
+  return 1+Math.round((d-ersterDo)/(7*86400000));
+}
 // Datum eines Wochentags in dieser/naechster Woche (relativ zu heute), als YYYY-MM-DD.
 function datumFuerWochentag(wd,wochenOffset){
   const heute=new Date(heuteStr()+"T12:00:00Z"), diff=wd-heute.getUTCDay();
@@ -3164,19 +3172,21 @@ function renderVerlauf(){
       tage.push({label:wd,sum,aktuell:(dk===hkStr)}); if(sum>maxTag)maxTag=sum; }
   }else if(bilanzZeitraum==="monat"){
     const jm=hkStr.slice(0,7); // "YYYY-MM"
-    balkenTitel="Sonne genutzt · Wochen im "+new Date(hkStr+"T12:00:00Z").toLocaleDateString("de-DE",{month:"long"});
-    const last=new Date(Date.parse(jm+"-01T12:00:00Z")); last.setUTCMonth(last.getUTCMonth()+1); last.setUTCDate(0);
-    const lastDay=last.getUTCDate(), heuteTag=parseInt(hkStr.slice(8,10),10);
-    for(let start=1;start<=lastDay;start+=7){ const end=Math.min(start+6,lastDay);
-      const sum=sonSum(d=>{ if(d.slice(0,7)!==jm)return false; const dd=parseInt(d.slice(8,10),10); return dd>=start&&dd<=end; });
-      tage.push({label:start+"–"+end, sum, aktuell:(heuteTag>=start&&heuteTag<=end)}); if(sum>maxTag)maxTag=sum; }
-  }else{ // jahr: 12 Monatsbalken des laufenden Jahres
+    balkenTitel="Sonne genutzt · Kalenderwochen im "+new Date(hkStr+"T12:00:00Z").toLocaleDateString("de-DE",{month:"long"});
+    const ersterMs=Date.parse(jm+"-01T12:00:00Z");
+    const lastD=new Date(ersterMs); lastD.setUTCMonth(lastD.getUTCMonth()+1); lastD.setUTCDate(0);
+    const letzterMs=lastD.getTime();
+    const mo1=new Date(ersterMs); mo1.setUTCDate(mo1.getUTCDate()-((mo1.getUTCDay()+6)%7)); // Montag der 1.-Woche
+    for(let wMs=mo1.getTime(); wMs<=letzterMs; wMs+=7*86400000){ const wEnd=wMs+6*86400000;
+      const sum=sonSum(d=>{ if(d.slice(0,7)!==jm)return false; const t=Date.parse(d+"T12:00:00Z"); return t>=wMs&&t<=wEnd; });
+      tage.push({label:"KW"+isoKW(new Date(wMs).toISOString().slice(0,10)), sum, aktuell:(heuteMs>=wMs&&heuteMs<=wEnd)});
+      if(sum>maxTag)maxTag=sum; }
+  }else{ // jahr: 12 Monatsbalken (1–12) des laufenden Jahres
     const jahr=hkStr.slice(0,4), heuteMon=parseInt(hkStr.slice(5,7),10);
-    const ML=["J","F","M","A","M","J","J","A","S","O","N","D"];
     balkenTitel="Sonne genutzt · Monate "+jahr;
     for(let m=1;m<=12;m++){ const mm=String(m).padStart(2,"0");
       const sum=sonSum(d=>d.slice(0,4)===jahr && d.slice(5,7)===mm);
-      tage.push({label:ML[m-1], sum, aktuell:(m===heuteMon)}); if(sum>maxTag)maxTag=sum; }
+      tage.push({label:String(m), sum, aktuell:(m===heuteMon)}); if(sum>maxTag)maxTag=sum; }
   }
   const balken=tage.map(t=>'<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd"'+(t.aktuell?' style="color:var(--sonne);font-weight:800"':'')+'>'+t.label+'</span></div>').join("");
   const seg=(w,l)=>'<button class="wk-seg-b'+(bilanzZeitraum===w?" an":"")+'" data-z="'+w+'">'+l+'</button>';
@@ -4447,7 +4457,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v59"; }
+{ const av=$("app-version"); if(av)av.textContent="v60"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
