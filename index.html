@@ -3108,7 +3108,7 @@ function alsRoutineUebernehmen(name){
 function kurzDatum(d){ return WOCHENTAG_KURZ[wochentagVonKey(d)]+" "+d.slice(8,10)+"."+d.slice(5,7)+"."; }
 function kurzName(n){ return n.replace(/^[^:]+:\s*/,""); }
 // Verlaufs-Reiter: gelernte Rhythmen + vollständige Lauf-Tabelle (Tag · Gerät · Zeit · kWh).
-let bilanzZeitraum="woche"; // "woche" | "monat" | "gesamt"
+let bilanzZeitraum="woche"; // "woche" | "monat" | "jahr"
 function vortagStr(d){ return new Date(Date.parse(d+"T12:00:00Z")-86400000).toISOString().slice(0,10); }
 // Serie: aufeinanderfolgende Tage (bis heute/gestern) mit mind. einem sonnig gedeckten Lauf.
 function serieTage(alle){
@@ -3140,7 +3140,8 @@ function renderVerlauf(){
   const wdHeute=new Date(hkStr+"T12:00:00Z").getUTCDay();               // 0=So..6=Sa
   const montagKey=new Date(heuteMs-((wdHeute===0?6:wdHeute-1))*86400000).toISOString().slice(0,10);
   const monatKey=hkStr.slice(0,8)+"01";
-  const startKey = bilanzZeitraum==="woche"?montagKey:(bilanzZeitraum==="monat"?monatKey:"0000-00-00");
+  const jahrKey=hkStr.slice(0,4)+"-01-01";
+  const startKey = bilanzZeitraum==="woche"?montagKey:(bilanzZeitraum==="monat"?monatKey:jahrKey);
   const imFenster=x=> x.d>=startKey && x.d<=hkStr;
   const F=alle.filter(imFenster);
   let son=0,netz=0,sparCt=0,bewertet=0,hatEst=false;
@@ -3150,21 +3151,34 @@ function renderVerlauf(){
   // Neue Serien-Bestmarke feiern (einmal, wenn man die Bilanz ansieht)
   if(serie>(cfg.serieRekord||0)){ const alt=cfg.serieRekord||0; cfg.serieRekord=serie; speichern();
     if(!demoAktiv && serie>=3 && tag==="verlauf") feiere("🔥 "+serie+" Tage am Stück – dein Rekord!"); }
-  const zLbl = bilanzZeitraum==="woche"?"diese Woche":(bilanzZeitraum==="monat"?"diesen Monat":"insgesamt");
-  // Balken: bei „Woche" die aktuelle Kalenderwoche (Mo–So, künftige Tage leer), sonst die letzten 7 Tage.
-  let maxTag=0.001; const tage=[];
+  const zLbl = bilanzZeitraum==="woche"?"diese Woche":(bilanzZeitraum==="monat"?"diesen Monat":"dieses Jahr");
+  // Balken passend zur Auswahl: Woche = Tage Mo–So, Monat = Wochen des Monats, Jahr = 12 Monate.
+  let maxTag=0.001; const tage=[]; let balkenTitel="";
+  const sonSum=pred=>alle.filter(x=>x.son!=null&&pred(x.d)).reduce((a,x)=>a+x.son,0);
   if(bilanzZeitraum==="woche"){
+    balkenTitel="Sonne genutzt · diese Woche (Mo–So)";
     const monMs=Date.parse(montagKey+"T12:00:00Z");
     for(let i=0;i<7;i++){ const dk=new Date(monMs+i*86400000).toISOString().slice(0,10);
-      const sum = dk<=hkStr ? alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0) : 0;
-      tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
-  }else{
-    for(let i=6;i>=0;i--){ const dk=new Date(heuteMs-i*86400000).toISOString().slice(0,10);
-      const sum=alle.filter(x=>x.d===dk&&x.son!=null).reduce((a,x)=>a+x.son,0); tage.push({dk,sum}); if(sum>maxTag)maxTag=sum; }
+      const sum = dk<=hkStr ? sonSum(d=>d===dk) : 0;
+      const wd=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(dk+"T12:00:00Z").getUTCDay()];
+      tage.push({label:wd,sum,aktuell:(dk===hkStr)}); if(sum>maxTag)maxTag=sum; }
+  }else if(bilanzZeitraum==="monat"){
+    const jm=hkStr.slice(0,7); // "YYYY-MM"
+    balkenTitel="Sonne genutzt · Wochen im "+new Date(hkStr+"T12:00:00Z").toLocaleDateString("de-DE",{month:"long"});
+    const last=new Date(Date.parse(jm+"-01T12:00:00Z")); last.setUTCMonth(last.getUTCMonth()+1); last.setUTCDate(0);
+    const lastDay=last.getUTCDate(), heuteTag=parseInt(hkStr.slice(8,10),10);
+    for(let start=1;start<=lastDay;start+=7){ const end=Math.min(start+6,lastDay);
+      const sum=sonSum(d=>{ if(d.slice(0,7)!==jm)return false; const dd=parseInt(d.slice(8,10),10); return dd>=start&&dd<=end; });
+      tage.push({label:start+"–"+end, sum, aktuell:(heuteTag>=start&&heuteTag<=end)}); if(sum>maxTag)maxTag=sum; }
+  }else{ // jahr: 12 Monatsbalken des laufenden Jahres
+    const jahr=hkStr.slice(0,4), heuteMon=parseInt(hkStr.slice(5,7),10);
+    const ML=["J","F","M","A","M","J","J","A","S","O","N","D"];
+    balkenTitel="Sonne genutzt · Monate "+jahr;
+    for(let m=1;m<=12;m++){ const mm=String(m).padStart(2,"0");
+      const sum=sonSum(d=>d.slice(0,4)===jahr && d.slice(5,7)===mm);
+      tage.push({label:ML[m-1], sum, aktuell:(m===heuteMon)}); if(sum>maxTag)maxTag=sum; }
   }
-  const balkenTitel = bilanzZeitraum==="woche" ? "Sonne genutzt · diese Woche (Mo–So)" : "Sonne genutzt · letzte 7 Tage";
-  const balken=tage.map(t=>{const wd=["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(t.dk+"T12:00:00Z").getUTCDay()], heute=(t.dk===hkStr);
-    return '<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd"'+(heute?' style="color:var(--sonne);font-weight:800"':'')+'>'+wd+'</span></div>';}).join("");
+  const balken=tage.map(t=>'<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd"'+(t.aktuell?' style="color:var(--sonne);font-weight:800"':'')+'>'+t.label+'</span></div>').join("");
   const seg=(w,l)=>'<button class="wk-seg-b'+(bilanzZeitraum===w?" an":"")+'" data-z="'+w+'">'+l+'</button>';
   const kachel=(ic,wert,lbl)=>'<div class="wk-kachel"><span class="wk-k-ic">'+ic+'</span><span class="wk-k-tx"><b>'+wert+'</b><span>'+lbl+'</span></span></div>';
   // Tabelle
@@ -3175,7 +3189,7 @@ function renderVerlauf(){
   });
   box.innerHTML=
     '<div class="wirkung">'+
-      '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("gesamt","Gesamt")+'</div>'+
+      '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("jahr","Jahr")+'</div>'+
       '<div class="wk-hero"><span class="wk-euro" data-eur="'+(sparCt/100)+'">'+euro(sparCt/100)+'</span><span class="wk-hero-lbl">gespart · '+zLbl+'</span></div>'+
       '<div class="wk-scope">🎯 <span>Zählt nur deine <b>eingeplanten Geräte &amp; Routinen</b> – nicht die vom EMS gesteuerten Hintergrundverbraucher.</span></div>'+
       '<div class="wk-kacheln">'+
@@ -3186,7 +3200,7 @@ function renderVerlauf(){
       '<div class="wk-balken-titel">'+balkenTitel+'</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
       (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
-      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1. – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
@@ -4271,7 +4285,10 @@ function demoVerlauf(){
   return {
     "Spülmaschine":[-8,-7,-6,-5,-4,-3,-2,-1].map(o=>demoLauf(o,12,0.9,"🍽️",2)), // täglich -> fällig
     "Waschmaschine":[-9,-6,-3].map(o=>demoLauf(o,11,0.9,"🌀",3)),               // alle 3 Tage -> fällig
-    "Trockner":[-4,-2].map(o=>demoLauf(o,14,1.6,"🧺",2))                          // erst 2 Läufe -> Kaltstart
+    "Trockner":[-4,-2].map(o=>demoLauf(o,14,1.6,"🧺",2)),                         // erst 2 Läufe -> Kaltstart
+    // Routine-Läufe inkl. HEUTE: sorgen dafür, dass die Bilanz („Woche") an jedem Wochentag Zahlen zeigt
+    // (auch montags). Bettwäsche ist eine Routine → taucht nicht in den „erkannten Mustern" auf.
+    "Waschmaschine: Bettwäsche 60°":[0,-1,-4,-7].map(o=>demoLauf(o,9,1.1,"🛏️",3))
   };
 }
 // 7-Tage-Sonnen-Ausblick für die Demo (kein Netzabruf) – Tag +3 klar als bester Sonnentag.
@@ -4430,7 +4447,7 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v58"; }
+{ const av=$("app-version"); if(av)av.textContent="v59"; }
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
