@@ -114,16 +114,23 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Was:** „nächste gute Stunde" als Homescreen-/Lockscreen-Widget.
 - **Aufwand hoch:** nur nativ (WidgetKit) → an #3 gekoppelt. **Nutzen mittel–hoch.**
 
-## Kandidaten aus dem Markt-Vergleich (Juli 2026, noch nicht entschieden)
-| # | Idee | Aufwand | Nutzen | Backend? |
-|---|------|---------|--------|----------|
-| 12 | Backup & Umzug: alle Daten als Datei sichern/wiederherstellen (JSON) | niedrig | hoch (Datenverlust-/Handywechsel-Schutz) | nein |
-| 13 | Einspeisevergütung: Ersparnis = Netzpreis − EEG-Vergütung (ehrlichere Ökonomie) | niedrig | mittel–hoch | nein |
-| 14 | E-Auto-Ladeplaner: Ladeleistung kW + Ziel-kWh → bestes Ladefenster | mittel | hoch | nein |
-| 15 | Bilanz-/Läufe-Export als CSV (für Excel) | niedrig | mittel | nein |
-| 16 | CO₂-Ampel „grünste Stunden" (Strommix, z. B. energy-charts.info; CORS prüfen) | mittel | mittel | nein |
-| 17 | Tages-Rückblick-Karte („Gestern: X kWh Sonne genutzt") | niedrig | mittel | nein |
-| 18 | Balkonkraftwerk-Modus (vereinfachte Einrichtung, neue Zielgruppe) | mittel | mittel | nein |
+## Kandidaten aus dem Markt-Vergleich (Juli 2026)
+| # | Idee | Aufwand | Nutzen | Backend? | Status |
+|---|------|---------|--------|----------|--------|
+| 12 | Backup & Umzug: alle Daten als Datei sichern/wiederherstellen (JSON) | niedrig | hoch | nein | ✅ v62 |
+| 13 | Einspeisevergütung: Ersparnis = Netzpreis − EEG-Vergütung (ehrlichere Ökonomie) | niedrig | mittel–hoch | nein | ⬜ |
+| 14 | E-Auto-Ladeplaner: Ladeleistung kW + Ziel-kWh → bestes Ladefenster (Opt-in) | mittel | hoch | nein | ✅ v62 (Stufe 1) |
+| 15 | Bilanz-/Läufe-Export als CSV (für Excel) | niedrig | mittel | nein | ✅ v62 |
+| 16 | CO₂-Ampel „grünste Stunden" (Strommix, z. B. energy-charts.info; CORS prüfen) | mittel | mittel | nein | ⬜ |
+| 17 | Tages-Rückblick-Banner („Dein Gestern: X kWh Sonne") | niedrig | mittel | nein | ✅ v62 |
+| 19 | „Was ist neu": Update-Popup (einmalig je Version) + Versionsverlauf in der Hilfe | niedrig | mittel | nein | ✅ v62 |
+
+### #14 Anmerkung (v62 = Stufe 1)
+Ladeplaner als Opt-in (Einrichten → E-Auto & Wallbox): Ladeleistung (2,3/3,7/7,4/11 kW),
+Ziel-kWh-Auswahl, Ladezeit = kWh ÷ kW auf Viertelstunden aufgerundet, Empfehlungszeile
+„Bestes Laden heute" auf der Startseite, eigener Demo-Schritt. **Noch offen (Stufe 2):**
+Laden auf zwei Sonnenfenster aufteilen (Autos stört Unterbrechung nicht) – ehrlich im
+ⓘ-Text vermerkt.
 
 ## Empfohlene Reihenfolge
 1. Grüne Gruppe zuerst (billig, sofort spürbar, kein Store-Stress) — Start mit **#2**.

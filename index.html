@@ -760,6 +760,31 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 .wa-leer.fehler{color:var(--grau)}
 :root[data-theme="dark"] .wa-tag.heute{background:rgba(10,132,255,.13)}
 
+/* „Was ist neu" (Update-Popup + Versionsverlauf) */
+.neu-sheet{text-align:center}
+.neu-ic{font-size:40px;line-height:1;margin:2px 0 8px}
+.neu-punkte{text-align:left;max-width:400px;margin:14px auto 18px;display:flex;flex-direction:column;gap:10px}
+.neu-punkt{display:flex;gap:9px;font-size:13.5px;color:var(--tinte);line-height:1.45;background:var(--papier);border-radius:12px;padding:10px 12px}
+.neu-punkt b{color:var(--nacht)}
+.nv-block{margin-bottom:12px}
+.nv-v{font-size:12px;font-weight:800;color:var(--sonne);margin-bottom:4px}
+.nv-block div:not(.nv-v){font-size:12px;color:var(--grau);line-height:1.5;padding-left:2px}
+/* Tages-Rückblick-Banner (#17) */
+.rueckblick{position:relative;margin:10px 16px 0;background:radial-gradient(120% 100% at 0% 0%,rgba(245,168,12,.18),rgba(245,168,12,0) 62%),var(--karte);border:1px solid var(--linie);border-radius:14px;padding:10px 40px 10px 13px;font-size:12.5px;color:var(--tinte);line-height:1.45;cursor:pointer}
+.rueckblick b{color:var(--nacht)}
+.rueckblick .rb-zu{position:absolute;right:6px;top:6px;border:none;background:rgba(20,31,44,.06);color:var(--grau);border-radius:9px;width:26px;height:26px;font-size:12px;cursor:pointer}
+:root[data-theme="dark"] .rueckblick .rb-zu{background:rgba(255,255,255,.08)}
+/* E-Auto-Empfehlungszeile (#14) */
+.dash-ev{margin:0 0 12px;background:radial-gradient(120% 100% at 0% 0%,rgba(48,209,88,.14),rgba(48,209,88,0) 62%),var(--karte);border:1px solid var(--linie);border-radius:14px;padding:10px 13px;font-size:12.5px;color:var(--tinte);line-height:1.45}
+.dash-ev b{color:var(--nacht)}
+/* Backup-Knöpfe (#12) + CSV (#15) */
+.daten-knoepfe{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
+.daten-knoepfe .merken-knopf{flex:1 1 45%;margin-top:6px}
+.merken-knopf.sekundaer{background:var(--papier);color:var(--tinte)}
+.csv-btn{display:block;width:100%;margin-top:12px;border:1.5px dashed #C4D0DA;border-radius:12px;background:transparent;color:var(--tinte);font-family:var(--sans);font-size:13px;font-weight:600;padding:11px;cursor:pointer}
+.csv-btn:active{transform:scale(.98)}
+:root[data-theme="dark"] .csv-btn{border-color:#3A4C5E}
+
 /* Willkommen / Onboarding-„Aha" (#4) */
 .wk-sheet{text-align:center}
 .wk-step{animation:sheet-auf var(--weich)}
@@ -863,12 +888,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <div class="status" id="status" role="status" aria-live="polite" hidden>Lade Sonnen- und Preisdaten…</div>
 <div class="v-haupt warn" id="pv-fallback-hinweis" hidden style="margin:10px 16px 0">⚠️ Die gewählte Sonnenquelle war nicht erreichbar – die Prognose kommt gerade von der Ausweichquelle und kann ungenauer sein, besonders an wechselhaften Tagen.</div>
 <div class="routine-banner" id="routine-banner" hidden></div>
+<div class="rueckblick" id="rueckblick-banner" hidden></div>
 
 <!-- Kompakte Startseite: alles Wichtige auf einen Blick (wie das Mockup). Details in Sheets. -->
 <div id="dashboard" hidden>
   <div id="dash-curve-wrap"></div>
   <div class="karte dash-hero" id="dash-hero"></div>
   <div id="dash-vorschlag" hidden></div>
+  <div class="dash-ev" id="dash-ev" hidden></div>
   <div class="karte dash-plan-card" id="dash-plan-card"></div>
 </div>
 
@@ -1010,6 +1037,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Sonnen-Ausblick, Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
   </div>
 
+  <details class="experte" style="margin:14px 0 0">
+    <summary>📋 Was ist neu (Versionen)</summary>
+    <div id="neu-verlauf" style="margin-top:10px"></div>
+  </details>
+
   <div class="vertrauen">
     <div class="vt-titel">🔒 Warum du der App vertrauen kannst</div>
     <div class="vt-chips"><span>📵 Kein Konto</span><span>🏠 100 % lokal</span><span>🚫 Kein Tracking</span><span>☁️ Keine Cloud</span></div>
@@ -1085,11 +1117,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
         <div class="regler-kopf"><span>🔋 Speicherstand heute morgen</span><b id="rg-akku-val">5,0 kWh</b></div>
         <input type="range" id="rg-akku" min="0" max="10" step="0.5" value="5" aria-label="Speicherstand morgens">
       </div>
-      <details class="experte" style="margin-top:12px">
+      <details class="experte akku-doku" style="margin-top:12px">
         <summary>ⓘ Wie der Speicher gerechnet wird</summary>
         <div class="hilfe" style="margin-top:10px">✅ <b>Wird berücksichtigt:</b> In Sonnenkurve, Deckung &amp; Eigenverbrauch deckt der Speicher jede Stunde die Defizite – auch nachts und im Winter – bis er leer ist, danach kommt Netzstrom.</div>
         <div class="hilfe" style="margin-top:8px">🌅 <b>Startwert:</b> dein oben eingestellter „Speicherstand heute morgen" – <b>keine Live-Messung</b> (ohne EMS-Anbindung). Der Tag wird von diesem Wert aus hochgerechnet; für <b>morgen</b> ist es eine Schätzung.</div>
         <div class="hilfe" style="margin-top:8px">🎯 <b>Geräte-Empfehlung:</b> plant weiterhin <b>nur nach Sonne</b>, nicht nach Speicherstand – die App sagt also nicht „starte jetzt, weil der Speicher voll ist".</div>
+      </details>
+    </div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage-kopf"><span class="fk-ic gruen">🚗</span><span class="fk-titel">E-Auto &amp; Wallbox<span class="fk-opt">optional</span></span></div>
+    <label class="switch-zeile">
+      <span>E-Auto-Laden einplanen</span>
+      <span class="switch"><input type="checkbox" id="rg-ev-an"><span class="switch-ui"></span></span>
+    </label>
+    <div class="hilfe" id="rg-ev-aus-hint">Aus: alles bleibt wie bisher. An: der Gerätetyp „E-Auto" wird zum <b>Ladeplaner</b> – du gibst nur noch an, <b>wie viel geladen</b> werden soll; die Ladezeit rechnet sich aus deiner Ladeleistung.</div>
+    <div id="ev-details" hidden>
+      <div class="frage" style="margin-top:12px;font-size:13px">Deine Ladeleistung</div>
+      <div class="wahl" id="w-ev-kw"></div>
+      <details class="experte" style="margin-top:12px">
+        <summary>ⓘ Wie das Laden gerechnet wird</summary>
+        <div class="hilfe" style="margin-top:10px">🔢 <b>Ladezeit</b> = Ziel-kWh ÷ Ladeleistung, auf Viertelstunden <b>aufgerundet</b> (z. B. 20 kWh ÷ 11 kW ≈ 1,8 h → 2 h eingeplant). Ladeverluste sind nicht eingerechnet – plane lieber etwas mehr kWh ein.</div>
+        <div class="hilfe" style="margin-top:8px">☀️ Die App legt das Laden wie jedes Gerät in die <b>sonnigsten/günstigsten Stunden</b> – aktuell als <b>ein zusammenhängendes Fenster</b>. Aufteilen auf zwei Sonnenfenster steht auf der Roadmap.</div>
+        <div class="hilfe" style="margin-top:8px">🎯 Die App <b>startet das Laden nicht</b> – sie empfiehlt das Fenster. Anstecken bzw. Timer in Auto/Wallbox stellst du selbst (oder dein EMS).</div>
       </details>
     </div>
   </div>
@@ -1124,6 +1174,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="zahl-feld"><input id="f-kalib-real" inputmode="decimal" placeholder="z. B. 41"><span class="einheit">kWh echter Ertrag heute</span></div>
     <button class="merken-knopf" id="btn-kalib" style="margin-top:10px">✓ Übernehmen &amp; kalibrieren</button>
     <div class="hilfe" id="kalib-status" style="margin-top:8px"></div>
+  </div>
+  <div class="abschnitt">
+    <div class="frage-kopf"><span class="fk-ic grau">💾</span><span class="fk-titel">Deine Daten<span class="fk-opt">Backup &amp; Umzug</span></span></div>
+    <div class="hilfe">Alles liegt nur auf diesem Gerät. Sichere es als Datei – für den Handywechsel oder falls der Browser Website-Daten löscht. Die Datei bleibt bei dir, nichts wird hochgeladen.</div>
+    <div class="daten-knoepfe">
+      <button class="merken-knopf" id="btn-backup-sichern">⬇️ Backup speichern</button>
+      <button class="merken-knopf sekundaer" id="btn-backup-laden">📂 Backup wiederherstellen</button>
+    </div>
+    <input type="file" id="backup-datei" accept=".json,application/json" hidden>
+    <div class="hilfe" id="backup-status" style="margin-top:8px"></div>
   </div>
   <details class="experte">
     <summary>Für Experten</summary>
@@ -1170,6 +1230,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
   </div>
 </div>
 
+<!-- „Was ist neu": erscheint einmalig nach einem Update (nie beim allerersten Start) -->
+<div class="sheet neu-sheet" id="sheet-neu" role="dialog" aria-label="Was ist neu" style="z-index:12">
+  <button class="sheet-schliessen" data-zu>✕</button>
+  <div class="neu-ic">✨</div>
+  <h3 id="neu-titel">Neu in Version 62</h3>
+  <div class="sub">Das hat sich seit deinem letzten Besuch getan:</div>
+  <div class="neu-punkte" id="neu-punkte"></div>
+  <button class="fertig" data-zu>Alles klar</button>
+</div>
+
 <!-- Gerät hinzufügen -->
 <div class="sheet" id="sheet-geraet" role="dialog" aria-label="Gerät hinzufügen">
   <button class="sheet-schliessen" data-zu>✕</button>
@@ -1186,8 +1256,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <button class="chip-plus" id="btn-neues-programm" style="margin-top:2px">＋ Neues Programm erstellen</button>
   </div>
   <div class="abschnitt" id="klasse-abschnitt" hidden>
-    <div class="frage">Wie effizient ist es?</div>
-    <div class="hilfe">Steht als Energieklasse auf dem bunten EU-Label. Nicht sicher? „Weiß nicht" wählen – oder unten dein Modell suchen.</div>
+    <div class="frage" id="klasse-frage">Wie effizient ist es?</div>
+    <div class="hilfe" id="klasse-hilfe">Steht als Energieklasse auf dem bunten EU-Label. Nicht sicher? „Weiß nicht" wählen – oder unten dein Modell suchen.</div>
     <div class="wahl" id="w-klasse"></div>
   </div>
   <div class="abschnitt" id="schaetzung-box" hidden>
@@ -1367,7 +1437,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 const $=id=>document.getElementById(id);
 
 let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,fsKey:"",adresse:""};
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:""};
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -1419,6 +1489,16 @@ function ladeGespeichert(){
     if(Array.isArray(s.routinen))routinen=s.routinen;
   }catch(e){}
 }
+
+/* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
+const APP_VERSION=62;
+const NEUES=[
+  {v:62,t:["🚗 <b>E-Auto-Ladeplaner</b> (optional): Ladeleistung + Ziel-kWh statt Dauer – Einrichten → E-Auto & Wallbox","💾 <b>Backup & Umzug</b>: alle Daten als Datei sichern und wiederherstellen","📊 <b>CSV-Export</b> der Bilanz für Excel","🌅 <b>Tages-Rückblick</b>: was dein Gestern gebracht hat","✨ Dieses „Was ist neu“ – künftig nach jedem Update"]},
+  {v:60,t:["Bilanz-Balken je Auswahl: Woche = Tage, Monat = Kalenderwochen, Jahr = Monate 1–12"]},
+  {v:58,t:["Bilanz zählt kalendarisch: Woche ab Montag, Monat ab dem 1., Jahr ab 1. Januar"]},
+  {v:56,t:["Wochen-Ausblick: Wetter-Symbole aus echter Sonnenscheindauer (Regen nur bei echtem Regentag)"]},
+  {v:54,t:["Speicher-Kurve auch auf der Startseite und ohne eingeplante Geräte"]}
+];
 
 /* Alles konsequent in Anlagen-Zeitzone Europe/Berlin, unabhaengig von der Geraete-Einstellung */
 const TZ="Europe/Berlin";
@@ -2545,6 +2625,18 @@ function renderDashboard(arr){
   $("dash-curve-wrap").innerHTML=curveHtml;
   // --- Hero: großer Tagesertrag + Eigenverbrauch-Ring ---
   if(platzierungen.length) simuliere(arr,platzierungen); // mutiert Blöcke für die Geräte-Deckung unten
+  // E-Auto-Empfehlungszeile (#14): bestes Ladefenster + erwarteter Sonnenanteil (nur bei aktivem Ladeplaner)
+  { const evEl=$("dash-ev");
+    if(evEl){
+      const evB=cfg.ev_an?platzierungen.find(b=>planGeraete[b.gi]&&planGeraete[b.gi].typ==="ba"):null;
+      if(evB){
+        const ende=evB.start+(evB.echteDauer!=null?evB.echteDauer:evB.dauer);
+        const sunK=Math.round(((evB._sun||0)+(evB._batt||0))*10)/10;
+        evEl.hidden=false;
+        evEl.innerHTML='🚗 <b>Bestes Laden '+(tag==="morgen"?"morgen":"heute")+':</b> '+uhrStr(evB.start)+'–'+uhrStr(ende)+' Uhr → ~<b>'+dz(sunK)+' kWh</b> aus eigener Sonne'+(evB.kwh>sunK+0.05?', Rest günstiger Netzstrom':'')+'.';
+      } else evEl.hidden=true;
+    }
+  }
   const sm = simGesamt(arr,tagKey);                      // Eigenverbrauch = ganzer Tag inkl. gelaufener Geräte
   let ev=null;
   if(sm){ const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; }
@@ -2938,6 +3030,7 @@ function aktualisieren(){
   if(tag==="woche"||tag==="verlauf"){
     tageskarten(false);
     $("routine-banner").hidden=true;
+    const rbW=$("rueckblick-banner"); if(rbW)rbW.hidden=true;
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
     const eb=$("kopf-eyebrow"); if(eb)eb.textContent="Energie-Optimierer";
     if(tag==="woche"){ $("titel").textContent="Woche"; renderWoche(); }
@@ -2957,6 +3050,7 @@ function aktualisieren(){
   const eb=$("kopf-eyebrow"); if(eb){ const d=new Date(tagStr+"T12:00:00"); eb.textContent=d.toLocaleDateString("de-DE",{weekday:"long",day:"numeric",month:"long"}); }
   renderDashboard(arr);
   routineBanner(tagStr);
+  renderRueckblick();
   if(tag==="morgen"&&cfg.tarif!=="fest"&&arr.every(s=>s.spot==null)){
     $("status").hidden=false;
     $("status").innerHTML='<span class="fehler">Preise für morgen erscheinen ab ca. 14 Uhr.</span>';
@@ -2964,6 +3058,27 @@ function aktualisieren(){
   vielleichtFaellig(); // A1: einmal pro App-Start nach fälligen (abgelaufenen) Geräten fragen
 }
 // Erinnerungs-Banner: an einem Routine-Tag (nur "heute") zeigen, was ansteht + geplantes Fenster.
+// Tages-Rückblick (#17): einmal täglich zeigen, was das Gestern gebracht hat. Nur bei
+// bestätigten Läufen mit Bilanzdaten – kein Banner ohne Inhalt, kein schlechtes Gewissen.
+function renderRueckblick(){
+  const el=$("rueckblick-banner"); if(!el)return;
+  const hk=heuteStr();
+  if(demoAktiv||tag!=="heute"||cfg.rueckblickWeg===hk){ el.hidden=true; return; }
+  const g=new Date(Date.parse(hk+"T12:00:00Z")-86400000).toISOString().slice(0,10);
+  let n=0,son=0,k=0,spar=0;
+  Object.values(cfg.verlauf||{}).forEach(l=>(l||[]).forEach(e=>{
+    if(e&&typeof e==="object"&&e.d===g&&e.son!=null){ n++; son+=e.son; k+=(e.k||0); spar+=(e.spar||0); }
+  }));
+  if(!n){ el.hidden=true; return; }
+  const q=k>0?Math.round(son/k*100):0;
+  el.hidden=false;
+  el.innerHTML='🌅 <b>Dein Gestern:</b> '+n+' '+(n===1?'Lauf':'Läufe')+' · <b>'+dz(son.toFixed(1))+' kWh</b> aus eigener Sonne'+(k>0?' ('+q+' %)':'')+' · <b>'+euro(spar/100)+'</b> gespart <button class="rb-zu" aria-label="Rückblick ausblenden">✕</button>';
+  el.onclick=e=>{
+    if(e.target.classList.contains("rb-zu")){ cfg.rueckblickWeg=hk; speichern(); el.hidden=true; e.stopPropagation(); return; }
+    setzeTag("verlauf");
+  };
+  if(q>=98 && cfg.rueckblickFeier!==hk){ cfg.rueckblickFeier=hk; speichern(); feiere("☀️ Gestern lief alles aus eigener Sonne!"); }
+}
 function routineBanner(tagStr){
   const el=$("routine-banner");
   const done=new Set(erledigtListe(tagStr).map(e=>e.name));
@@ -3220,7 +3335,11 @@ function renderVerlauf(){
       '</details>'+
     '</div>'+
     '<div class="vl-titel">Alle Läufe</div>'+
-    '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<button class="csv-btn" id="btn-csv">⬇️ Alle Läufe als CSV exportieren (Excel)</button>'+
+    ((alle.length>=20 && (!cfg.letztesBackup || (Date.now()-cfg.letztesBackup)>60*86400000))
+      ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'');
+  const cbtn=$("btn-csv"); if(cbtn)cbtn.onclick=()=>exportiereCSV(alle);
   box.querySelectorAll(".wk-seg-b").forEach(b=>b.onclick=()=>{ bilanzZeitraum=b.dataset.z; renderVerlauf(); });
   box.querySelectorAll(".wk-kachel b, .wk-hero .wk-euro").forEach((el,i)=>zaehlElement(el,"wk"+bilanzZeitraum+i));
 }
@@ -3552,6 +3671,8 @@ $("btn-einrichten").onclick=()=>{
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
   renderWahl("w-pvquelle",pvQuellen,cfg.pvQuelle||"fs",setzePvQuelle); pvQuelleHinweis();
   renderWahl("w-tarif",tarifListe,cfg.tarif,v=>{cfg.tarif=v;tarifUI();});
+  const evAn=$("rg-ev-an"); if(evAn){ evAn.checked=!!cfg.ev_an; const ed=$("ev-details"); if(ed)ed.hidden=!cfg.ev_an; }
+  renderWahl("w-ev-kw",EV_KW_LISTE,cfg.ev_kw||11,v=>{cfg.ev_kw=v;speichern();});
   tarifUI();
   renderMeineVerwaltung();
   const info=$("adresse-info");info.className="adresse-ok";
@@ -3586,6 +3707,69 @@ $("btn-fertig").onclick=()=>{
   speichern();
   sheetZu();laden();
 };
+
+/* ---------- Datei-Helfer + Backup (#12) + CSV-Export (#15) ---------- */
+// Datei zum Sichern/Teilen anbieten (bleibt lokal – kein Upload). iOS zeigt den Sichern/Teilen-Dialog.
+function ladeDatei(name,inhalt,mime){
+  const blob=new Blob([inhalt],{type:mime});
+  const u=URL.createObjectURL(blob);
+  const a=document.createElement("a"); a.href=u; a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+function exportiereCSV(alle){
+  const z=v=>v==null?"":String(v).replace(".",",");
+  const nm=v=>String(v||"").replace(/;/g,",");
+  let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne;Ersparnis ct;geschätzt\n";
+  alle.slice().sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:((a.s||0)-(b.s||0)))).forEach(x=>{
+    const ende=(x.s!=null&&x.dauer!=null)?uhrStr(x.s+x.dauer):"";
+    s+=[x.d,nm(x.name),(x.s!=null?uhrStr(x.s):""),ende,z(x.k),z(x.son),z(x.spar),(x.est?"ja":"nein")].join(";")+"\n";
+  });
+  ladeDatei("energie-optimierer-laeufe.csv",s,"text/csv;charset=utf-8");
+  zeigeToast("📊 CSV erstellt – im Dialog sichern oder teilen",null);
+}
+// Backup = kompletter Datenstand als JSON-Datei; Wiederherstellen ersetzt (mit Rückgängig).
+function backupAnwenden(j){
+  for(const k in cfg)delete cfg[k]; Object.assign(cfg,j.cfg||{});
+  geraete=Array.isArray(j.geraete)?j.geraete:[];
+  meineGeraete=Array.isArray(j.meineGeraete)?j.meineGeraete:[];
+  routinen=Array.isArray(j.routinen)?j.routinen:[];
+  speichern(); platzSig=""; sheetZu(); standortAnzeige(); renderChips(); laden();
+}
+if($("btn-backup-sichern"))$("btn-backup-sichern").onclick=()=>{
+  cfg.letztesBackup=Date.now(); speichern();
+  const j={app:"energie-optimierer",version:APP_VERSION,exportiert:new Date().toISOString(),cfg,geraete,meineGeraete,routinen};
+  ladeDatei("energie-optimierer-backup-"+heuteStr()+".json",JSON.stringify(j),"application/json");
+  const st=$("backup-status"); if(st)st.textContent="✓ Backup erstellt – im Dialog z. B. in „Dateien“ sichern oder per AirDrop teilen.";
+};
+if($("btn-backup-laden"))$("btn-backup-laden").onclick=()=>$("backup-datei").click();
+if($("backup-datei"))$("backup-datei").onchange=async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=""; if(!f)return;
+  let j=null; try{ j=JSON.parse(await f.text()); }catch(_){ }
+  const st=$("backup-status");
+  if(!j||!j.cfg||!Array.isArray(j.geraete)){ if(st)st.innerHTML='<span class="fehler">✗ Keine gültige Backup-Datei dieser App.</span>'; return; }
+  const laeufe=Object.values(j.cfg.verlauf||{}).reduce((a,l)=>a+(Array.isArray(l)?l.length:0),0);
+  const wann=(j.exportiert||"").slice(0,10);
+  const ok=await frageJaNein("💾 Backup übernehmen?",
+    "Backup"+(wann?" vom "+wann:"")+": "+j.geraete.length+" Geräte · "+((j.routinen||[]).length)+" Routinen · "+laeufe+" Läufe. Dein jetziger Stand wird ersetzt – einmal Rückgängig ist möglich.","Übernehmen");
+  if(!ok)return;
+  const undo=JSON.stringify({cfg:cfg,geraete:geraete,meineGeraete:meineGeraete,routinen:routinen});
+  backupAnwenden(j);
+  zeigeToast("💾 Backup übernommen",()=>backupAnwenden(JSON.parse(undo)));
+};
+
+/* ---------- „Was ist neu" (Update-Hinweis + Versionsverlauf in der Hilfe) ---------- */
+function zeigeNeuVerlauf(){
+  const el=$("neu-verlauf"); if(!el)return;
+  el.innerHTML=NEUES.map(n=>'<div class="nv-block"><div class="nv-v">Version '+n.v+'</div>'+n.t.map(t=>'<div>· '+t+'</div>').join("")+'</div>').join("");
+}
+function zeigeNews(){
+  if(demoAktiv)return;
+  $("neu-titel").textContent="Neu in Version "+NEUES[0].v;
+  $("neu-punkte").innerHTML=NEUES[0].t.map(t=>'<div class="neu-punkt"><span>'+t+'</span></div>').join("");
+  cfg.newsGesehen=APP_VERSION; speichern();
+  sheetAuf("sheet-neu");
+}
 
 /* ---------- Onboarding-„Aha" (#4): geführter Erststart, Adresse → sofort die eigene Sonne ---------- */
 function oeffneWillkommen(){
@@ -3649,12 +3833,12 @@ $("wk-suchen").onclick=async()=>{
 };
 $("wk-adresse").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("wk-suchen").onclick(); } });
 $("wk-weiter").onclick=()=>{
-  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; speichern();
+  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; cfg.newsGesehen=APP_VERSION; speichern();
   document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));
   $("btn-einrichten").onclick(); // volle Einrichtung – Adresse ist schon gesetzt
 };
 $("wk-spaeter").onclick=()=>{
-  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; speichern();
+  cfg.onboardingGesehen=true; cfg.hilfeGesehen=true; cfg.newsGesehen=APP_VERSION; speichern();
   sheetZu(); laden();
 };
 
@@ -3702,6 +3886,8 @@ function renderGrundlast(){
   const h=$("gl-hinweis");if(h)h.innerHTML="Aktuell ~<b>"+GL_ZONEN_NAME[idx]+"</b>: "+GL_ZONEN_TXT[idx];
 }
 $("rg-akku-an").onchange=()=>{cfg.akku_an=$("rg-akku-an").checked;const d=$("akku-details");if(d)d.hidden=!cfg.akku_an;speichern();aktualisieren();};
+const EV_KW_LISTE=[["Schuko ~2,3 kW",2.3],["3,7 kW",3.7],["7,4 kW",7.4],["Wallbox 11 kW",11]];
+if($("rg-ev-an"))$("rg-ev-an").onchange=()=>{cfg.ev_an=$("rg-ev-an").checked;const d=$("ev-details");if(d)d.hidden=!cfg.ev_an;speichern();aktualisieren();};
 $("rg-akku").oninput=()=>{cfg.akku_stand=parseFloat($("rg-akku").value)||0;aktualisieren();};
 $("rg-akku").onchange=()=>speichern();
 $("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;renderGrundlast();aktualisieren();};
@@ -3749,8 +3935,23 @@ function renderProgramme(typ){
   });
 }
 // „Neues Programm erstellen": Effizienz-/Schätzflow einblenden
+/* E-Auto-Ladeplaner (#14, Opt-in über Einrichten): Ziel-kWh statt Energieklasse,
+   Ladezeit = kWh ÷ Ladeleistung (Viertelstunden-gerundet). */
+const EV_KLASSEN={"Kurz nachladen (~10 kWh)":10,"Halber Akku (~20 kWh)":20,"Fast voll (~40 kWh)":40};
+function evPlaner(){ return !!cfg.ev_an && wahlTyp && wahlTyp.id==="ba"; }
+function evDauer(kwh){ const kw=cfg.ev_kw||11; return Math.max(0.5, Math.ceil((kwh/kw)*4)/4); }
+function aktKlassen(){ return evPlaner()?EV_KLASSEN:wahlTyp.klassen; }
 function starteNeuesProgramm(){
-  wahlKlasse=null;renderKlassen();
+  wahlKlasse=null;
+  const fr=$("klasse-frage"),hi=$("klasse-hilfe");
+  if(evPlaner()){
+    if(fr)fr.textContent="Wie viel soll geladen werden?";
+    if(hi)hi.innerHTML="Grobe Richtwerte – die <b>Ladezeit</b> ergibt sich aus deiner Ladeleistung ("+dz(cfg.ev_kw||11)+" kW, einstellbar unter ⚙️ → E-Auto &amp; Wallbox).";
+  }else{
+    if(fr)fr.textContent="Wie effizient ist es?";
+    if(hi)hi.innerHTML="Steht als Energieklasse auf dem bunten EU-Label. Nicht sicher? „Weiß nicht“ wählen – oder unten dein Modell suchen.";
+  }
+  renderKlassen();
   $("klasse-abschnitt").hidden=false;$("schaetzung-box").hidden=true;
   $("programm-speichern-box").hidden=true;$("btn-g-fertig").hidden=true;
   const cb=$("cb-programm-speichern");if(cb)cb.checked=false;
@@ -3758,14 +3959,19 @@ function starteNeuesProgramm(){
 }
 function renderKlassen(){
   const box=$("w-klasse");box.innerHTML="";
-  Object.keys(wahlTyp.klassen).forEach(k=>{
+  const KL=aktKlassen();
+  Object.keys(KL).forEach(k=>{
     const b=document.createElement("button");
     b.textContent=k;
     if(k===wahlKlasse)b.classList.add("aktiv");
     b.onclick=()=>{wahlKlasse=k;renderKlassen();
-      const kwh=wahlTyp.klassen[k];
-      $("schaetzung").innerHTML="Geschätzter Verbrauch: <b>"+dz(kwh)+" kWh</b> "+wahlTyp.text+
-        " · Laufzeit ca. "+wahlTyp.dauer+" h.<br><span style='color:var(--grau)'>Typischer Wert – nach dem Hinzufügen kannst du per ✎ Modellsuche oder Handeingabe verfeinern.</span>";
+      const kwh=KL[k];
+      if(evPlaner()){
+        $("schaetzung").innerHTML="Ladeziel: <b>"+dz(kwh)+" kWh</b> · bei "+dz(cfg.ev_kw||11)+" kW ≈ <b>"+uhrStr(evDauer(kwh))+" h</b> Ladezeit.<br><span style='color:var(--grau)'>Ohne Ladeverluste – lieber etwas großzügiger planen. Die App legt das Fenster in die Sonne, starten musst du selbst.</span>";
+      }else{
+        $("schaetzung").innerHTML="Geschätzter Verbrauch: <b>"+dz(kwh)+" kWh</b> "+wahlTyp.text+
+          " · Laufzeit ca. "+wahlTyp.dauer+" h.<br><span style='color:var(--grau)'>Typischer Wert – nach dem Hinzufügen kannst du per ✎ Modellsuche oder Handeingabe verfeinern.</span>";
+      }
       $("schaetzung-box").hidden=false;$("programm-speichern-box").hidden=false;$("btn-g-fertig").hidden=false;
       const nf=$("neu-programm-name");if(nf)nf.placeholder=kurzName(wahlTyp.name)+" · "+k;};
     box.appendChild(b);
@@ -3816,17 +4022,18 @@ $("btn-neues-programm").onclick=starteNeuesProgramm;
 $("neu-programm-name").oninput=e=>{ const cb=$("cb-programm-speichern"); if(cb&&e.target.value.trim())cb.checked=true; };
 $("btn-g-fertig").onclick=async()=>{
   if(!wahlTyp||!wahlKlasse)return;
-  const kwh=wahlTyp.klassen[wahlKlasse];
+  const kwh=aktKlassen()[wahlKlasse];
+  const dauerG=evPlaner()?evDauer(kwh):wahlTyp.dauer; // EV: Ladezeit aus kWh ÷ Ladeleistung
   const nm=(($("neu-programm-name").value||"").trim());
   // Mit Name: „Hauptkategorie: Name". Ohne Name: nur die Hauptkategorie (einmaliger Eintrag).
-  const progName = nm ? (wahlTyp.name+": "+nm) : wahlTyp.name;
-  const dev={typ:wahlTyp.id,icon:wahlTyp.icon,name:progName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis};
+  const progName = nm ? (wahlTyp.name+": "+nm) : (evPlaner() ? ("E-Auto ~"+dz(kwh)+" kWh") : wahlTyp.name);
+  const dev={typ:wahlTyp.id,icon:wahlTyp.icon,name:progName,kwh,dauer:dauerG,von:wahlTyp.von,bis:wahlTyp.bis};
   // Optional dauerhaft unter „Meine Geräte" merken (der Hauptkategorie zugeordnet).
   const cb=$("cb-programm-speichern");
   if(cb&&cb.checked){
     const saveName = nm ? progName : (wahlTyp.name+": "+wahlKlasse);
     if(!meineGeraete.some(m=>m.name===saveName))
-      meineGeraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:saveName,kwh,dauer:wahlTyp.dauer,von:wahlTyp.von,bis:wahlTyp.bis});
+      meineGeraete.push({typ:wahlTyp.id,icon:wahlTyp.icon,name:saveName,kwh,dauer:dauerG,von:wahlTyp.von,bis:wahlTyp.bis});
     dev.name=saveName;
   }
   if(await geraetHinzufuegenBestaetigt(dev)) hinzufuegenFertig();
@@ -4324,6 +4531,7 @@ function ladeDemoBasis(){
   routinen=JSON.parse(JSON.stringify(DEMO_ROUTINEN));
   cfg.verlauf=demoVerlauf();
   cfg.tagAnzahl={}; cfg.plaene={}; cfg.erledigt={}; cfg.uebernommen={}; cfg.abgelehnt={}; cfg.routineSkip={};
+  cfg.ev_an=false; cfg.rueckblickWeg=heuteStr(); // EV führt erst der eigene Demo-Schritt ein; Rückblick stört die Tour nicht
   platzSig=""; tag="heute"; demoClose();
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag==="heute"));
   aktualisieren();
@@ -4342,6 +4550,10 @@ const DEMO_STEPS=[
     run:()=>{ demoClose(); setzeTag("heute"); geraetAnHeutigenTag({typ:"wm",icon:"🌀",name:"Waschmaschine",kwh:0.9,dauer:3,von:6,bis:22}); aktualisieren(); sheetAuf("sheet-tagesplan"); demoSpot("#planer-leiste"); }, wait:8000 },
   { cap:"🌤️ <b>Morgen vorausplanen:</b> Sobald die Preise für morgen da sind, kannst du auch den nächsten Tag schon vorbereiten.",
     run:()=>{ demoClose(); setzeTag("morgen"); }, wait:6500 },
+  { cap:"🚗 <b>E-Auto (optional):</b> Ladeleistung hinterlegen, <b>Ziel-kWh</b> wählen – die App legt das Laden in die Sonne und zeigt dir das beste Ladefenster.",
+    run:()=>{ demoClose(); setzeTag("heute"); cfg.ev_an=true; cfg.ev_kw=11;
+      geraetAnHeutigenTag({typ:"ba",icon:"🚗",name:"E-Auto ~20 kWh",kwh:20,dauer:1.75,von:0,bis:24});
+      platzSig=""; aktualisieren(); demoSpot("#dash-ev"); }, wait:8000 },
   { cap:"🔁 <b>Die App lernt:</b> Aus deinen bestätigten Läufen erkennt sie deinen Rhythmus und <b>schlägt Fälliges von selbst vor</b> – ein Tipp genügt.",
     run:()=>{ demoClose(); setzeTag("heute"); aktualisieren(); demoSpot("#dash-vorschlag"); }, wait:7500 },
   { cap:"☀️ <b>Wochen-Ausblick:</b> Der <b>Woche</b>-Reiter zeigt oben die nächsten 7 Tage – welcher Tag am meisten Sonne bringt. So legst du Wäsche & Co. gezielt auf den <b>besten Sonnentag</b>.",
@@ -4457,7 +4669,10 @@ function standortAnzeige(){
   z.onclick=()=>$("btn-einrichten").onclick();
 }
 standortAnzeige();
-{ const av=$("app-version"); if(av)av.textContent="v61"; }
+{ const av=$("app-version");
+  if(av){ av.textContent="v"+APP_VERSION; av.style.cursor="pointer"; av.style.textDecoration="underline";
+    av.onclick=()=>{ sheetAuf("sheet-hilfe"); const nl=$("neu-verlauf"); if(nl&&nl.parentElement)nl.parentElement.open=true; }; } }
+zeigeNeuVerlauf();
 renderChips();
 if(cfg.lat!=null&&!demoAktiv)zeigeSkelett(); // schimmernde Platzhalter, bis Sonne/Preise geladen sind
 laden();
@@ -4467,7 +4682,8 @@ if(cfg.lat==null){
   if(!cfg.onboardingGesehen){ setTimeout(oeffneWillkommen,350); }   // #4: geführter Erststart mit Sonnen-Vorschau
   else { setTimeout(()=>$("btn-einrichten").onclick(),450); }        // Onboarding schon gesehen, aber Adresse fehlt
 }
-else if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; speichern(); }
+else if(!cfg.hilfeGesehen){ setTimeout(()=>sheetAuf("sheet-hilfe"),400); cfg.hilfeGesehen=true; cfg.newsGesehen=APP_VERSION; speichern(); }
+else if((cfg.newsGesehen||0)<APP_VERSION){ setTimeout(zeigeNews,500); }
 })();
 </script>
 </body>
