@@ -99,9 +99,31 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #11 Solinteg-CSV → Grundlast-Profil  🟡 (vereinbart: übernächster Schritt)
+- **Was:** Verbrauchsdaten aus dem Solinteg-Portal als CSV exportieren und in der App
+  importieren (FileReader, bleibt lokal). Daraus ein **24-h-Grundlast-Profil** je Stunde
+  (unteres Quantil P25 filtert Geräte-Spitzen) statt der einen festen Grundlast-Zahl.
+  Regler bleibt Fallback; Hinweis „Profil aktiv · Import vom …". Auffrischen durch
+  erneuten Import (deckt Sommer/Winter-WP ab).
+- **Vorher klären:** Beispiel-CSV vom Nutzer (Spalten, Auflösung ≥ stündlich, W/kWh,
+  Dezimalzeichen), Parser exakt darauf bauen.
+- **Später (Stufe 3, = #5-Schiene):** Solinteg-OpenAPI (braucht Mini-Proxy wegen
+  Key+CORS) oder lokale Modbus-Brücke – beides Backend, bewusst verschoben.
+
 ### #9 Widgets / Sperrbildschirm  🔴
 - **Was:** „nächste gute Stunde" als Homescreen-/Lockscreen-Widget.
 - **Aufwand hoch:** nur nativ (WidgetKit) → an #3 gekoppelt. **Nutzen mittel–hoch.**
+
+## Kandidaten aus dem Markt-Vergleich (Juli 2026, noch nicht entschieden)
+| # | Idee | Aufwand | Nutzen | Backend? |
+|---|------|---------|--------|----------|
+| 12 | Backup & Umzug: alle Daten als Datei sichern/wiederherstellen (JSON) | niedrig | hoch (Datenverlust-/Handywechsel-Schutz) | nein |
+| 13 | Einspeisevergütung: Ersparnis = Netzpreis − EEG-Vergütung (ehrlichere Ökonomie) | niedrig | mittel–hoch | nein |
+| 14 | E-Auto-Ladeplaner: Ladeleistung kW + Ziel-kWh → bestes Ladefenster | mittel | hoch | nein |
+| 15 | Bilanz-/Läufe-Export als CSV (für Excel) | niedrig | mittel | nein |
+| 16 | CO₂-Ampel „grünste Stunden" (Strommix, z. B. energy-charts.info; CORS prüfen) | mittel | mittel | nein |
+| 17 | Tages-Rückblick-Karte („Gestern: X kWh Sonne genutzt") | niedrig | mittel | nein |
+| 18 | Balkonkraftwerk-Modus (vereinfachte Einrichtung, neue Zielgruppe) | mittel | mittel | nein |
 
 ## Empfohlene Reihenfolge
 1. Grüne Gruppe zuerst (billig, sofort spürbar, kein Store-Stress) — Start mit **#2**.
