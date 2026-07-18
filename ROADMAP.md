@@ -99,16 +99,23 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
-### #11 Solinteg-CSV → Grundlast-Profil  🟡 (vereinbart: übernächster Schritt)
-- **Was:** Verbrauchsdaten aus dem Solinteg-Portal als CSV exportieren und in der App
-  importieren (FileReader, bleibt lokal). Daraus ein **24-h-Grundlast-Profil** je Stunde
-  (unteres Quantil P25 filtert Geräte-Spitzen) statt der einen festen Grundlast-Zahl.
-  Regler bleibt Fallback; Hinweis „Profil aktiv · Import vom …". Auffrischen durch
-  erneuten Import (deckt Sommer/Winter-WP ab).
-- **Vorher klären:** Beispiel-CSV vom Nutzer (Spalten, Auflösung ≥ stündlich, W/kWh,
-  Dezimalzeichen), Parser exakt darauf bauen.
+### #11 Grundlast-Tagesprofil  ✅ v65
+- **Umgesetzt:** Statt einer flachen Grundlast verteilt die App den Sockelverbrauch
+  jetzt über den Tag (`GL_SHAPE`, 24 relative Werte, Ø = 1.0). Die Form wurde aus der
+  **Solinteg-Verbraucherleistung** von 5 Tagen (13.–17.07.2026) abgelesen – nur der
+  Sockel zwischen den Geräte-Spitzen, gemittelt: morgens ~0,27 kW (tiefster Punkt),
+  nachmittags ~0,55 kW (Maximum), Ø ~0,42 kW. Der Grundlast-Regler legt weiter das
+  **Niveau** fest (`grundlastKW(h) = schwelle · GL_SHAPE[h]`), sodass die Saison-Zonen
+  (Sommer/Winter-WP) erhalten bleiben; die Form skaliert mit.
+- **UI:** Einrichten → Grundlast → Toggle „📊 Tagesprofil" (Standard AN) mit
+  24-Balken-Sparkline und Ø-Linie. Aus = flacher Wert wie zuvor.
+- **Herkunft:** Solinteg-Web-Portal liefert keinen untertägigen Export (nur Tag/Monat/
+  Jahr als Summen) und keinen abgreifbaren Intraday-API-Call – die Tageskurve gibt es
+  nur als Diagramm. Profil daher aus Screenshots der „Verbraucherleistung"-Ansicht
+  abgeleitet statt per CSV/API-Import.
 - **Später (Stufe 3, = #5-Schiene):** Solinteg-OpenAPI (braucht Mini-Proxy wegen
-  Key+CORS) oder lokale Modbus-Brücke – beides Backend, bewusst verschoben.
+  Key+CORS) oder lokale Modbus-Brücke für automatische Auffrischung – beides Backend,
+  bewusst verschoben.
 
 ### #9 Widgets / Sperrbildschirm  🔴
 - **Was:** „nächste gute Stunde" als Homescreen-/Lockscreen-Widget.

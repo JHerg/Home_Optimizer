@@ -1155,6 +1155,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <button class="gl-z" data-w="1200"><b>❄️ Winter · WP</b><span>~0,8–2 kW</span></button>
     </div>
     <div class="hilfe" id="gl-hinweis" style="margin-top:8px"></div>
+    <label class="switch-zeile" style="margin-top:12px">
+      <span>📊 Tagesprofil<span class="fk-opt">morgens weniger, nachmittags mehr</span></span>
+      <span class="switch"><input type="checkbox" id="rg-gl-profil"><span class="switch-ui"></span></span>
+    </label>
+    <div id="gl-profil-box" hidden>
+      <div class="hilfe" style="margin:6px 0 8px">Statt eines flachen Werts verteilt die App deine Grundlast realistisch über den Tag – gemessen an deiner Anlage. Der Regler oben legt weiterhin den <b>Ø-Wert</b> fest.</div>
+      <svg id="gl-spark" viewBox="0 0 240 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block" aria-hidden="true"></svg>
+    </div>
   </div>
   <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
     <div class="frage-kopf"><span class="fk-ic sonne">★</span><span class="fk-titel">Meine Geräte</span></div>
@@ -1437,7 +1445,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 const $=id=>document.getElementById(id);
 
 let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:""};
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:"",gl_profil_an:true};
+
+/* Grundlast-Tagesform: relativer Verlauf über 24 h (Mittelwert = 1.0), gemessen aus
+   der Verbraucherleistung der eigenen Anlage (Sockel ohne Geräte-Spitzen, Ø mehrerer Tage).
+   Nur die FORM (morgens weniger, nachmittags mehr); das Niveau bestimmt cfg.schwelle. */
+const GL_SHAPE=[0.89,0.84,0.82,0.79,0.75,0.72, 0.67,0.63,0.72,1.08,1.20,1.20, 1.23,1.32,1.32,1.32,1.30,1.25, 1.13,1.03,0.99,0.96,0.94,0.91];
+// Grundlast in WATT für Stunde h – flach (schwelle) oder mit Tagesform, je nach cfg.gl_profil_an.
+function grundlastKW(h){ const w=cfg.schwelle||0; return cfg.gl_profil_an ? w*(GL_SHAPE[((h%24)+24)%24]||1) : w; }
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -1491,8 +1506,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=64;
+const APP_VERSION=65;
 const NEUES=[
+  {v:65,t:["🏠 <b>Grundlast-Tagesprofil</b>: die Grundlast wird jetzt realistisch über den Tag verteilt (morgens weniger, nachmittags mehr) statt flach – gemessen an einer echten Anlage. Der Regler legt weiter den Ø-Wert fest; ab-/zuschaltbar unter Einrichten → Grundlast"]},
   {v:64,t:["🚗 <b>Laden in 2 Etappen</b>: ab 3 h Ladezeit teilt die App das Laden automatisch auf zwei Sonnenfenster auf, wenn das klar mehr Eigenverbrauch bringt (z. B. vor und nach der Waschmaschine) – bestätigt wird weiter nur einmal"]},
   {v:63,t:["🚗 Ladeplaner: die <b>Ladezeit steht jetzt direkt an jeder kWh-Auswahl</b> (kWh ÷ Ladeleistung) und ein <b>eigener kWh-Wert</b> ist frei eingebbar"]},
   {v:62,t:["🚗 <b>E-Auto-Ladeplaner</b> (optional): Ladeleistung + Ziel-kWh statt Dauer – Einrichten → E-Auto & Wallbox","💾 <b>Backup & Umzug</b>: alle Daten als Datei sichern und wiederherstellen","📊 <b>CSV-Export</b> der Bilanz für Excel","🌅 <b>Tages-Rückblick</b>: was dein Gestern gebracht hat","✨ Dieses „Was ist neu“ – künftig nach jedem Update"]},
@@ -1767,12 +1783,12 @@ const CO2_FAKTOR=0.38; // kg CO₂ je kWh Netzstrom (dt. Strommix, grober Richtw
 // wie viel freie Sonne den Lauf deckte (kWh) und wie viel Netzstrom-Geld das spart (ct).
 function laufBilanz(arr,start,dauer,kwh){
   if(!arr||start==null||!dauer||!kwh)return null;
-  const devKW=kwh/dauer, base=Math.max(0,(cfg.schwelle||0)/1000), be=start+dauer;
+  const devKW=kwh/dauer, be=start+dauer;
   let son=0, sparCt=0;
   for(let h=Math.floor(start);h<Math.ceil(be)&&h<24;h++){
     if(h<0)continue; const s=arr[h]; if(!s)continue;
     const overlap=Math.max(0,Math.min(be,h+1)-Math.max(start,h));       // Std-Anteil dieser Stunde
-    const frei=Math.max(0,(s.pv||0)/1000-base);                         // freie Sonne (kW) über Grundlast
+    const frei=Math.max(0,(s.pv||0)/1000-grundlastKW(h)/1000);          // freie Sonne (kW) über Grundlast
     const sonKwhH=Math.min(devKW,frei)*overlap;
     son+=sonKwhH;
     if(s.voll!=null)sparCt+=sonKwhH*s.voll;                             // gesparter Netzeinkauf (ct)
@@ -2137,7 +2153,7 @@ function stunden(tagStr){
     const fp=Math.max(0,(cfg.festpreis||0)*100); // €/kWh -> ct/kWh, konstant über den Tag
     arr.forEach(s=>{
       s.voll=fp;
-      if(s.pv>=cfg.schwelle){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
+      if(s.pv>=grundlastKW(s.h)){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
       else{s.klasse="mittel";s.eff=fp;s.warum="Netzstrom (fester Tarif)";}
     });
     return arr;
@@ -2147,7 +2163,7 @@ function stunden(tagStr){
   const q30=q(0.30),q70=q(0.70);
   arr.forEach(s=>{
     s.voll=s.spot==null?null:s.spot+cfg.aufschlag; // Die vollen Netzbezugskosten
-    if(s.pv>=cfg.schwelle){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
+    if(s.pv>=grundlastKW(s.h)){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
     else if(s.voll!=null&&s.voll<=q30){s.klasse="guenstig";s.eff=s.voll;s.warum="Netzstrom besonders günstig";}
     else if(s.voll!=null&&s.voll>=q70){s.klasse="teuer";s.eff=s.voll;s.warum="teure Netzstunde";}
     else{s.klasse="mittel";s.eff=s.voll;s.warum="normaler Preis";}
@@ -2180,7 +2196,7 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis,belegt){
 // Gespeicherte (auch manuell verschobene) Startzeiten des Tages werden übernommen,
 // nur neue/unbekannte Durchgänge werden frisch (überschussbewusst, ab jetzt) platziert.
 function autoPlatzierung(arr){
-  const restKW=arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000));
+  const restKW=arr.map(s=>Math.max(0,(s.pv-grundlastKW(s.h))/1000));
   const bloecke=[];
   ungeplant=[];
   const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
@@ -2285,7 +2301,6 @@ function autoPlatzierung(arr){
 function simuliere(arr,bloecke){
   const cap=cfg.akku_an?Math.max(0,cfg.akku_kwh||0):0; // Speicher aus -> keine Kapazität
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
-  const base=Math.max(0,(cfg.schwelle||0)/1000); // Grundlast kW (durchgehend)
   let akku=start;
   const gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
   bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;});
@@ -2298,6 +2313,7 @@ function simuliere(arr,bloecke){
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
     const s=arr[h];
+    const base=Math.max(0,grundlastKW(h)/1000); // Grundlast kW dieser Stunde (Tagesform-abhängig)
     let pv=Math.max(0,s.pv/1000);
     let dev=0; // Gesamt-Gerätebedarf in kW für diese Stunde
     const devAnteil=new Map(); // Geräte-Leistung in DIESER Stunde (auch Teilstunden) je Block
@@ -2629,11 +2645,11 @@ if($("faellig-x"))$("faellig-x").onclick=faelligZu;
 // Gemeinsame Himmels-Geometrie (SVG 0..100) für Tagesplan-Chart UND kompakte Startseiten-Kurve.
 function himmelGeometrie(arr){
   const HOR=86, PEAK=14, X=h=>h/24*100;
-  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-cfg.schwelle)/1000)));
+  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-grundlastKW(s.h))/1000)));
   let hs=24,he=0; for(let h=0;h<24;h++){ if(arr[h].pv>60){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
   if(hs>=he){hs=6;he=21;}
   const arcY=h=>{ if(h<=hs||h>=he)return HOR; return HOR-(HOR-PEAK)*Math.sin(Math.PI*(h-hs)/(he-hs)); };
-  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-cfg.schwelle)/1000); return HOR-(su/maxSurplus)*(HOR-24); };
+  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-grundlastKW(h))/1000); return HOR-(su/maxSurplus)*(HOR-24); };
   const preise=arr.map(s=>s.voll).filter(v=>v!=null);
   const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
   const priceY=h=>{ const v=arr[h].voll; if(v==null)return null; return 44-((v-minP)/spanP)*24; };
@@ -2852,7 +2868,7 @@ function renderPlaner(arr){
   let tapsHtml=""; for(let h=0;h<24;h++){ tapsHtml+='<button class="sky-tap" data-h="'+h+'" style="left:'+(h/24*100).toFixed(4)+'%;width:'+(100/24).toFixed(4)+'%" aria-label="'+h+' Uhr"></button>'; }
   // ---- Kennzahlen-Kacheln (Tageswerte, unabhängig von der Geräteauswahl) ----
   const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
-  let fSun=-1,lSun=-1; for(let h=0;h<24;h++){ if((arr[h].pv-cfg.schwelle)>0){ if(fSun<0)fSun=h; lSun=h; } }
+  let fSun=-1,lSun=-1; for(let h=0;h<24;h++){ if((arr[h].pv-grundlastKW(h))>0){ if(fSun<0)fSun=h; lSun=h; } }
   const sunWin = fSun>=0 ? fSun+'–'+(lSun+1)+' Uhr' : '–';
   const maxKW = Math.max(0,...arr.map(s=>s.pv||0))/1000;
   let vollMin=null; arr.forEach(s=>{ if(s.voll!=null && (vollMin==null||s.voll<vollMin)) vollMin=s.voll; });
@@ -2870,7 +2886,7 @@ function renderPlaner(arr){
   // ---- Sonnen-Budget: Bedarf vs. noch verschiebbare freie Sonne ----
   // Heute zählt nur die Sonne AB JETZT (vergangene Stunden sind vorbei); morgen der ganze Tag.
   const abH = jetztH>=0 ? jetztH : 0;
-  const freieSonneKwh = arr.reduce((a,s,h)=>a+(h>=abH?Math.max(0,(s.pv-cfg.schwelle))/1000:0),0);
+  const freieSonneKwh = arr.reduce((a,s,h)=>a+(h>=abH?Math.max(0,(s.pv-grundlastKW(h)))/1000:0),0);
   const bedarfKwh = (planGeraete||[]).reduce((a,g)=>a+(g.kwh||0)*(g.anzahl!=null?g.anzahl:1),0);
   const belegtPct = freieSonneKwh>0 ? Math.min(100, bedarfKwh/freieSonneKwh*100) : (bedarfKwh>0?100:0);
   const ueber = Math.max(0, bedarfKwh-freieSonneKwh);
@@ -2903,11 +2919,11 @@ function renderPlaner(arr){
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
-    const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-cfg.schwelle)/1000);
+    const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-grundlastKW(h))/1000);
     let preisTeil='';
     if(s.voll!=null){
       preisTeil=' · 💶 Netz '+dz(s.voll.toFixed(1))+' ct/kWh';
-      if(s.pv>=cfg.schwelle) preisTeil+=' · <span class="hd-sonne">mit Sonne ~0 ct</span>'; // Sonne deckt diese Stunde
+      if(s.pv>=grundlastKW(h)) preisTeil+=' · <span class="hd-sonne">mit Sonne ~0 ct</span>'; // Sonne deckt diese Stunde
     }
     $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+preisTeil;
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
@@ -3954,6 +3970,25 @@ function renderGrundlast(){
   const idx=grundlastZoneIdx(w);
   document.querySelectorAll("#gl-zonen .gl-z").forEach((b,i)=>b.classList.toggle("aktiv",i===idx));
   const h=$("gl-hinweis");if(h)h.innerHTML="Aktuell ~<b>"+GL_ZONEN_NAME[idx]+"</b>: "+GL_ZONEN_TXT[idx];
+  const pt=$("rg-gl-profil");if(pt)pt.checked=!!cfg.gl_profil_an;
+  const box=$("gl-profil-box");if(box)box.hidden=!cfg.gl_profil_an;
+  zeichneGlSpark();
+}
+// Mini-Verlauf (24 Balken) der Grundlast über den Tag – zeigt die Tagesform in echten Watt.
+function zeichneGlSpark(){
+  const svg=$("gl-spark");if(!svg||!cfg.gl_profil_an)return;
+  const werte=Array.from({length:24},(_,h)=>grundlastKW(h));
+  const mx=Math.max(1,...werte);
+  const bw=240/24;
+  let r="";
+  werte.forEach((v,h)=>{ const bh=Math.max(1,(v/mx)*34); const x=h*bw; const y=38-bh;
+    const nacht=(h<6||h>=22);
+    r+='<rect x="'+(x+0.6).toFixed(2)+'" y="'+y.toFixed(2)+'" width="'+(bw-1.2).toFixed(2)+'" height="'+bh.toFixed(2)+'" rx="1" fill="'+(nacht?'var(--linie)':'var(--sonne)')+'" fill-opacity="'+(nacht?'.5':'.85')+'"></rect>';
+  });
+  // Ø-Linie
+  const avg=werte.reduce((a,v)=>a+v,0)/24; const ay=(38-(avg/mx)*34).toFixed(2);
+  r+='<line x1="0" y1="'+ay+'" x2="240" y2="'+ay+'" stroke="var(--nacht)" stroke-width="0.8" stroke-dasharray="3 3" opacity=".55"></line>';
+  svg.innerHTML=r;
 }
 $("rg-akku-an").onchange=()=>{cfg.akku_an=$("rg-akku-an").checked;const d=$("akku-details");if(d)d.hidden=!cfg.akku_an;speichern();aktualisieren();};
 const EV_KW_LISTE=[["Schuko ~2,3 kW",2.3],["3,7 kW",3.7],["7,4 kW",7.4],["Wallbox 11 kW",11]];
@@ -3962,6 +3997,7 @@ $("rg-akku").oninput=()=>{cfg.akku_stand=parseFloat($("rg-akku").value)||0;aktua
 $("rg-akku").onchange=()=>speichern();
 $("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;renderGrundlast();aktualisieren();};
 $("rg-last").onchange=()=>speichern();
+if($("rg-gl-profil"))$("rg-gl-profil").onchange=()=>{cfg.gl_profil_an=$("rg-gl-profil").checked;renderGrundlast();platzSig="";speichern();aktualisieren();};
 document.querySelectorAll("#gl-zonen .gl-z").forEach(b=>b.onclick=()=>{
   cfg.schwelle=parseInt(b.dataset.w,10)||0;renderGrundlast();speichern();aktualisieren();
 });
