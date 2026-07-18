@@ -99,6 +99,23 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #11b Hintergrund-Verbrauch in 3 Bausteinen  ✅ v66
+- **Umgesetzt:** Der eine Grundlast-Regler (samt Saison-Zonen) wurde durch drei Bausteine
+  ersetzt, die die App stundengenau addiert (`hgProfil`, an jede Stunde als `s.hg` gehängt):
+  1. **🔌 Sockel** = bisheriger Regler + Tagesform (v65), jetzt 0–1500 W.
+  2. **🚿 Warmwasser (WP)** = Tages-kWh (Default 2,0, aus Bullerbü abgelesen) verteilt auf
+     bis zu 3 frei einstellbare Läufe (je an/aus + Uhrzeit in 30-Min-Schritten; Lauf 2
+     optional „☀️ folgt der Sonne" → beste PV-Stunde). Energie wird GETEILT, nie vervielfacht.
+  3. **🔥 Heizung (WP)** = Heizkurve nach Gradtags-Methodik: Heizgrenze (Default 15 °C) +
+     Ø-Leistung bei 0 °C (Default 1,2 kW); Außentemperatur automatisch aus dem 7-Tage-
+     Wetter-Ausblick (Tmax + Tagesgang ±4 K), Kältezuschlag ~+2 %/K unter 0 °C (COP).
+     Fallback ohne Wetterdaten: grobe Monats-Tmax-Tabelle.
+- **Tagesplan:** eigene Hintergrund-Spur (#hg-lane) mit gestrichelten 🚿-Pins und 🔥-Band –
+  nur Info, nicht interaktiv; Sonnenkurve/„freie Sonne"/Speicher-Simulation nutzen s.hg.
+- **Fachliche Basis:** BDEW-SLP-Prinzip (Form × Niveau), VDI-Richtwerte Warmwasser
+  (~2,2 kWh/Tag el. für 4 Personen), Gradtagszahl/Heizgrenzen-Methode der Energieberater.
+- Demo-Schritt „🚿 Wärmepumpe & Co." ergänzt; Hilfe/Bilanz-Scope-Texte angepasst.
+
 ### #11 Grundlast-Tagesprofil  ✅ v65
 - **Umgesetzt:** Statt einer flachen Grundlast verteilt die App den Sockelverbrauch
   jetzt über den Tag (`GL_SHAPE`, 24 relative Werte, Ø = 1.0). Die Form wurde aus der

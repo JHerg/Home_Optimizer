@@ -429,14 +429,20 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .switch-ui::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform var(--schnell)}
 .switch input:checked+.switch-ui{background:var(--gruen)}
 .switch input:checked+.switch-ui::after{transform:translateX(18px)}
-/* Grundlast-Zonen */
-.gl-zonen{display:flex;gap:7px}
-.gl-z{flex:1;display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--linie);border-radius:12px;background:var(--karte);padding:9px 6px;cursor:pointer;text-align:center;transition:border-color var(--schnell),background var(--schnell),transform var(--schnell)}
-.gl-z:active{transform:scale(.96)}
-.gl-z b{font-size:12px;font-weight:700;color:var(--nacht)}
-.gl-z span{font-size:10.5px;color:var(--grau);font-family:var(--mono)}
-.gl-z.aktiv{border-color:var(--sonne);background:var(--sonne-hell)}
-.gl-z.aktiv b{color:var(--nacht)}
+/* Hintergrund-Verbrauch: Warmwasser-Läufe + Heizung */
+.wwlauf{border-top:1px dashed var(--linie);padding-top:9px;margin-top:9px}
+.wwlauf.aus>*:not(.wwlauf-kopf){opacity:.4;pointer-events:none}
+.wwlauf-kopf{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--nacht)}
+.wwlauf-kopf small{display:block;font-weight:500;color:var(--grau);font-size:10.5px}
+.wwlauf-kopf b{margin-left:auto;font-variant-numeric:tabular-nums;font-size:14px}
+.wwlauf.aus .wwlauf-kopf span,.wwlauf.aus .wwlauf-kopf b{opacity:.4}
+.ww-auto{display:block;width:100%;border:1.5px solid var(--linie);background:transparent;color:var(--grau);border-radius:10px;padding:6px 9px;font-size:11.5px;font-weight:600;cursor:pointer;margin:7px 0 2px;text-align:left}
+.ww-auto.an{border-color:var(--sonne);background:var(--sonne-hell);color:var(--nacht)}
+/* Tagesplan: Hintergrund-Spur (automatische WP-Läufe, nur Info) */
+.hg-lane{position:relative;height:26px;margin:6px 0 2px;background:rgba(120,130,145,.07);border-radius:9px;overflow:hidden}
+.hg-titel{font-size:9.5px;color:var(--grau);font-weight:700;letter-spacing:.3px;margin-top:8px}
+.hg-ww{position:absolute;top:2px;transform:translateX(-50%);background:var(--karte);border:1.5px dashed var(--netz);color:var(--netz);border-radius:8px;font-size:9.5px;font-weight:700;padding:2px 6px;line-height:1.2;white-space:nowrap;box-shadow:0 1px 3px rgba(20,31,44,.10)}
+.hg-hzband{position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(232,96,76,.16) 0 6px,rgba(232,96,76,.05) 6px 12px);display:flex;align-items:center;padding-left:8px;font-size:10px;color:var(--rot);font-weight:600}
 /* Rechte Y-Achse (Preis) */
 .y-achse.y-rechts span{left:auto;right:4px}
 .chart-legende i.lg-line{height:0;border-top:2px solid var(--preis-linie);border-radius:0}
@@ -1000,7 +1006,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="hilfe-feature">
       <div class="hf-ic sonne">☀️</div>
       <div class="hf-body"><div class="hf-titel">Freie Sonne finden</div>
-        <div class="hf-sub">Die App holt Sonnenprognose und Strompreise und rechnet aus, wann Strom vom eigenen Dach übrig ist – deine <b>freie Sonne</b>.</div></div>
+        <div class="hf-sub">Die App holt Sonnenprognose und Strompreise und rechnet aus, wann Strom vom eigenen Dach übrig ist – deine <b>freie Sonne</b>. Dein <b>Hintergrund-Verbrauch</b> (Sockel, optional Warmwasser &amp; Heizung der Wärmepumpe) wird dabei stundengenau abgezogen.</div></div>
     </div>
     <div class="hilfe-feature">
       <div class="hf-ic gruen">🔌</div>
@@ -1144,24 +1150,60 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     </div>
   </div>
   <div class="abschnitt">
-    <div class="frage-kopf"><span class="fk-ic sonne">🏠</span><span class="fk-titel">Grundlast<span class="fk-opt">Ø Dauerverbrauch</span></span></div>
-    <div class="hilfe">Der ständige Hintergrundverbrauch (Kühlschrank, Standby, Wärmepumpe …). Er wird zuerst aus der Sonne gedeckt – erst darüber bleibt Überschuss für deine Geräte. <b>Stark saisonal:</b> im Sommer heizt die Wärmepumpe kaum (nur Warmwasser) → oft nahe null; im Winter heizt sie durch → hoch.</div>
-    <div class="regler-kopf"><span>Aktueller Wert</span><b id="rg-last-val">400 W</b></div>
-    <input type="range" id="rg-last" min="0" max="3000" step="50" value="400" aria-label="Grundlast in Watt">
-    <div class="hilfe" style="margin:8px 0 6px">Typische Bereiche – zum Übernehmen antippen:</div>
-    <div class="gl-zonen" id="gl-zonen">
-      <button class="gl-z" data-w="200"><b>☀️ Sommer</b><span>~150–300 W</span></button>
-      <button class="gl-z" data-w="500"><b>🍂 Übergang</b><span>~300–800 W</span></button>
-      <button class="gl-z" data-w="1200"><b>❄️ Winter · WP</b><span>~0,8–2 kW</span></button>
-    </div>
-    <div class="hilfe" id="gl-hinweis" style="margin-top:8px"></div>
-    <label class="switch-zeile" style="margin-top:12px">
+    <div class="frage-kopf"><span class="fk-ic sonne">🏠</span><span class="fk-titel">Hintergrund-Verbrauch<span class="fk-opt">läuft neben deinen Geräten</span></span></div>
+    <div class="hilfe">Alles, was dein Haus verbraucht, ohne dass du es einplanst – in drei Bausteinen. Die App zieht das <b>stundengenau</b> von der Sonne ab; erst darüber bleibt freie Sonne für deine Geräte. Angelehnt an die Fachmethodik aus Lastprofilen und Gradtagszahlen.</div>
+    <div class="regler-kopf" style="margin-top:10px"><span>🔌 Sockel <small style="font-weight:500;color:var(--grau)">Kühlschrank, Router, Standby …</small></span><b id="rg-last-val">400 W</b></div>
+    <input type="range" id="rg-last" min="0" max="1500" step="25" value="400" aria-label="Sockel-Grundlast in Watt">
+    <label class="switch-zeile" style="margin-top:10px">
       <span>📊 Tagesprofil<span class="fk-opt">morgens weniger, nachmittags mehr</span></span>
       <span class="switch"><input type="checkbox" id="rg-gl-profil"><span class="switch-ui"></span></span>
     </label>
     <div id="gl-profil-box" hidden>
-      <div class="hilfe" style="margin:6px 0 8px">Statt eines flachen Werts verteilt die App deine Grundlast realistisch über den Tag – gemessen an deiner Anlage. Der Regler oben legt weiterhin den <b>Ø-Wert</b> fest.</div>
+      <div class="hilfe" style="margin:6px 0 8px">Statt eines flachen Werts verteilt die App den Sockel realistisch über den Tag – gemessen an einer echten Anlage. Der Regler oben legt weiterhin den <b>Ø-Wert</b> fest.</div>
       <svg id="gl-spark" viewBox="0 0 240 40" preserveAspectRatio="none" style="width:100%;height:40px;display:block" aria-hidden="true"></svg>
+    </div>
+
+    <label class="switch-zeile" style="margin-top:16px">
+      <span>🚿 Warmwasser (Wärmepumpe)<span class="fk-opt">übers Jahr etwa gleich</span></span>
+      <span class="switch"><input type="checkbox" id="rg-ww-an"><span class="switch-ui"></span></span>
+    </label>
+    <div id="ww-details" hidden>
+      <div class="hilfe" style="margin:6px 0 4px">Die Tages-Energie verteilt sich <b>auf die aktiven Läufe</b> – 3 Läufe heißt je ⅓, nicht 3× so viel. Werte stehen in deiner Wärmepumpen-App (z. B. „Warmwasser kWh/Tag").</div>
+      <div class="regler-kopf"><span>Energie pro Tag</span><b id="rg-wwkwh-val">2,0 kWh</b></div>
+      <input type="range" id="rg-wwkwh" min="0.5" max="4" step="0.1" value="2" aria-label="Warmwasser-Energie pro Tag in kWh">
+      <div class="regler-kopf"><span>Leistung beim Aufheizen</span><b id="rg-wwkw-val">2,3 kW</b></div>
+      <input type="range" id="rg-wwkw" min="1" max="3.5" step="0.1" value="2.3" aria-label="Warmwasser-Leistung in kW">
+      <div class="hilfe" style="margin:10px 0 2px">Wie oft und wann? Jeden Lauf einzeln schalten, Uhrzeit frei schieben:</div>
+      <div class="wwlauf" id="wwlauf-0">
+        <div class="wwlauf-kopf"><span class="switch"><input type="checkbox" id="rg-wwl0-an"><span class="switch-ui"></span></span>
+          <span>Lauf 1 <small>z. B. vor dem Aufstehen</small></span><b id="rg-wwl0-z-val">05:00</b></div>
+        <input type="range" id="rg-wwl0-z" min="0" max="23.5" step="0.5" value="5" aria-label="Uhrzeit Warmwasser-Lauf 1">
+      </div>
+      <div class="wwlauf" id="wwlauf-1">
+        <div class="wwlauf-kopf"><span class="switch"><input type="checkbox" id="rg-wwl1-an"><span class="switch-ui"></span></span>
+          <span>Lauf 2 <small>tagsüber</small></span><b id="rg-wwl1-z-val">☀️ auto</b></div>
+        <button type="button" class="ww-auto" id="rg-wwl1-auto">☀️ folgt der Sonne – App wählt die beste Stunde</button>
+        <div id="wwl1-z-box" hidden><input type="range" id="rg-wwl1-z" min="0" max="23.5" step="0.5" value="13" aria-label="Uhrzeit Warmwasser-Lauf 2"></div>
+      </div>
+      <div class="wwlauf" id="wwlauf-2">
+        <div class="wwlauf-kopf"><span class="switch"><input type="checkbox" id="rg-wwl2-an"><span class="switch-ui"></span></span>
+          <span>Lauf 3 <small>z. B. nach dem Duschen</small></span><b id="rg-wwl2-z-val">21:00</b></div>
+        <input type="range" id="rg-wwl2-z" min="0" max="23.5" step="0.5" value="21" aria-label="Uhrzeit Warmwasser-Lauf 3">
+      </div>
+      <div class="hilfe" id="ww-info" style="margin-top:8px"></div>
+    </div>
+
+    <label class="switch-zeile" style="margin-top:16px">
+      <span>🔥 Heizung (Wärmepumpe)<span class="fk-opt">passt sich dem Wetter an</span></span>
+      <span class="switch"><input type="checkbox" id="rg-hz-an"><span class="switch-ui"></span></span>
+    </label>
+    <div id="hz-details" hidden>
+      <div class="hilfe" style="margin:6px 0 4px">Kein Sommer/Winter-Umschalten mehr: du beschreibst einmal deine <b>Heizkurve</b> – die App liest die Außentemperatur aus der Wettervorhersage und rechnet die Heizlast <b>jeden Tag automatisch</b> (je kälter, desto mehr; unter 0 °C mit Kältezuschlag).</div>
+      <div class="regler-kopf"><span>Heizen ab (Heizgrenze)</span><b id="rg-hzgrenze-val">15 °C</b></div>
+      <input type="range" id="rg-hzgrenze" min="10" max="20" step="1" value="15" aria-label="Heizgrenze in Grad Celsius">
+      <div class="regler-kopf"><span>Ø-Leistung bei 0 °C draußen</span><b id="rg-hzp0-val">1,2 kW</b></div>
+      <input type="range" id="rg-hzp0" min="0.4" max="3" step="0.1" value="1.2" aria-label="Heizleistung bei 0 Grad in kW">
+      <div class="hilfe" id="hz-info" style="margin-top:8px"></div>
     </div>
   </div>
   <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
@@ -1445,14 +1487,60 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 const $=id=>document.getElementById(id);
 
 let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
-  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:"",gl_profil_an:true};
+  faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:"",gl_profil_an:true,
+  ww_an:false,ww_kwh:2.0,ww_kw:2.3,ww_l:[{an:true,z:5},{an:true,z:13,auto:true},{an:true,z:21}],
+  hz_an:false,hz_grenze:15,hz_p0:1.2};
 
 /* Grundlast-Tagesform: relativer Verlauf über 24 h (Mittelwert = 1.0), gemessen aus
    der Verbraucherleistung der eigenen Anlage (Sockel ohne Geräte-Spitzen, Ø mehrerer Tage).
    Nur die FORM (morgens weniger, nachmittags mehr); das Niveau bestimmt cfg.schwelle. */
 const GL_SHAPE=[0.89,0.84,0.82,0.79,0.75,0.72, 0.67,0.63,0.72,1.08,1.20,1.20, 1.23,1.32,1.32,1.32,1.30,1.25, 1.13,1.03,0.99,0.96,0.94,0.91];
-// Grundlast in WATT für Stunde h – flach (schwelle) oder mit Tagesform, je nach cfg.gl_profil_an.
+// Sockel-Grundlast in WATT für Stunde h – flach (schwelle) oder mit Tagesform, je nach cfg.gl_profil_an.
 function grundlastKW(h){ const w=cfg.schwelle||0; return cfg.gl_profil_an ? w*(GL_SHAPE[((h%24)+24)%24]||1) : w; }
+/* ===== Hintergrund-Verbrauch: Sockel + Warmwasser (WP) + Heizung (WP) =====
+   Drei getrennte Bausteine statt eines Reglers – angelehnt an anerkannte Fachmethodik:
+   Sockel = Lastprofil-Form × Niveau (BDEW-SLP-Prinzip), Warmwasser = feste Tages-Energie
+   verteilt auf typische Ladefenster, Heizung = Gradtags-/Heizgrenzen-Logik (linear zur
+   Außentemperatur, mit Kältezuschlag für den sinkenden COP unter 0 °C). */
+// Tages-Höchsttemperatur: aus dem Wetter-Ausblick (Open-Meteo); Fallback grobe Monatswerte.
+function tagesTmax(tagStr){
+  if(wochenSonne){ const d=wochenSonne.find(x=>x.key===tagStr); if(d&&d.tmax!=null)return d.tmax; }
+  return [4,6,10,15,19,22,25,24,20,14,8,5][(+tagStr.slice(5,7))-1];
+}
+// Elektrische WP-Heizleistung (W) für Stunde h: heizt nur unter der Heizgrenze,
+// linear „je kälter, desto mehr"; Tagesgang ±4 K (~15 Uhr am wärmsten, nachts kühler).
+function heizW(tagStr,h){
+  if(!cfg.hz_an)return 0;
+  const tmax=tagesTmax(tagStr);
+  const t=tmax-4+4*Math.cos((h-15)/24*2*Math.PI);
+  const grenze=cfg.hz_grenze||15;
+  if(t>=grenze)return 0;
+  let p=(cfg.hz_p0||0)*1000*(grenze-t)/Math.max(1,grenze);
+  if(t<0)p*=1+Math.min(0.25,-t*0.02); // Kältezuschlag: COP sinkt unter 0 °C (~+2 %/K, gedeckelt)
+  return Math.max(0,p);
+}
+// Aktive Warmwasser-Läufe mit aufgelösten Zeiten. Die Tages-Energie (cfg.ww_kwh) wird auf
+// die aktiven Läufe VERTEILT (nie vervielfacht). „auto" legt den Lauf in die beste Sonnenstunde.
+function wwLaeufe(pvArr){
+  if(!cfg.ww_an)return [];
+  const akt=(cfg.ww_l||[]).filter(l=>l&&l.an);
+  if(!akt.length)return [];
+  const kw=Math.max(0.5,cfg.ww_kw||2.3), dauer=(cfg.ww_kwh||2)/akt.length/kw;
+  let autoH=13;
+  if(pvArr&&pvArr.length){ let mx=0; for(let h=0;h<24;h++){ const v=pvArr[h]||0; if(v>mx){mx=v;autoH=h;} } }
+  return akt.map(l=>({start:l.auto?autoH:(l.z||0), dauer, kw, auto:!!l.auto}));
+}
+// Gesamtes Hintergrund-Profil in WATT je Stunde. Wird in stunden() als s.hg an jede
+// Stunde gehängt – alle Rechnungen (freie Sonne, Platzierung, Speicher) nutzen s.hg.
+function hgProfil(tagStr,pvArr){
+  const runs=wwLaeufe(pvArr), out=[];
+  for(let h=0;h<24;h++){
+    let w=grundlastKW(h)+heizW(tagStr,h);
+    runs.forEach(r=>{ const ol=Math.min(r.start+r.dauer,h+1)-Math.max(r.start,h); if(ol>0)w+=r.kw*1000*ol; });
+    out.push(w);
+  }
+  return out;
+}
 
 /* Typische kWh pro Durchgang (Eco) nach EU-Energielabel-Spannen */
 const typen=[
@@ -1506,8 +1594,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=65;
+const APP_VERSION=66;
 const NEUES=[
+  {v:66,t:["🏠 <b>Hintergrund-Verbrauch in 3 Bausteinen</b> statt eines Grundlast-Reglers: 🔌 Sockel (mit Tagesprofil), 🚿 <b>Warmwasser der Wärmepumpe</b> (Tages-kWh verteilt auf frei einstellbare Läufe, „☀️ folgt der Sonne“ möglich) und 🔥 <b>Heizung mit Heizkurve</b> – die Heizlast kommt automatisch aus der Wettervorhersage (je kälter, desto mehr, inkl. Kältezuschlag). Die Saison-Zonen entfallen dadurch","🗓️ Der Tagesplan zeigt automatische WP-Läufe als eigene <b>Hintergrund-Spur</b> (gestrichelt, nur Info) – die Sonnenkurve und „freie Sonne“ werden dadurch ehrlicher, die Speicher-Kurve bekommt ihre echten Morgen-/Abend-Dellen"]},
   {v:65,t:["🏠 <b>Grundlast-Tagesprofil</b>: die Grundlast wird jetzt realistisch über den Tag verteilt (morgens weniger, nachmittags mehr) statt flach – gemessen an einer echten Anlage. Der Regler legt weiter den Ø-Wert fest; ab-/zuschaltbar unter Einrichten → Grundlast"]},
   {v:64,t:["🚗 <b>Laden in 2 Etappen</b>: ab 3 h Ladezeit teilt die App das Laden automatisch auf zwei Sonnenfenster auf, wenn das klar mehr Eigenverbrauch bringt (z. B. vor und nach der Waschmaschine) – bestätigt wird weiter nur einmal"]},
   {v:63,t:["🚗 Ladeplaner: die <b>Ladezeit steht jetzt direkt an jeder kWh-Auswahl</b> (kWh ÷ Ladeleistung) und ein <b>eigener kWh-Wert</b> ist frei eingebbar"]},
@@ -1788,7 +1877,7 @@ function laufBilanz(arr,start,dauer,kwh){
   for(let h=Math.floor(start);h<Math.ceil(be)&&h<24;h++){
     if(h<0)continue; const s=arr[h]; if(!s)continue;
     const overlap=Math.max(0,Math.min(be,h+1)-Math.max(start,h));       // Std-Anteil dieser Stunde
-    const frei=Math.max(0,(s.pv||0)/1000-grundlastKW(h)/1000);          // freie Sonne (kW) über Grundlast
+    const frei=Math.max(0,(s.pv||0)/1000-(s.hg||0)/1000);               // freie Sonne (kW) über Hintergrund
     const sonKwhH=Math.min(devKW,frei)*overlap;
     son+=sonKwhH;
     if(s.voll!=null)sparCt+=sonKwhH*s.voll;                             // gesparter Netzeinkauf (ct)
@@ -2149,11 +2238,14 @@ function stunden(tagStr){
     const spot=daten.preise[tagStr+"-"+h];
     arr.push({h,spot:(spot==null?null:spot),pv:daten.pv[tagStr+"-"+h]||0});
   }
+  // Hintergrund-Watt (Sockel + Warmwasser + Heizung) je Stunde an den Tag hängen
+  const hg=hgProfil(tagStr,arr.map(s=>s.pv));
+  arr.forEach(s=>{s.hg=hg[s.h];});
   if(cfg.tarif==="fest"){
     const fp=Math.max(0,(cfg.festpreis||0)*100); // €/kWh -> ct/kWh, konstant über den Tag
     arr.forEach(s=>{
       s.voll=fp;
-      if(s.pv>=grundlastKW(s.h)){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
+      if(s.pv>=s.hg){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
       else{s.klasse="mittel";s.eff=fp;s.warum="Netzstrom (fester Tarif)";}
     });
     return arr;
@@ -2163,7 +2255,7 @@ function stunden(tagStr){
   const q30=q(0.30),q70=q(0.70);
   arr.forEach(s=>{
     s.voll=s.spot==null?null:s.spot+cfg.aufschlag; // Die vollen Netzbezugskosten
-    if(s.pv>=grundlastKW(s.h)){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
+    if(s.pv>=s.hg){s.klasse="pv";s.eff=0;s.warum="Sonnenstrom vom eigenen Dach";}
     else if(s.voll!=null&&s.voll<=q30){s.klasse="guenstig";s.eff=s.voll;s.warum="Netzstrom besonders günstig";}
     else if(s.voll!=null&&s.voll>=q70){s.klasse="teuer";s.eff=s.voll;s.warum="teure Netzstunde";}
     else{s.klasse="mittel";s.eff=s.voll;s.warum="normaler Preis";}
@@ -2196,7 +2288,7 @@ function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis,belegt){
 // Gespeicherte (auch manuell verschobene) Startzeiten des Tages werden übernommen,
 // nur neue/unbekannte Durchgänge werden frisch (überschussbewusst, ab jetzt) platziert.
 function autoPlatzierung(arr){
-  const restKW=arr.map(s=>Math.max(0,(s.pv-grundlastKW(s.h))/1000));
+  const restKW=arr.map(s=>Math.max(0,(s.pv-(s.hg||0))/1000));
   const bloecke=[];
   ungeplant=[];
   const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
@@ -2313,7 +2405,7 @@ function simuliere(arr,bloecke){
   const per=[]; let sonneKwh=0,akkuKwh=0,netzKwh=0,netzCt=0,hausNetzKwh=0;
   for(let h=0;h<24;h++){
     const s=arr[h];
-    const base=Math.max(0,grundlastKW(h)/1000); // Grundlast kW dieser Stunde (Tagesform-abhängig)
+    const base=Math.max(0,(s.hg||0)/1000); // Hintergrund kW dieser Stunde (Sockel + WW + Heizung)
     let pv=Math.max(0,s.pv/1000);
     let dev=0; // Gesamt-Gerätebedarf in kW für diese Stunde
     const devAnteil=new Map(); // Geräte-Leistung in DIESER Stunde (auch Teilstunden) je Block
@@ -2645,11 +2737,11 @@ if($("faellig-x"))$("faellig-x").onclick=faelligZu;
 // Gemeinsame Himmels-Geometrie (SVG 0..100) für Tagesplan-Chart UND kompakte Startseiten-Kurve.
 function himmelGeometrie(arr){
   const HOR=86, PEAK=14, X=h=>h/24*100;
-  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-grundlastKW(s.h))/1000)));
+  const maxSurplus=Math.max(1,...arr.map(s=>Math.max(0,(s.pv-(s.hg||0))/1000)));
   let hs=24,he=0; for(let h=0;h<24;h++){ if(arr[h].pv>60){ if(h<hs)hs=h; if(h+1>he)he=h+1; } }
   if(hs>=he){hs=6;he=21;}
   const arcY=h=>{ if(h<=hs||h>=he)return HOR; return HOR-(HOR-PEAK)*Math.sin(Math.PI*(h-hs)/(he-hs)); };
-  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-grundlastKW(h))/1000); return HOR-(su/maxSurplus)*(HOR-24); };
+  const surfTop=h=>{ const su=Math.max(0,(arr[h].pv-(arr[h].hg||0))/1000); return HOR-(su/maxSurplus)*(HOR-24); };
   const preise=arr.map(s=>s.voll).filter(v=>v!=null);
   const minP=preise.length?Math.min(...preise):0, maxP=preise.length?Math.max(...preise):1, spanP=(maxP-minP)||1;
   const priceY=h=>{ const v=arr[h].voll; if(v==null)return null; return 44-((v-minP)/spanP)*24; };
@@ -2868,7 +2960,7 @@ function renderPlaner(arr){
   let tapsHtml=""; for(let h=0;h<24;h++){ tapsHtml+='<button class="sky-tap" data-h="'+h+'" style="left:'+(h/24*100).toFixed(4)+'%;width:'+(100/24).toFixed(4)+'%" aria-label="'+h+' Uhr"></button>'; }
   // ---- Kennzahlen-Kacheln (Tageswerte, unabhängig von der Geräteauswahl) ----
   const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
-  let fSun=-1,lSun=-1; for(let h=0;h<24;h++){ if((arr[h].pv-grundlastKW(h))>0){ if(fSun<0)fSun=h; lSun=h; } }
+  let fSun=-1,lSun=-1; for(let h=0;h<24;h++){ if((arr[h].pv-(arr[h].hg||0))>0){ if(fSun<0)fSun=h; lSun=h; } }
   const sunWin = fSun>=0 ? fSun+'–'+(lSun+1)+' Uhr' : '–';
   const maxKW = Math.max(0,...arr.map(s=>s.pv||0))/1000;
   let vollMin=null; arr.forEach(s=>{ if(s.voll!=null && (vollMin==null||s.voll<vollMin)) vollMin=s.voll; });
@@ -2886,7 +2978,7 @@ function renderPlaner(arr){
   // ---- Sonnen-Budget: Bedarf vs. noch verschiebbare freie Sonne ----
   // Heute zählt nur die Sonne AB JETZT (vergangene Stunden sind vorbei); morgen der ganze Tag.
   const abH = jetztH>=0 ? jetztH : 0;
-  const freieSonneKwh = arr.reduce((a,s,h)=>a+(h>=abH?Math.max(0,(s.pv-grundlastKW(h)))/1000:0),0);
+  const freieSonneKwh = arr.reduce((a,s,h)=>a+(h>=abH?Math.max(0,(s.pv-(s.hg||0)))/1000:0),0);
   const bedarfKwh = (planGeraete||[]).reduce((a,g)=>a+(g.kwh||0)*(g.anzahl!=null?g.anzahl:1),0);
   const belegtPct = freieSonneKwh>0 ? Math.min(100, bedarfKwh/freieSonneKwh*100) : (bedarfKwh>0?100:0);
   const ueber = Math.max(0, bedarfKwh-freieSonneKwh);
@@ -2897,6 +2989,22 @@ function renderPlaner(arr){
       (ueber>0.05?'<span class="budget-warn">'+dz(ueber.toFixed(1))+' kWh über → Netz oder anderer Tag</span>'
                  :'<span class="budget-ok">'+dz(Math.max(0,freieSonneKwh-bedarfKwh).toFixed(1))+' kWh frei</span>')+
     '</div></div>';
+  // ---- Hintergrund-Spur: automatische WP-Läufe (Warmwasser) + Heiz-Band – nur Info, nicht antippbar ----
+  let hgLaneHtml="", hgLeg="";
+  { const runs=wwLaeufe(arr.map(s=>s.pv));
+    let hzSum=0; arr.forEach((s,h)=>{hzSum+=heizW(tagKey,h);}); const hzAvg=Math.round(hzSum/24);
+    if(runs.length||hzAvg>5){
+      let inner="";
+      if(hzAvg>5)inner+='<div class="hg-hzband">🔥 Heizung durchgehend · Ø ~'+hzAvg+' W</div>';
+      runs.forEach(r=>{
+        const mitte=Math.max(6,Math.min(94,(r.start+r.dauer/2)/24*100));
+        inner+='<div class="hg-ww" style="left:'+mitte.toFixed(1)+'%">🚿 '+(r.auto?"☀️ "+uhrStr(r.start):uhrStr(r.start))+'</div>';
+      });
+      hgLaneHtml='<div class="hg-titel">⚙️ HINTERGRUND · läuft automatisch – nur zur Info</div>'+
+        '<div class="hg-lane" id="hg-lane" aria-hidden="true">'+inner+'</div>';
+      hgLeg='<span><i class="lg-line" style="border-top-style:dashed;border-top-color:var(--netz)"></i>🚿 automatisch</span>';
+    }
+  }
   chart.innerHTML=
     '<div class="sky">'+
       '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">'+
@@ -2911,19 +3019,20 @@ function renderPlaner(arr){
       '<div class="sky-taps">'+tapsHtml+'</div>'+
     '</div>'+
     '<div class="hero-detail" id="hero-detail">Tippe eine Stunde im Verlauf für Sonne &amp; Preis.</div>'+
+    hgLaneHtml+
     '<div class="lane" id="planer-leiste" style="height:'+laneH+'px">'+laneInner+'</div>'+
     '<div class="std-achse" id="std-achse"></div>'+
     '<div class="achse-titel">Tagesstunden (0–24 Uhr)</div>'+
-    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher'+(tag==="morgen"?' (geschätzt)':'')+'</span>':'')+preisLeg+'</div>'+
+    '<div class="chart-legende"><span><i class="lg-line" style="border-top-style:dotted;border-top-color:var(--sonne)"></i>Sonnenbogen</span><span><i class="lg-bar"></i>freie Sonne</span>'+(akkuAn?'<span><i class="lg-area"></i>🔋 Speicher'+(tag==="morgen"?' (geschätzt)':'')+'</span>':'')+hgLeg+preisLeg+'</div>'+
     statsHtml+budgetHtml;
   let ax="";for(let h=0;h<=24;h+=3){const cls=h===0?" ax-first":(h===24?" ax-last":"");ax+='<span class="ax-tik'+cls+'" style="left:'+(h/24*100)+'%"><i></i>'+h+'</span>';}$("std-achse").innerHTML=ax;
   chart.querySelectorAll(".hs-tx b").forEach((b,i)=>zaehlElement(b,"stat"+i)); // Kennzahlen hochzählen
   chart.querySelectorAll(".sky-tap").forEach(bt=>bt.onclick=()=>{
-    const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-grundlastKW(h))/1000);
+    const h=+bt.dataset.h, s=arr[h], frei=Math.max(0,(s.pv-(s.hg||0))/1000);
     let preisTeil='';
     if(s.voll!=null){
       preisTeil=' · 💶 Netz '+dz(s.voll.toFixed(1))+' ct/kWh';
-      if(s.pv>=grundlastKW(h)) preisTeil+=' · <span class="hd-sonne">mit Sonne ~0 ct</span>'; // Sonne deckt diese Stunde
+      if(s.pv>=(s.hg||0)) preisTeil+=' · <span class="hd-sonne">mit Sonne ~0 ct</span>'; // Sonne deckt diese Stunde
     }
     $("hero-detail").innerHTML='<b>'+h+'–'+(h+1)+' Uhr</b> · ☀️ '+dz((s.pv/1000).toFixed(1))+' kW'+(frei>0.05?' · 🟢 '+dz(frei.toFixed(1))+' kW frei':'')+preisTeil;
     chart.querySelectorAll(".sky-tap").forEach(x=>x.classList.toggle("sel",x===bt));
@@ -3416,8 +3525,8 @@ function renderVerlauf(){
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
         '<div class="sc-row"><span class="sc-ic">🚫</span><span class="sc-tx"><b>Zählt (noch) nicht:</b> Wärmepumpe, Speicher-/Akku-Ladung und andere automatische Dauerlasten – die steuert dein <b>Energiemanager (EMS)</b> selbst. Ohne EMS-Anbindung kann die App sie nicht messen.</span></div>'+
-        '<div class="sc-row"><span class="sc-ic">🏠</span><span class="sc-tx">Deine <b>Grundlast</b> (Kühlschrank, WP im Hintergrund …) rechnen wir vorab von der freien Sonne ab – gezählt wird nur, was deine geplanten Geräte <b>zusätzlich</b> aus der Sonne holen.</span></div>'+
-        '<div class="sc-tip">⚠️ Läuft im Hintergrund gerade mehr als deine eingestellte Grundlast (z. B. die Wärmepumpe heizt), kann die angezeigte Sonnen-Nutzung etwas <b>zu hoch</b> sein – ohne EMS merkt die App das nicht. Tipp: die <b>Grundlast im Schnitt etwas höher</b> ansetzen, dann passt es über den Tag betrachtet besser.</div>'+
+        '<div class="sc-row"><span class="sc-ic">🏠</span><span class="sc-tx">Deinen <b>Hintergrund-Verbrauch</b> (Sockel, Warmwasser- und Heiz-Baustein der Wärmepumpe) rechnen wir vorab <b>stundengenau</b> von der freien Sonne ab – gezählt wird nur, was deine geplanten Geräte <b>zusätzlich</b> aus der Sonne holen.</span></div>'+
+        '<div class="sc-tip">⚠️ Weicht der echte Hintergrund stark von den Bausteinen ab (z. B. Extra-Heizläufe), kann die angezeigte Sonnen-Nutzung etwas <b>zu hoch</b> sein – ohne EMS merkt die App das nicht. Tipp: Warmwasser- und Heiz-Baustein unter <b>Einrichten → Hintergrund-Verbrauch</b> an deine Anlagen-Werte anpassen.</div>'+
       '</details>'+
     '</div>'+
     '<div class="vl-titel">Alle Läufe</div>'+
@@ -3458,6 +3567,8 @@ async function laden(force){
   // leeren Daten (z. B. Erststart vor der Adresseingabe) erzeugter „nicht einplanbar"-Stand hängen,
   // weil die Signatur (Tag+Geräte) sich nicht ändert. Manuelle Positionen bleiben via cfg.plaene erhalten.
   platzSig="";
+  // Heizungs-Baustein braucht die Außentemperatur: Wetter-Ausblick nachladen, dann neu rechnen.
+  if(cfg.hz_an && !wochenSonne){ ladeWochenSonne().then(()=>{ platzSig=""; aktualisieren(); }).catch(()=>{}); }
   aktualisieren(); // blendet die Statuszeile aus – daher den Preis-Hinweis DANACH setzen
   $("quelle-preis").textContent = cfg.tarif==="fest" ? "Fester Tarif" : (preisFehler ? "Börse (offline)" : "Börse (EPEX-Spot)");
   $("quelle-sonne").textContent = r0.label;
@@ -3955,24 +4066,51 @@ function syncRegler(){
   const ra=$("rg-akku");
   if(ra){ra.max=Math.max(1,cfg.akku_kwh||10);ra.value=Math.min(parseFloat(ra.max),cfg.akku_stand||0);$("rg-akku-val").textContent=dz((cfg.akku_stand||0).toFixed(1))+" kWh";}
 }
-// Grundlast-Regler inkl. Saison-Zonen (Sommer / Übergang / Winter-Wärmepumpe)
-function grundlastZoneIdx(w){return w<=300?0:(w<=800?1:2);}
-const GL_ZONEN_NAME=["Sommer","Übergang","Winter · Wärmepumpe"];
-const GL_ZONEN_TXT=[
-  "geringe Grundlast – Wärmepumpe macht nur Warmwasser, dazu Kühlschrank & Standby.",
-  "mittlere Grundlast – die Wärmepumpe heizt zeitweise mit.",
-  "hohe Grundlast – die Wärmepumpe heizt durchgehend."
-];
+// Hintergrund-Verbrauch: Sockel-Regler + Warmwasser-Läufe + Heizkurve (drei Bausteine)
+function uhrStrHG(z){const h=Math.floor(z),m=Math.round((z-h)*60);return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;}
 function renderGrundlast(){
   const w=cfg.schwelle||0;
   const rl=$("rg-last");if(rl)rl.value=w;
   const lab=$("rg-last-val");if(lab)lab.textContent=Math.round(w)+" W";
-  const idx=grundlastZoneIdx(w);
-  document.querySelectorAll("#gl-zonen .gl-z").forEach((b,i)=>b.classList.toggle("aktiv",i===idx));
-  const h=$("gl-hinweis");if(h)h.innerHTML="Aktuell ~<b>"+GL_ZONEN_NAME[idx]+"</b>: "+GL_ZONEN_TXT[idx];
   const pt=$("rg-gl-profil");if(pt)pt.checked=!!cfg.gl_profil_an;
   const box=$("gl-profil-box");if(box)box.hidden=!cfg.gl_profil_an;
   zeichneGlSpark();
+  // --- Warmwasser ---
+  const wa=$("rg-ww-an");if(wa)wa.checked=!!cfg.ww_an;
+  const wd=$("ww-details");if(wd)wd.hidden=!cfg.ww_an;
+  if(wd&&cfg.ww_an){
+    if($("rg-wwkwh")){$("rg-wwkwh").value=cfg.ww_kwh;$("rg-wwkwh-val").textContent=dz((cfg.ww_kwh||0).toFixed(1))+" kWh";}
+    if($("rg-wwkw")){$("rg-wwkw").value=cfg.ww_kw;$("rg-wwkw-val").textContent=dz((cfg.ww_kw||0).toFixed(1))+" kW";}
+    const akt=(cfg.ww_l||[]).filter(l=>l&&l.an).length;
+    const kwhJe=akt?cfg.ww_kwh/akt:0, min=akt?Math.round(kwhJe/Math.max(0.5,cfg.ww_kw)*60):0;
+    (cfg.ww_l||[]).forEach((l,i)=>{
+      const an=$("rg-wwl"+i+"-an"),z=$("rg-wwl"+i+"-z"),v=$("rg-wwl"+i+"-z-val"),row=$("wwlauf-"+i);
+      if(!an)return;
+      an.checked=!!l.an; if(row)row.classList.toggle("aus",!l.an);
+      if(z)z.value=l.z!=null?l.z:5;
+      if(v)v.textContent=(i===1&&l.auto)?"☀️ auto":uhrStrHG(l.z!=null?l.z:5)+" Uhr";
+      if(i===1){const c=$("rg-wwl1-auto");if(c)c.classList.toggle("an",!!l.auto);const zb=$("wwl1-z-box");if(zb)zb.hidden=!!l.auto;}
+    });
+    const inf=$("ww-info");
+    if(inf)inf.innerHTML=!akt?"Kein Lauf aktiv – der Baustein wirkt gerade nicht."
+      :"Deine <b>"+dz(cfg.ww_kwh.toFixed(1))+" kWh</b> verteilen sich auf "+akt+(akt===1?" Lauf":" Läufe")+": je <b>"+dz(kwhJe.toFixed(1))+" kWh</b> (~"+min+" min bei "+dz(cfg.ww_kw.toFixed(1))+" kW).";
+  }
+  // --- Heizung ---
+  const ha=$("rg-hz-an");if(ha)ha.checked=!!cfg.hz_an;
+  const hd=$("hz-details");if(hd)hd.hidden=!cfg.hz_an;
+  if(hd&&cfg.hz_an){
+    if($("rg-hzgrenze")){$("rg-hzgrenze").value=cfg.hz_grenze;$("rg-hzgrenze-val").textContent=Math.round(cfg.hz_grenze)+" °C";}
+    if($("rg-hzp0")){$("rg-hzp0").value=cfg.hz_p0;$("rg-hzp0-val").textContent=dz((cfg.hz_p0||0).toFixed(1))+" kW";}
+    const inf=$("hz-info");
+    if(inf){
+      const tmax=tagesTmax(heuteStr());
+      let sum=0;for(let h=0;h<24;h++)sum+=heizW(heuteStr(),h);
+      const avg=Math.round(sum/24);
+      inf.innerHTML = avg>5
+        ? "Heute (Tmax ~"+Math.round(tmax)+" °C): Heizlast Ø ~<b>"+avg+" W</b> – rechnet die App automatisch mit ein."
+        : "Heute (Tmax ~"+Math.round(tmax)+" °C): über der Heizgrenze – Heizlast <b>0 W</b>. Wird es kälter, steigt sie von selbst.";
+    }
+  }
 }
 // Mini-Verlauf (24 Balken) der Grundlast über den Tag – zeigt die Tagesform in echten Watt.
 function zeichneGlSpark(){
@@ -3998,9 +4136,26 @@ $("rg-akku").onchange=()=>speichern();
 $("rg-last").oninput=()=>{cfg.schwelle=parseFloat($("rg-last").value)||0;renderGrundlast();aktualisieren();};
 $("rg-last").onchange=()=>speichern();
 if($("rg-gl-profil"))$("rg-gl-profil").onchange=()=>{cfg.gl_profil_an=$("rg-gl-profil").checked;renderGrundlast();platzSig="";speichern();aktualisieren();};
-document.querySelectorAll("#gl-zonen .gl-z").forEach(b=>b.onclick=()=>{
-  cfg.schwelle=parseInt(b.dataset.w,10)||0;renderGrundlast();speichern();aktualisieren();
+// Warmwasser-Baustein
+if($("rg-ww-an"))$("rg-ww-an").onchange=()=>{cfg.ww_an=$("rg-ww-an").checked;renderGrundlast();platzSig="";speichern();aktualisieren();};
+if($("rg-wwkwh"))$("rg-wwkwh").oninput=()=>{cfg.ww_kwh=parseFloat($("rg-wwkwh").value)||2;renderGrundlast();platzSig="";aktualisieren();};
+if($("rg-wwkwh"))$("rg-wwkwh").onchange=()=>speichern();
+if($("rg-wwkw"))$("rg-wwkw").oninput=()=>{cfg.ww_kw=parseFloat($("rg-wwkw").value)||2.3;renderGrundlast();platzSig="";aktualisieren();};
+if($("rg-wwkw"))$("rg-wwkw").onchange=()=>speichern();
+[0,1,2].forEach(i=>{
+  const an=$("rg-wwl"+i+"-an"),z=$("rg-wwl"+i+"-z");
+  if(an)an.onchange=()=>{ if(!cfg.ww_l||!cfg.ww_l[i])return; cfg.ww_l[i].an=an.checked; renderGrundlast();platzSig="";speichern();aktualisieren(); };
+  if(z)z.oninput=()=>{ if(!cfg.ww_l||!cfg.ww_l[i])return; cfg.ww_l[i].z=parseFloat(z.value)||0; renderGrundlast();platzSig="";aktualisieren(); };
+  if(z)z.onchange=()=>speichern();
 });
+if($("rg-wwl1-auto"))$("rg-wwl1-auto").onclick=()=>{ if(!cfg.ww_l||!cfg.ww_l[1])return; cfg.ww_l[1].auto=!cfg.ww_l[1].auto; renderGrundlast();platzSig="";speichern();aktualisieren(); };
+// Heizungs-Baustein (Heizkurve)
+if($("rg-hz-an"))$("rg-hz-an").onchange=()=>{cfg.hz_an=$("rg-hz-an").checked;renderGrundlast();platzSig="";speichern();aktualisieren();
+  if(cfg.hz_an&&!wochenSonne)ladeWochenSonne().then(()=>{platzSig="";renderGrundlast();aktualisieren();}).catch(()=>{});};
+if($("rg-hzgrenze"))$("rg-hzgrenze").oninput=()=>{cfg.hz_grenze=parseFloat($("rg-hzgrenze").value)||15;renderGrundlast();platzSig="";aktualisieren();};
+if($("rg-hzgrenze"))$("rg-hzgrenze").onchange=()=>speichern();
+if($("rg-hzp0"))$("rg-hzp0").oninput=()=>{cfg.hz_p0=parseFloat($("rg-hzp0").value)||1.2;renderGrundlast();platzSig="";aktualisieren();};
+if($("rg-hzp0"))$("rg-hzp0").onchange=()=>speichern();
 
 /* Gerät hinzufügen */
 function renderTypen(){
@@ -4659,6 +4814,7 @@ function ladeDemoBasis(){
   cfg.verlauf=demoVerlauf();
   cfg.tagAnzahl={}; cfg.plaene={}; cfg.erledigt={}; cfg.uebernommen={}; cfg.abgelehnt={}; cfg.routineSkip={};
   cfg.ev_an=false; cfg.rueckblickWeg=heuteStr(); // EV führt erst der eigene Demo-Schritt ein; Rückblick stört die Tour nicht
+  cfg.ww_an=false; cfg.hz_an=false;              // Wärmepumpen-Bausteine führt ebenfalls ein eigener Schritt ein
   platzSig=""; tag="heute"; demoClose();
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag==="heute"));
   aktualisieren();
@@ -4669,12 +4825,16 @@ function demoSpot(sel){ demoSpotClear(); const e=sel&&document.querySelector(sel
 const DEMO_STEPS=[
   { cap:"👋 <b>Willkommen!</b> Diese App sagt dir, wann du Geräte laufen lassen solltest, um deine eigene <b>Sonne maximal zu nutzen</b> – und Netzstrom zu sparen.",
     run:()=>{ demoClose(); setzeTag("heute"); }, wait:6500 },
-  { cap:"⚙️ <b>Einmal einrichten:</b> Adresse, Dachausrichtung, Stromtarif und Grundlast – daraus berechnet die App deine <b>freie Sonne</b>. Beim allerersten Start zeigt sie dir schon nach der Adresse sofort deine <b>beste Sonnenzeit heute</b>.",
+  { cap:"⚙️ <b>Einmal einrichten:</b> Adresse, Dachausrichtung, Stromtarif und Hintergrund-Verbrauch – daraus berechnet die App deine <b>freie Sonne</b>. Beim allerersten Start zeigt sie dir schon nach der Adresse sofort deine <b>beste Sonnenzeit heute</b>.",
     run:()=>{ demoClose(); setzeTag("heute"); if($("btn-einrichten"))$("btn-einrichten").click(); }, wait:7500 },
   { cap:"📈 Beim dynamischen Tarif zeigt <b>„Preis-Wissen“</b>, wie Börsenpreise übers Jahr verlaufen – im Winter z. B. nachts günstig.",
     run:()=>{ if(!$("sheet-einrichten").classList.contains("offen")&&$("btn-einrichten"))$("btn-einrichten").click(); const d=document.querySelector(".preiswissen"); if(d){d.open=true; d.scrollIntoView({block:"center"});} demoSpot(".preiswissen"); }, wait:7000 },
   { cap:"➕ <b>Heute einplanen:</b> Du wählst ein Gerät – die App legt es automatisch in die <b>sonnigsten & günstigsten Stunden</b>. Ziehen verschiebt es.",
     run:()=>{ demoClose(); setzeTag("heute"); geraetAnHeutigenTag({typ:"wm",icon:"🌀",name:"Waschmaschine",kwh:0.9,dauer:3,von:6,bis:22}); aktualisieren(); sheetAuf("sheet-tagesplan"); demoSpot("#planer-leiste"); }, wait:8000 },
+  { cap:"🚿 <b>Wärmepumpe &amp; Co. (optional):</b> Warmwasser-Läufe und Heizung trägst du als <b>Hintergrund-Bausteine</b> ein – sie erscheinen als eigene Info-Spur und die Sonnenkurve wird <b>ehrlich</b>: nur die wirklich freie Sonne zählt für deine Geräte.",
+    run:()=>{ demoClose(); setzeTag("heute"); cfg.ww_an=true; cfg.ww_kwh=2; cfg.ww_kw=2.3;
+      cfg.ww_l=[{an:true,z:5},{an:true,z:13,auto:true},{an:true,z:21}];
+      platzSig=""; aktualisieren(); sheetAuf("sheet-tagesplan"); demoSpot("#hg-lane"); }, wait:8500 },
   { cap:"🌤️ <b>Morgen vorausplanen:</b> Sobald die Preise für morgen da sind, kannst du auch den nächsten Tag schon vorbereiten.",
     run:()=>{ demoClose(); setzeTag("morgen"); }, wait:6500 },
   { cap:"🚗 <b>E-Auto (optional):</b> Ladeleistung hinterlegen, <b>Ziel-kWh</b> wählen – die App legt das Laden in die Sonne und zeigt dir das beste Ladefenster.",
