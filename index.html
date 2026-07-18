@@ -1234,7 +1234,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <div class="sheet neu-sheet" id="sheet-neu" role="dialog" aria-label="Was ist neu" style="z-index:12">
   <button class="sheet-schliessen" data-zu>✕</button>
   <div class="neu-ic">✨</div>
-  <h3 id="neu-titel">Neu in Version 62</h3>
+  <h3 id="neu-titel">Neu in Version 63</h3>
   <div class="sub">Das hat sich seit deinem letzten Besuch getan:</div>
   <div class="neu-punkte" id="neu-punkte"></div>
   <button class="fertig" data-zu>Alles klar</button>
@@ -1491,8 +1491,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=62;
+const APP_VERSION=63;
 const NEUES=[
+  {v:63,t:["🚗 Ladeplaner: die <b>Ladezeit steht jetzt direkt an jeder kWh-Auswahl</b> (kWh ÷ Ladeleistung) und ein <b>eigener kWh-Wert</b> ist frei eingebbar"]},
   {v:62,t:["🚗 <b>E-Auto-Ladeplaner</b> (optional): Ladeleistung + Ziel-kWh statt Dauer – Einrichten → E-Auto & Wallbox","💾 <b>Backup & Umzug</b>: alle Daten als Datei sichern und wiederherstellen","📊 <b>CSV-Export</b> der Bilanz für Excel","🌅 <b>Tages-Rückblick</b>: was dein Gestern gebracht hat","✨ Dieses „Was ist neu“ – künftig nach jedem Update"]},
   {v:60,t:["Bilanz-Balken je Auswahl: Woche = Tage, Monat = Kalenderwochen, Jahr = Monate 1–12"]},
   {v:58,t:["Bilanz zählt kalendarisch: Woche ab Montag, Monat ab dem 1., Jahr ab 1. Januar"]},
@@ -3940,7 +3941,12 @@ function renderProgramme(typ){
 const EV_KLASSEN={"Kurz nachladen (~10 kWh)":10,"Halber Akku (~20 kWh)":20,"Fast voll (~40 kWh)":40};
 function evPlaner(){ return !!cfg.ev_an && wahlTyp && wahlTyp.id==="ba"; }
 function evDauer(kwh){ const kw=cfg.ev_kw||11; return Math.max(0.5, Math.ceil((kwh/kw)*4)/4); }
-function aktKlassen(){ return evPlaner()?EV_KLASSEN:wahlTyp.klassen; }
+function aktKlassen(){
+  if(!evPlaner())return wahlTyp.klassen;
+  const k=Object.assign({},EV_KLASSEN);
+  if(EV_CUSTOM)k[evCustomKey()]=EV_CUSTOM;
+  return k;
+}
 function starteNeuesProgramm(){
   wahlKlasse=null;
   const fr=$("klasse-frage"),hi=$("klasse-hilfe");
@@ -3957,26 +3963,42 @@ function starteNeuesProgramm(){
   const cb=$("cb-programm-speichern");if(cb)cb.checked=false;
   const nf=$("neu-programm-name");if(nf)nf.value="";
 }
+function waehleKlasse(k){
+  wahlKlasse=k;renderKlassen();
+  const kwh=aktKlassen()[k]; if(kwh==null)return;
+  if(evPlaner()){
+    $("schaetzung").innerHTML="Ladeziel: <b>"+dz(kwh)+" kWh</b> · bei "+dz(cfg.ev_kw||11)+" kW ≈ <b>"+uhrStr(evDauer(kwh))+" h</b> Ladezeit.<br><span style='color:var(--grau)'>Ohne Ladeverluste – lieber etwas großzügiger planen. Die App legt das Fenster in die Sonne, starten musst du selbst.</span>";
+  }else{
+    $("schaetzung").innerHTML="Geschätzter Verbrauch: <b>"+dz(kwh)+" kWh</b> "+wahlTyp.text+
+      " · Laufzeit ca. "+wahlTyp.dauer+" h.<br><span style='color:var(--grau)'>Typischer Wert – nach dem Hinzufügen kannst du per ✎ Modellsuche oder Handeingabe verfeinern.</span>";
+  }
+  $("schaetzung-box").hidden=false;$("programm-speichern-box").hidden=false;$("btn-g-fertig").hidden=false;
+  const nf=$("neu-programm-name");if(nf)nf.placeholder=kurzName(wahlTyp.name)+" · "+k;
+}
 function renderKlassen(){
   const box=$("w-klasse");box.innerHTML="";
   const KL=aktKlassen();
   Object.keys(KL).forEach(k=>{
     const b=document.createElement("button");
-    b.textContent=k;
+    // EV: Ladezeit direkt an jeder Auswahl zeigen – macht die Rechnung transparent (kWh ÷ kW)
+    b.textContent = evPlaner() ? (k+" · ≈ "+uhrStr(evDauer(KL[k]))+" h") : k;
     if(k===wahlKlasse)b.classList.add("aktiv");
-    b.onclick=()=>{wahlKlasse=k;renderKlassen();
-      const kwh=KL[k];
-      if(evPlaner()){
-        $("schaetzung").innerHTML="Ladeziel: <b>"+dz(kwh)+" kWh</b> · bei "+dz(cfg.ev_kw||11)+" kW ≈ <b>"+uhrStr(evDauer(kwh))+" h</b> Ladezeit.<br><span style='color:var(--grau)'>Ohne Ladeverluste – lieber etwas großzügiger planen. Die App legt das Fenster in die Sonne, starten musst du selbst.</span>";
-      }else{
-        $("schaetzung").innerHTML="Geschätzter Verbrauch: <b>"+dz(kwh)+" kWh</b> "+wahlTyp.text+
-          " · Laufzeit ca. "+wahlTyp.dauer+" h.<br><span style='color:var(--grau)'>Typischer Wert – nach dem Hinzufügen kannst du per ✎ Modellsuche oder Handeingabe verfeinern.</span>";
-      }
-      $("schaetzung-box").hidden=false;$("programm-speichern-box").hidden=false;$("btn-g-fertig").hidden=false;
-      const nf=$("neu-programm-name");if(nf)nf.placeholder=kurzName(wahlTyp.name)+" · "+k;};
+    b.onclick=()=>waehleKlasse(k);
     box.appendChild(b);
   });
+  if(evPlaner()){
+    const b=document.createElement("button");
+    b.textContent="✏️ Eigene kWh …";
+    b.onclick=async()=>{
+      const t=await frageText("Wie viele kWh sollen geladen werden?", EV_CUSTOM?dz(EV_CUSTOM):"25");
+      const v=parseFloat((t||"").replace(",","."));
+      if(!isNaN(v)&&v>0){ EV_CUSTOM=Math.min(120,Math.round(v*10)/10); waehleKlasse(evCustomKey()); }
+    };
+    box.appendChild(b);
+  }
 }
+let EV_CUSTOM=null;
+function evCustomKey(){ return "Eigener Wert ("+dz(EV_CUSTOM)+" kWh)"; }
 // Symbol eines gespeicherten Geräts überall mitziehen (Vorlage, aktive Liste, Routinen, Verlauf).
 function setzeGeraetIconUeberall(name,icon){
   [meineGeraete,geraete,routinen].forEach(arr=>(arr||[]).forEach(x=>{ if(x.name===name)x.icon=icon; }));
