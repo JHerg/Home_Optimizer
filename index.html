@@ -1138,7 +1138,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <details class="experte" style="margin-top:12px">
         <summary>ⓘ Wie das Laden gerechnet wird</summary>
         <div class="hilfe" style="margin-top:10px">🔢 <b>Ladezeit</b> = Ziel-kWh ÷ Ladeleistung, auf Viertelstunden <b>aufgerundet</b> (z. B. 20 kWh ÷ 11 kW ≈ 1,8 h → 2 h eingeplant). Ladeverluste sind nicht eingerechnet – plane lieber etwas mehr kWh ein.</div>
-        <div class="hilfe" style="margin-top:8px">☀️ Die App legt das Laden wie jedes Gerät in die <b>sonnigsten/günstigsten Stunden</b> – aktuell als <b>ein zusammenhängendes Fenster</b>. Aufteilen auf zwei Sonnenfenster steht auf der Roadmap.</div>
+        <div class="hilfe" style="margin-top:8px">☀️ Die App legt das Laden in die <b>sonnigsten/günstigsten Stunden</b>. Ab 3 h Ladezeit prüft sie automatisch, ob <b>zwei Etappen</b> (z. B. vormittags + nachmittags, wenn mittags ein Gerät läuft) mehr Sonne bringen – geteilt wird nur, wenn es sich klar lohnt. Bestätigt wird trotzdem nur <b>einmal</b>.</div>
         <div class="hilfe" style="margin-top:8px">🎯 Die App <b>startet das Laden nicht</b> – sie empfiehlt das Fenster. Anstecken bzw. Timer in Auto/Wallbox stellst du selbst (oder dein EMS).</div>
       </details>
     </div>
@@ -1234,7 +1234,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <div class="sheet neu-sheet" id="sheet-neu" role="dialog" aria-label="Was ist neu" style="z-index:12">
   <button class="sheet-schliessen" data-zu>✕</button>
   <div class="neu-ic">✨</div>
-  <h3 id="neu-titel">Neu in Version 63</h3>
+  <h3 id="neu-titel">Neu in Version 64</h3>
   <div class="sub">Das hat sich seit deinem letzten Besuch getan:</div>
   <div class="neu-punkte" id="neu-punkte"></div>
   <button class="fertig" data-zu>Alles klar</button>
@@ -1491,8 +1491,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=63;
+const APP_VERSION=64;
 const NEUES=[
+  {v:64,t:["🚗 <b>Laden in 2 Etappen</b>: ab 3 h Ladezeit teilt die App das Laden automatisch auf zwei Sonnenfenster auf, wenn das klar mehr Eigenverbrauch bringt (z. B. vor und nach der Waschmaschine) – bestätigt wird weiter nur einmal"]},
   {v:63,t:["🚗 Ladeplaner: die <b>Ladezeit steht jetzt direkt an jeder kWh-Auswahl</b> (kWh ÷ Ladeleistung) und ein <b>eigener kWh-Wert</b> ist frei eingebbar"]},
   {v:62,t:["🚗 <b>E-Auto-Ladeplaner</b> (optional): Ladeleistung + Ziel-kWh statt Dauer – Einrichten → E-Auto & Wallbox","💾 <b>Backup & Umzug</b>: alle Daten als Datei sichern und wiederherstellen","📊 <b>CSV-Export</b> der Bilanz für Excel","🌅 <b>Tages-Rückblick</b>: was dein Gestern gebracht hat","✨ Dieses „Was ist neu“ – künftig nach jedem Update"]},
   {v:60,t:["Bilanz-Balken je Auswahl: Woche = Tage, Monat = Kalenderwochen, Jahr = Monate 1–12"]},
@@ -1904,7 +1905,11 @@ function uebernommeneFuerTag(tagStr){
 function speicherePlan(){
   const key=tagKeyAktuell();
   cfg.plaene=cfg.plaene||{};
-  cfg.plaene[key]=platzierungen.map(b=>({key:b._key,run:b.run,start:b.start,fix:!!b._fix}));
+  cfg.plaene[key]=platzierungen.map(b=>{
+    const e={key:b._key,run:b.run,start:b.start,fix:!!b._fix};
+    if(b._teil){ e.teil=b._teil; e.dauer=b.dauer; e.ed=b.echteDauer; } // EV-Split: beide Etappen sichern
+    return e;
+  });
   speichern();
 }
 
@@ -2179,8 +2184,11 @@ function autoPlatzierung(arr){
   const bloecke=[];
   ungeplant=[];
   const gespeichert=(cfg.plaene&&cfg.plaene[tagKeyAktuell()])||[];
-  const startMap=new Map(gespeichert.map(s=>[s.key+"#"+s.run,s.start]));
-  const fixSet=new Set(gespeichert.filter(s=>s.fix).map(s=>s.key+"#"+s.run)); // verankerte Läufe
+  // EV-Split-Einträge (teil:1/2) getrennt sammeln – sie gehören paarweise zu EINEM Ladevorgang
+  const startMap=new Map(gespeichert.filter(s=>!s.teil).map(s=>[s.key+"#"+s.run,s.start]));
+  const fixSet=new Set(gespeichert.filter(s=>s.fix&&!s.teil).map(s=>s.key+"#"+s.run)); // verankerte Läufe
+  const splitMap=new Map();
+  gespeichert.filter(s=>s.teil).forEach(s=>{ const k=s.key+"#"+s.run; const o=splitMap.get(k)||{}; o[s.teil]={start:s.start,dauer:s.dauer,ed:s.ed}; splitMap.set(k,o); });
   // Belegung je Geraetetyp: dieselbe Maschine kann nicht parallel laufen
   const belegtProTyp={};
   const belegtVon=t=>belegtProTyp[t]||(belegtProTyp[t]=new Array(24).fill(false));
@@ -2213,6 +2221,17 @@ function autoPlatzierung(arr){
         const fs=Math.max(g.von,Math.min(g.bis-dauer,startMap.get(key+"#"+n)));
         naechsterStart=Math.max(naechsterStart,fs+dauer); platziert++; continue;
       }
+      // Gespeicherten EV-Split (2 Etappen) unverändert wiederherstellen
+      const sp=splitMap.get(key+"#"+n);
+      if(sp&&sp[1]&&sp[2]){
+        const dges=sp[1].dauer+sp[2].dauer;
+        [1,2].forEach(t=>{ const w=sp[t];
+          for(let i=0;i<w.dauer;i++){const h=w.start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+          bloecke.push({gi,run:n,start:w.start,dauer:w.dauer,kwh:g.kwh*w.dauer/dges,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:(w.ed!=null?w.ed:w.dauer),routine:false,_key:key,_fix:false,_teil:t,_split:true});
+        });
+        naechsterStart=Math.max(naechsterStart,Math.max(sp[1].start+sp[1].dauer,sp[2].start+sp[2].dauer));
+        platziert++; continue;
+      }
       const gesp=startMap.get(key+"#"+n);
       let start;
       if(gesp!=null){
@@ -2220,6 +2239,30 @@ function autoPlatzierung(arr){
       }else{
         const f=bestesFensterSonne(arr,restKW,devKW,dauer,naechsterStart,g.bis,belegt);
         if(!f)break; // kein Fenster mehr frei / Maschine belegt -> Rest gilt als ungeplant
+        // ---- EV-Split (Stufe 2): lohnt es, das Laden in 2 Etappen zu teilen? ----
+        // Nur E-Auto (Ladeplaner an), ab 3 h, 1 Durchgang: beide Varianten durchrechnen und die
+        // mit deutlich geringeren ungedeckten Netzkosten nehmen (>=10 % besser + echte Lücke).
+        if(cfg.ev_an && g.typ==="ba" && !g.routine && dauer>=3 && g.anzahl===1){
+          const d1=Math.ceil(dauer/2), d2=dauer-d1;
+          const rk2=restKW.slice(), bel2=belegt.slice();
+          const f1=bestesFensterSonne(arr,rk2,devKW,d1,naechsterStart,g.bis,bel2);
+          if(f1){
+            for(let i=0;i<d1;i++){const h=f1.start+i;if(h>=0&&h<24){rk2[h]=Math.max(0,rk2[h]-devKW);bel2[h]=true;}}
+            const f2=bestesFensterSonne(arr,rk2,devKW,d2,naechsterStart,g.bis,bel2);
+            if(f2 && (f1.sum+f2.sum) < f.sum - Math.max(3, 0.10*f.sum)){
+              const wA=(f1.start<=f2.start)?{s:f1.start,d:d1}:{s:f2.start,d:d2};
+              const wB=(f1.start<=f2.start)?{s:f2.start,d:d2}:{s:f1.start,d:d1};
+              if(wB.s > wA.s+wA.d){ // echte Lücke – sonst ist es faktisch EIN Fenster
+                const ed1=Math.min(g.dauer,wA.d), ed2=Math.max(0.25,Math.round((g.dauer-ed1)*4)/4);
+                [[wA,1,ed1],[wB,2,ed2]].forEach(([w,t,ed])=>{
+                  for(let i=0;i<w.d;i++){const h=w.s+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+                  bloecke.push({gi,run:n,start:w.s,dauer:w.d,kwh:g.kwh*w.d/dauer,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:ed,routine:false,_key:key,_fix:false,_teil:t,_split:true});
+                });
+                naechsterStart=wB.s+wB.d; platziert++; continue;
+              }
+            }
+          }
+        }
         start=f.start;
       }
       naechsterStart = start + dauer;
@@ -2495,6 +2538,21 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   speichern();platzSig="";aktualisieren();
   if(!demoAktiv && kwh>0 && bil && bil.son>=kwh*0.98) feiere("☀️ Komplett aus eigener Sonne gelaufen!"); // voll solar = Feier
 }
+// EV-Split bestätigen: je Etappe ein erledigt-Eintrag (korrekte Belegung), aber EIN Verlaufs-
+// Eintrag mit Gesamt-kWh und der Summe beider Sonnen-/Spar-Bilanzen.
+function markiereErledigtSplit(tagKey,name,icon,teile){
+  cfg.erledigt=cfg.erledigt||{};(cfg.erledigt[tagKey]=cfg.erledigt[tagKey]||[]);
+  let kGes=0,duGes=0,son=0,spar=0;
+  teile.forEach(w=>{
+    cfg.erledigt[tagKey].push({name,icon,s:w.s,e:w.e,k:Math.round(w.k*100)/100});
+    kGes+=w.k; duGes+=(w.e-w.s);
+    const b=laufBilanz(aktuelleStunden,w.s,w.e-w.s,w.k);
+    if(b){son+=b.son;spar+=b.spar;}
+  });
+  protokolliereLauf(name,tagKey,teile[0].s,Math.round(kGes*100)/100,icon,Math.round(duGes*4)/4,{son:Math.round(son*1000)/1000,spar:Math.round(spar*10)/10});
+  haptik(15); speichern(); platzSig=""; aktualisieren();
+  if(!demoAktiv && kGes>0 && son>=kGes*0.98) feiere("☀️ Komplett aus eigener Sonne geladen!");
+}
 /* ===== A1: Fällige Läufe – beim Öffnen offene, zeitlich abgelaufene Geräte bestätigen ===== */
 // Heute geplante Durchgänge, deren Zeit vorbei ist und die noch nicht bestätigt/abgelehnt wurden.
 function faelligeHeute(){
@@ -2503,6 +2561,7 @@ function faelligeHeute(){
   const erlZaehl={}; erledigtListe(hk).forEach(e=>{erlZaehl[e.name]=(erlZaehl[e.name]||0)+1;});
   const perName={};
   plan.forEach(pl=>{
+    if(pl.teil)return; // EV-Etappen: Bestätigung läuft über den Tagesplan (ein Schritt für beide)
     const name=(pl.key||"").split("|").slice(1).join("|"); if(!name)return;
     const v=findeVorlage(name); if(!v)return;
     const dauer=Math.max(1,Math.ceil(v.dauer)), ende=pl.start+dauer;
@@ -2629,12 +2688,13 @@ function renderDashboard(arr){
   // E-Auto-Empfehlungszeile (#14): bestes Ladefenster + erwarteter Sonnenanteil (nur bei aktivem Ladeplaner)
   { const evEl=$("dash-ev");
     if(evEl){
-      const evB=cfg.ev_an?platzierungen.find(b=>planGeraete[b.gi]&&planGeraete[b.gi].typ==="ba"):null;
-      if(evB){
-        const ende=evB.start+(evB.echteDauer!=null?evB.echteDauer:evB.dauer);
-        const sunK=Math.round(((evB._sun||0)+(evB._batt||0))*10)/10;
+      const evBs=cfg.ev_an?platzierungen.filter(b=>planGeraete[b.gi]&&planGeraete[b.gi].typ==="ba").sort((a,b)=>a.start-b.start):[];
+      if(evBs.length){
+        const fenster=evBs.map(b=>uhrStr(b.start)+'–'+uhrStr(b.start+(b.echteDauer!=null?b.echteDauer:b.dauer))).join(' + ');
+        const sunK=Math.round(evBs.reduce((a,b)=>a+(b._sun||0)+(b._batt||0),0)*10)/10;
+        const kGes=evBs.reduce((a,b)=>a+b.kwh,0);
         evEl.hidden=false;
-        evEl.innerHTML='🚗 <b>Bestes Laden '+(tag==="morgen"?"morgen":"heute")+':</b> '+uhrStr(evB.start)+'–'+uhrStr(ende)+' Uhr → ~<b>'+dz(sunK)+' kWh</b> aus eigener Sonne'+(evB.kwh>sunK+0.05?', Rest günstiger Netzstrom':'')+'.';
+        evEl.innerHTML='🚗 <b>Bestes Laden '+(tag==="morgen"?"morgen":"heute")+':</b> '+fenster+' Uhr'+(evBs.length>1?' <b>(2 Etappen)</b>':'')+' → ~<b>'+dz(sunK)+' kWh</b> aus eigener Sonne'+(kGes>sunK+0.05?', Rest günstiger Netzstrom':'')+'.';
       } else evEl.hidden=true;
     }
   }
@@ -2654,7 +2714,7 @@ function renderDashboard(arr){
   const items=[];
   platzierungen.forEach(b=>{
     const selbst=(b._sun||0)+(b._batt||0), g=b.kwh>0?Math.round(selbst/b.kwh*100):0;
-    items.push({icon:b.icon,name:b.name,routine:b.routine,start:b.start,ende:b.start+b.dauer,kwh:b.kwh,g,done:false,_fix:!!b._fix,pidx:platzierungen.indexOf(b)});
+    items.push({icon:b.icon,name:b.name+(b._teil?" (Etappe "+b._teil+"/2)":""),routine:b.routine,start:b.start,ende:b.start+b.dauer,kwh:b.kwh,g,done:false,_fix:!!b._fix,pidx:platzierungen.indexOf(b)});
   });
   erl.forEach(e=>{
     const st=(e.s!=null?e.s:99), en=(e.e!=null?e.e:(e.s!=null?e.s+1:null));
@@ -2939,13 +2999,14 @@ function renderPlaner(arr){
       const netz=Math.max(0,100-gruen);
       const idx=platzierungen.indexOf(b);
       const kannFrueher=b.start>b.von, kannSpaeter=b.start<b.bis-b.dauer;
-      const hakBtn=kannAbhaken?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
+      const hakBtn=(kannAbhaken&&b._teil!==2)?'<button class="pl-hak" data-hak="'+idx+'" aria-label="'+b.name+' als schon gelaufen abhaken" title="Schon gelaufen? Abhaken">✓</button>':'';
+      const teilLbl=b._teil?' · Etappe '+b._teil+'/2':'';
       li+='<div class="pl-swipe">'+
         '<div class="pl-del-bg"><span>🗑 Entfernen</span></div>'+
         '<div class="pl-pin-bg"><span>'+(b._fix?"📌 Lösen":"📌 Verankern")+'</span></div>'+
         '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
           '<span class="pl-ic">'+b.icon+'</span>'+
-          '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+kurzName(b.name)+'</span>'+
+          '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+kurzName(b.name)+teilLbl+'</span>'+
             '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
           '<span class="pl-akt">'+
             '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
@@ -2967,6 +3028,14 @@ function renderPlaner(arr){
     });
     $("planer-liste").querySelectorAll("[data-hak]").forEach(btn=>btn.onclick=async()=>{
       const b=platzierungen[+btn.dataset.hak];if(!b)return;
+      if(b._split){ // EV in 2 Etappen: EIN Bestätigen für beide Fenster
+        const p2=platzierungen.find(x=>x!==b&&x._split&&x._key===b._key&&x.run===b.run);
+        const w1={s:b.start,e:b.start+b.dauer,k:b.kwh}, w2=p2?{s:p2.start,e:p2.start+p2.dauer,k:p2.kwh}:null;
+        const txt=uhrStr(w1.s)+"–"+uhrStr(w1.e)+(w2?(" und "+uhrStr(w2.s)+"–"+uhrStr(w2.e)):"")+" Uhr";
+        if(!(await frageJaNein("🚗 "+kurzName(b.name)+" – geladen?","Beide Etappen ("+txt+") werden als gelaufen eingetragen.","Ja, geladen")))return;
+        markiereErledigtSplit(tagKey,b.name,b.icon,w2?[w1,w2]:[w1]);
+        return;
+      }
       const r=await frageLaufzeit(b.icon+" "+kurzName(b.name)+" – gelaufen?", b.start, b.start+b.dauer, b.von, b.bis);
       if(!r)return;
       markiereErledigt(tagKey,b.name,b.icon,r.s,r.e-r.s,b.kwh); // echtes Fenster (15-Min) + kWh; Rest wird frei
