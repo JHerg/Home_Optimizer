@@ -203,6 +203,16 @@ details.egrp>summary::-webkit-details-marker{display:none}
 .eg-pfeil{color:var(--grau);font-size:16px;flex-shrink:0;transition:transform var(--schnell)}
 details.egrp[open] .eg-pfeil{transform:rotate(90deg)}
 details.egrp>.eg-body{padding:14px 13px 0;border-top:1px dashed var(--linie)}
+/* Kalibrier-Transparenz (v69) */
+.kalib-leg{display:flex;gap:14px;font-size:11px;color:var(--grau);margin-top:4px}
+.kalib-leg i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.kl-hell{background:var(--sonne);opacity:.35}
+.kl-voll{background:var(--sonne)}
+.kalib-row{display:flex;align-items:center;gap:9px;font-size:12px;padding:6px 0;border-bottom:1px dashed var(--linie)}
+.kalib-row .kr-d{color:var(--grau);flex-shrink:0}
+.kalib-row b{font-variant-numeric:tabular-nums}
+.kalib-row .kr-diff{color:var(--grau);font-size:11px}
+.kalib-del{margin-left:auto;border:none;background:none;cursor:pointer;font-size:14px;padding:2px 4px}
 .fk-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
 .fk-ic.sonne{background:var(--sonne-hell)}
 .fk-ic.gruen{background:var(--gruen-hell)}
@@ -1083,8 +1093,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Einrichten</h3>
   <div class="sub">Ein paar kurze Angaben – mehr braucht die App nicht.</div>
+  <details class="egrp" id="grp-adresse">
+    <summary><span class="fk-ic blau">📍</span><span class="eg-tx"><b>Adresse</b><small>bestimmt deine Sonne</small></span><span class="eg-st" id="eg-st-adresse"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
   <div class="abschnitt">
-    <div class="frage-kopf"><span class="fk-ic blau">📍</span><span class="fk-titel">Wo wohnst du?</span></div>
     <div class="hilfe">Die Adresse bestimmt, wie viel Sonne bei dir ankommt.</div>
     <div class="adresse-zeile">
       <input id="f-adresse" value="" placeholder="Straße Hausnr., PLZ Ort" aria-label="Adresse">
@@ -1092,15 +1104,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     </div>
     <div id="adresse-info" class="adresse-ok">Bitte deine Adresse eingeben und „Suchen" tippen.</div>
   </div>
+    </div>
+  </details>
+  <details class="egrp" id="grp-anlage">
+    <summary><span class="fk-ic sonne">☀️</span><span class="eg-tx"><b>Dach &amp; Anlage</b><small>Ausrichtung · Neigung · Leistung</small></span><span class="eg-st" id="eg-st-anlage"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
   <div class="abschnitt">
-    <div class="frage-kopf"><span class="fk-ic sonne">☀️</span><span class="fk-titel">Wohin zeigen deine Module?</span></div>
     <div class="hilfe">Einfach die Himmelsrichtung wählen, in die das Pultdach abfällt.</div>
     <div class="wahl" id="w-richtung"></div>
     <div class="frage" style="margin-top:14px">Wie steil ist das Dach?</div>
     <div class="wahl" id="w-neigung"></div>
+    <div class="frage" style="margin-top:14px">Anlagenleistung</div>
+    <div class="hilfe">Steht auf deinem Wechselrichter bzw. in den Anlagen-Unterlagen (Summe der Modulleistung).</div>
+    <div class="zahl-feld"><input id="f-kwp" value="7.6" inputmode="decimal"><span class="einheit">kWp</span></div>
   </div>
+    </div>
+  </details>
+  <details class="egrp" id="grp-tarif">
+    <summary><span class="fk-ic gruen">💶</span><span class="eg-tx"><b>Stromtarif</b><small>dynamisch oder fester Preis</small></span><span class="eg-st" id="eg-st-tarif"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
   <div class="abschnitt">
-    <div class="frage-kopf"><span class="fk-ic gruen">💶</span><span class="fk-titel">Dein Stromtarif</span></div>
     <div class="hilfe">Hast du einen dynamischen (stündlich wechselnden) Börsentarif oder einen festen Arbeitspreis?</div>
     <div class="wahl segmented" id="w-tarif" style="margin-bottom:14px"></div>
     <div id="tarif-dynamisch">
@@ -1130,6 +1153,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="zahl-feld"><input id="f-festpreis" value="0,32" inputmode="decimal"><span class="einheit">€/kWh Arbeitspreis</span></div>
     </div>
   </div>
+    </div>
+  </details>
   <details class="egrp" id="grp-haushalt">
     <summary><span class="fk-ic sonne">🏡</span><span class="eg-tx"><b>Haushalt</b><small>Speicher · E-Auto · Hintergrund-Verbrauch</small></span><span class="eg-st" id="eg-st-haushalt"></span><span class="eg-pfeil">›</span></summary>
     <div class="eg-body">
@@ -1247,6 +1272,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="zahl-feld"><input id="f-kalib-real" inputmode="decimal" placeholder="z. B. 41"><span class="einheit">kWh echter Ertrag heute</span></div>
     <button class="merken-knopf" id="btn-kalib" style="margin-top:10px">✓ Übernehmen &amp; kalibrieren</button>
     <div class="hilfe" id="kalib-status" style="margin-top:8px"></div>
+    <div id="kalib-transparenz" hidden>
+      <svg id="kalib-chart" viewBox="0 0 240 62" preserveAspectRatio="none" style="width:100%;height:72px;display:block;margin-top:10px" aria-hidden="true"></svg>
+      <div class="kalib-leg"><span><i class="kl-hell"></i>Prognose (kalibriert)</span><span><i class="kl-voll"></i>dein echter Ertrag</span></div>
+      <details class="experte" style="margin-top:8px">
+        <summary>📋 Kalibrierte Tage im Detail</summary>
+        <div id="kalib-liste" style="margin-top:8px"></div>
+      </details>
+    </div>
   </div>
     </div>
   </details>
@@ -1273,18 +1306,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
   <details class="experte">
     <summary>Für Experten</summary>
     <div class="abschnitt" style="margin-top:12px">
-      <div class="frage">Anlagenleistung</div>
-      <div class="zahl-feld"><input id="f-kwp" value="7.6" inputmode="decimal"><span class="einheit">kWp</span></div>
-    </div>
-    <div class="abschnitt">
       <div class="frage">Forecast.Solar API-Key (optional)</div>
       <div class="hilfe">Ohne Key teilen sich alle Nutzer im selben Mobilfunknetz ein niedriges Limit – das führt öfter zum Ausweichen auf die ungenauere Wetter-Rückfalllösung. Der kostenlose Public-Tarif von Forecast.Solar hat keinen Key. Ab dem kostenpflichtigen <a href="https://forecast.solar/" target="_blank" rel="noopener">Personal-Tarif</a> (aktuell ca. 16 €/Jahr) bekommst du ein eigenes, höheres Limit. Key hier eintragen, leer lassen = wie bisher (Public, kostenlos).</div>
       <div class="adresse-zeile"><input id="f-fs-key" placeholder="z. B. AbCdEf123..." aria-label="Forecast.Solar API-Key"></div>
-    </div>
-    <div class="abschnitt">
-      <div class="frage">Prognose-Faktor (manuell)</div>
-      <div class="hilfe">Wird normalerweise oben über „Prognose kalibrieren" automatisch gesetzt. Hier kannst du ihn direkt überschreiben. Bei 1,0 bleibt die Prognose unverändert.</div>
-      <div class="zahl-feld"><input id="f-faktor" value="1.0" inputmode="decimal"><span class="einheit">× Faktor</span></div>
     </div>
   </details>
   <button class="fertig" id="btn-fertig">Fertig – neu berechnen</button>
@@ -1629,8 +1653,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=68;
+const APP_VERSION=69;
 const NEUES=[
+  {v:69,t:["⚙️ <b>Einrichten jetzt komplett in Schubladen</b>: auch Adresse, Dach &amp; Anlage und Stromtarif sind einklappbar (mit Status im Kopf); die Anlagenleistung (kWp) ist zu „Dach &amp; Anlage“ gezogen. Beim allerersten Einrichten stehen die Basis-Gruppen offen","📊 <b>Kalibrierung transparent</b>: unter „Prognose kalibrieren“ siehst du jetzt je Tag Prognose vs. echten Ertrag als Grafik, die Ø-Genauigkeit und im Aufklapper jede Eingabe (einzeln löschbar). Der doppelte manuelle Prognose-Faktor unter „Für Experten“ ist dafür entfallen","📜 <b>Bilanz aufgeräumt</b>: sichtbar sind die letzten 3 Läufe, das ganze Archiv steckt im Aufklapper – der CSV-Export enthält weiterhin alles"]},
   {v:68,t:["⚙️ <b>Einrichten aufgeräumt</b>: die optionalen Bereiche stecken jetzt in drei aufklappbaren Gruppen – 🏡 Haushalt (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung) und 💾 Daten &amp; Geräte (Meine Geräte · Backup). Jede Kopfzeile zeigt schon zugeklappt den Status (z. B. „🔋 an · 🚗 an · 🚿 an · 🔥 aus“) – Inhalte und Funktionen sind unverändert"]},
   {v:67,t:["☁️ <b>„Prognose geändert“-Hinweis</b>: verliert ein geplanter Lauf durch neue Wetterdaten deutlich Sonne UND gibt es ein klar besseres Fenster, fragt die App dezent „Verschieben oder behalten?“ – nichts springt mehr von allein, 📌-verankerte Läufe bleiben unangetastet","📈 Die Tageszahl <b>„Sonnenertrag heute“ schreibt die Vergangenheit nicht mehr um</b>: abgelaufene Stunden werden eingefroren, nur die Zukunft wird weiter aktualisiert – die Zahl springt dadurch deutlich weniger"]},
   {v:66,t:["🏠 <b>Hintergrund-Verbrauch in 3 Bausteinen</b> statt eines Grundlast-Reglers: 🔌 Sockel (mit Tagesprofil), 🚿 <b>Warmwasser der Wärmepumpe</b> (Tages-kWh verteilt auf frei einstellbare Läufe, „☀️ folgt der Sonne“ möglich) und 🔥 <b>Heizung mit Heizkurve</b> – die Heizlast kommt automatisch aus der Wettervorhersage (je kälter, desto mehr, inkl. Kältezuschlag). Die Saison-Zonen entfallen dadurch","🗓️ Der Tagesplan zeigt automatische WP-Läufe als eigene <b>Hintergrund-Spur</b> (gestrichelt, nur Info) – die Sonnenkurve und „freie Sonne“ werden dadurch ehrlicher, die Speicher-Kurve bekommt ihre echten Morgen-/Abend-Dellen"]},
@@ -3634,12 +3659,14 @@ function renderVerlauf(){
   const balken=tage.map(t=>'<div class="wk-bcol"><span class="wk-bar" style="height:'+Math.max(4,Math.round(t.sum/maxTag*100))+'%"></span><span class="wk-bd"'+(t.aktuell?' style="color:var(--sonne);font-weight:800"':'')+'>'+t.label+'</span></div>').join("");
   const seg=(w,l)=>'<button class="wk-seg-b'+(bilanzZeitraum===w?" an":"")+'" data-z="'+w+'">'+l+'</button>';
   const kachel=(ic,wert,lbl)=>'<div class="wk-kachel"><span class="wk-k-ic">'+ic+'</span><span class="wk-k-tx"><b>'+wert+'</b><span>'+lbl+'</span></span></div>';
-  // Tabelle
-  let rows="";
-  alle.slice(0,60).forEach(x=>{
+  // Tabelle: die letzten 3 Läufe sichtbar (Belohnungsmoment), das Archiv im Aufklapper (v69)
+  let rowsNeu="",rowsAlt="";
+  alle.slice(0,60).forEach((x,i)=>{
     const zeit = x.s!=null ? (uhrStr(x.s)+(x.dauer!=null?"–"+uhrStr(x.s+x.dauer):"")+" Uhr") : "–";
-    rows+='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+(x.k!=null?dz(x.k):"–")+'</td></tr>';
+    const r='<tr><td class="vl-d">'+kurzDatum(x.d)+'</td><td>'+x.icon+' '+kurzName(x.name)+'</td><td class="vl-z">'+zeit+'</td><td class="vl-k">'+(x.k!=null?dz(x.k):"–")+'</td></tr>';
+    if(i<3)rowsNeu+=r; else rowsAlt+=r;
   });
+  const altAnz=Math.min(alle.length,60)-3;
   box.innerHTML=
     '<div class="wirkung">'+
       '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("jahr","Jahr")+'</div>'+
@@ -3662,8 +3689,10 @@ function renderVerlauf(){
         '<div class="sc-tip">⚠️ Weicht der echte Hintergrund stark von den Bausteinen ab (z. B. Extra-Heizläufe), kann die angezeigte Sonnen-Nutzung etwas <b>zu hoch</b> sein – ohne EMS merkt die App das nicht. Tipp: Warmwasser- und Heiz-Baustein unter <b>Einrichten → Hintergrund-Verbrauch</b> an deine Anlagen-Werte anpassen.</div>'+
       '</details>'+
     '</div>'+
-    '<div class="vl-titel">Alle Läufe</div>'+
-    '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<div class="vl-titel">Letzte Läufe</div>'+
+    '<div class="vl-tab-wrap"><table class="vl-tab"><thead><tr><th>Datum</th><th>Gerät</th><th>Zeit</th><th>kWh</th></tr></thead><tbody>'+rowsNeu+'</tbody></table></div>'+
+    (rowsAlt?'<details class="experte vl-mehr"><summary>📜 '+altAnz+' weitere '+(altAnz===1?'Lauf':'Läufe')+' anzeigen</summary>'+
+      '<div class="vl-tab-wrap" style="margin-top:8px"><table class="vl-tab"><tbody>'+rowsAlt+'</tbody></table></div></details>':'')+
     '<button class="csv-btn" id="btn-csv">⬇️ Alle Läufe als CSV exportieren (Excel)</button>'+
     ((alle.length>=20 && (!cfg.letztesBackup || (Date.now()-cfg.letztesBackup)>60*86400000))
       ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'');
@@ -3717,6 +3746,9 @@ function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("
   if(id==="sheet-tagesplan"&&magBewegung()&&!demoAktiv){const c=$("planer-chart");if(c){c.classList.remove("eo-eingang");void c.offsetWidth;c.classList.add("eo-eingang");}}
   if(id==="sheet-einrichten"){ // Gruppen starten immer zugeklappt & Status frisch (v68)
     document.querySelectorAll("#sheet-einrichten details.egrp").forEach(d=>{d.open=false;});
+    // Erststart-Ausnahme (v69): solange noch nie „Fertig" gedrückt wurde, stehen die
+    // Basis-Gruppen offen – ein Neuling soll nicht vor lauter zugeklappten Kisten raten.
+    if(!cfg.setupFertig)["grp-adresse","grp-anlage","grp-tarif"].forEach(g=>{const d=$(g);if(d)d.open=true;});
     renderEgrpStatus();
   }
 }
@@ -3917,7 +3949,6 @@ function setzePvQuelle(v){
   if(v===cfg.pvQuelle){pvQuelleHinweis();return;}
   cfg.pvQuelle=v;
   cfg.faktor=1.0; cfg.kalib=[];              // Kalibrierung gilt je Quelle -> beim Wechsel zurücksetzen
-  const ff=$("f-faktor"); if(ff)ff.value=dz(cfg.faktor);
   try{localStorage.removeItem(CACHE_FS);localStorage.removeItem(CACHE_OM);}catch(e){}
   speichern(); pvQuelleHinweis(); kalibUI();
   starteAktualisierung(true);                // frisch von der neuen Quelle laden
@@ -3967,11 +3998,47 @@ function kalibUI(){
   const p=prognoseHeute();
   $("kalib-prognose").innerHTML="Heutige Prognose: <b>"+(p>0.1?p.toFixed(0):"–")+" kWh</b>";
   const n=(cfg.kalib||[]).length;
+  const g=prognoseFehler();
   $("kalib-status").innerHTML = n
-    ? "Aktueller Faktor: <b>"+dz(cfg.faktor.toFixed(2))+"</b> (aus "+n+" Tag"+(n>1?"en":"")+"). <a href=\"#\" id=\"kalib-reset\">Zurücksetzen</a>"
+    ? "Aktueller Faktor: <b>"+dz(cfg.faktor.toFixed(2))+"</b> (aus "+n+" Tag"+(n>1?"en":"")+")"+(g?" · Prognose zuletzt Ø ±"+g.mittel+" % genau":"")+". <a href=\"#\" id=\"kalib-reset\">Zurücksetzen</a>"
     : "Noch nicht kalibriert (Faktor "+dz(cfg.faktor.toFixed(2))+").";
   const rl=$("kalib-reset");
-  if(rl)rl.onclick=e=>{e.preventDefault();const alt=cfg.faktor;cfg.kalib=[];cfg.faktor=1.0;skaliereProg(alt,cfg.faktor);$("f-faktor").value=dz(cfg.faktor);speichern();aktualisieren();kalibUI();};
+  if(rl)rl.onclick=e=>{e.preventDefault();const alt=cfg.faktor;cfg.kalib=[];cfg.faktor=1.0;skaliereProg(alt,cfg.faktor);speichern();aktualisieren();kalibUI();};
+  // Transparenz (v69): Prognose vs. echter Ertrag je kalibriertem Tag – Grafik + Detail-Liste.
+  const tr=$("kalib-transparenz");
+  if(tr){
+    const k=(cfg.kalib||[]).slice().sort((a,b)=>a.d<b.d?-1:1);
+    tr.hidden=!k.length;
+    if(k.length){
+      const zeig=k.slice(-7);
+      const mx=Math.max(1,...zeig.map(e=>Math.max(e.raw*cfg.faktor,e.real)));
+      const W=240/zeig.length;
+      let svg="";
+      zeig.forEach((e,i)=>{
+        const x=i*W, prog=e.raw*cfg.faktor;
+        const h1=Math.max(1,prog/mx*44), h2=Math.max(1,e.real/mx*44);
+        svg+='<rect x="'+(x+W*0.16).toFixed(1)+'" y="'+(50-h1).toFixed(1)+'" width="'+(W*0.30).toFixed(1)+'" height="'+h1.toFixed(1)+'" rx="1.5" fill="var(--sonne)" fill-opacity=".35"></rect>';
+        svg+='<rect x="'+(x+W*0.52).toFixed(1)+'" y="'+(50-h2).toFixed(1)+'" width="'+(W*0.30).toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="1.5" fill="var(--sonne)"></rect>';
+        svg+='<text x="'+(x+W/2).toFixed(1)+'" y="60" font-size="7.5" fill="var(--grau)" text-anchor="middle">'+e.d.slice(8,10)+'.'+e.d.slice(5,7)+'.</text>';
+      });
+      $("kalib-chart").innerHTML=svg;
+      let liste="";
+      k.slice().reverse().forEach(e=>{
+        const prog=e.raw*cfg.faktor, diff=e.real>0?Math.round((prog-e.real)/e.real*100):0;
+        liste+='<div class="kalib-row"><span class="kr-d">'+e.d.slice(8,10)+'.'+e.d.slice(5,7)+'.</span>'+
+          '<b>'+dz(prog.toFixed(1))+' → '+dz(e.real.toFixed(1))+' kWh</b>'+
+          '<span class="kr-diff">('+(diff>0?'+':'')+diff+' %)</span>'+
+          '<button class="kalib-del" data-d="'+e.d+'" aria-label="Diesen Tag entfernen">🗑</button></div>';
+      });
+      $("kalib-liste").innerHTML=liste;
+      document.querySelectorAll("#kalib-liste .kalib-del").forEach(b=>b.onclick=()=>{
+        const alt=cfg.faktor;
+        cfg.kalib=(cfg.kalib||[]).filter(e=>e.d!==b.dataset.d);
+        const nf=faktorAusKalib(); cfg.faktor=nf?Math.round(nf*100)/100:1.0;
+        skaliereProg(alt,cfg.faktor); speichern(); aktualisieren(); kalibUI();
+      });
+    }
+  }
 }
 $("btn-kalib").onclick=()=>{
   const real=parseFloat(($("f-kalib-real").value||"").replace(",","."));
@@ -3985,7 +4052,6 @@ $("btn-kalib").onclick=()=>{
   if(cfg.kalib.length>14)cfg.kalib=cfg.kalib.slice(-14);
   const nf=faktorAusKalib(); if(nf)cfg.faktor=Math.round(nf*100)/100;
   skaliereProg(alt,cfg.faktor);
-  $("f-faktor").value=dz(cfg.faktor);
   $("f-kalib-real").value="";
   speichern();aktualisieren();kalibUI();
 };
@@ -3994,7 +4060,6 @@ $("btn-einrichten").onclick=()=>{
   $("f-adresse").value=cfg.adresse||"";
   $("f-aufschlag").value=dz(cfg.aufschlag);
   $("f-kwp").value=dz(cfg.kwp);
-  $("f-faktor").value=dz(cfg.faktor);
   $("f-akku-kwh").value=dz(cfg.akku_kwh);
   $("f-festpreis").value=dz(cfg.festpreis);
   $("f-fs-key").value=cfg.fsKey||"";
@@ -4034,8 +4099,8 @@ $("btn-fertig").onclick=()=>{
   if (cfg.lat === null || cfg.lon === null) { alert("Bitte zuerst eine gültige Adresse suchen und finden."); return; }
   const a=parseFloat($("f-aufschlag").value.replace(",","."));if(!isNaN(a))cfg.aufschlag=a;
   const k=parseFloat($("f-kwp").value.replace(",","."));if(!isNaN(k)&&k>0)cfg.kwp=k;
-  const fk=parseFloat($("f-faktor").value.replace(",","."));if(!isNaN(fk)&&fk>0)cfg.faktor=fk;
   const ak=parseFloat($("f-akku-kwh").value.replace(",","."));if(!isNaN(ak)&&ak>=0)cfg.akku_kwh=ak;
+  cfg.setupFertig=true; // ab jetzt starten auch die Basis-Gruppen zugeklappt
   const fp=parseFloat($("f-festpreis").value.replace(",","."));if(!isNaN(fp)&&fp>=0)cfg.festpreis=fp;
   cfg.fsKey=$("f-fs-key").value.trim();
   speichern();
@@ -4205,8 +4270,21 @@ function syncRegler(){
   renderEgrpStatus();
 }
 // Mini-Status in den zugeklappten Einrichten-Gruppen: worum es geht UND wie es steht.
+function ortAusAdresse(a){
+  const teile=String(a||"").split(",").map(t=>t.trim()).filter(Boolean);
+  const kand=teile.length>=2?teile[teile.length-2]:teile[0];
+  const ort=(kand||"").replace(/\d+/g,"").trim();
+  return ort||"gesetzt";
+}
 function renderEgrpStatus(){
   const anAus=v=>v?"an":"aus";
+  const ad=$("eg-st-adresse");
+  if(ad)ad.textContent=(cfg.lat!=null&&cfg.adresse)?("✓ "+ortAusAdresse(cfg.adresse)):(cfg.lat!=null?"✓ gesetzt":"fehlt noch");
+  const anl=$("eg-st-anlage");
+  if(anl){ const ri=(typeof richtungen!=="undefined"&&richtungen.find(r=>r[1]===cfg.azimut))||null;
+    anl.textContent=(ri?ri[0]:"?")+" · ~"+Math.round(cfg.neigung)+"° · "+dz(cfg.kwp)+" kWp"; }
+  const tf=$("eg-st-tarif");
+  if(tf)tf.textContent=cfg.tarif==="fest"?("fest · "+dz(Math.round((cfg.festpreis||0)*100))+" ct"):("dynamisch · +"+dz(cfg.aufschlag)+" ct");
   const h=$("eg-st-haushalt");
   if(h)h.textContent="🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
   const g=$("eg-st-genau");

@@ -99,6 +99,20 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #22 Einrichten komplett in Schubladen + Kalib-Transparenz + Bilanz-Archiv  ✅ v69
+- **Basis auch einklappbar:** Adresse, Dach & Anlage, Stromtarif als egrp-Gruppen mit
+  Status-Kopf („✓ Köln", „Süd · ~25° · 7,7 kWp", „dynamisch · +18 ct"). kWp-Feld aus
+  „Für Experten" zu „Dach & Anlage" gezogen. Erststart-Ausnahme: bis zum ersten
+  „Fertig" (cfg.setupFertig) stehen die Basis-Gruppen offen.
+- **Experten ausgedünnt:** manueller Prognose-Faktor entfernt (doppelt zur
+  Kalibrierung); übrig nur der Forecast.Solar-API-Key. cfg.faktor wird jetzt
+  ausschließlich von der Kalibrierung verwaltet.
+- **Kalibrierung transparent:** Doppelbalken-Grafik (Prognose kalibriert vs. echter
+  Ertrag, letzte ≤7 Tage) + Ø-Genauigkeit in der Statuszeile + Aufklapper mit
+  Tages-Liste, je Eintrag löschbar (Faktor wird neu berechnet).
+- **Bilanz aufgeräumt:** letzte 3 Läufe sichtbar, Rest in „📜 n weitere Läufe"-
+  Aufklapper; CSV-Export unverändert vollständig.
+
 ### #21 Einrichten aufgeräumt: 3 Gruppen mit Status-Kopf  ✅ v68
 - Optionale Bereiche in drei einklappbare Gruppen (details.egrp): 🏡 Haushalt
   (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung),
