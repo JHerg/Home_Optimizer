@@ -99,7 +99,13 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
-### #23 Urlaubs-Modus  ✅ v70  ·  Jetzt-Ampel  ❌ verworfen
+### #23 Urlaubs-Modus  ✅ v70 (+v71-Fix)  ·  Jetzt-Ampel  ❌ verworfen
+- **v71-Nachbesserung (Nutzer-Fund):** Die zweite Vorschlagsfläche – die
+  „Aus deinem Rhythmus – fällig"-Karte auf der Startseite (renderDashVorschlaege /
+  #dash-vorschlag) – pausierte nicht. Jetzt gilt für alle Vorschlagsflächen dieselbe
+  Regel: Tage IM Urlaubszeitraum stumm (Heute UND Morgen), ab dem Tag NACH dem
+  Urlaubsende wieder aktiv (Rückkehrtag lässt sich am letzten Urlaubstag planen).
+  Test deckt das Loch jetzt mit gelernten Rhythmen als Testdaten ab.
 - **Urlaubs-Modus (v70):** Schalter unter Einrichten → 🏡 Haushalt (cfg.urlaub
   {aktiv,von,bis} + cfg.urlaubLog für die Serie). Dauer per Chips (Wochenende /
   1 Woche / 2 Wochen) oder Datumsfeld. Während aktiv: Vorschläge, Fällig-Hinweise,

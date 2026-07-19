@@ -1685,8 +1685,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=70;
+const APP_VERSION=71;
 const NEUES=[
+  {v:71,t:["✈️ <b>Urlaubs-Modus dichtgemacht</b>: auch die „Aus deinem Rhythmus – fällig“-Karte auf der Startseite pausiert jetzt für alle Tage im Urlaubszeitraum (Heute UND Morgen). Ab dem Tag nach Urlaubsende sind Vorschläge automatisch wieder aktiv – so kannst du am letzten Urlaubstag schon den Rückkehrtag planen"]},
   {v:70,t:["✈️ <b>Urlaubs-Modus</b> (Einrichten → Haushalt): niemand zu Hause? Dann pausieren Vorschläge, Fällig-Hinweise und Routinen (nichts zählt als verpasst), deine <b>Bilanz-Serie bleibt eingefroren</b> und der Hintergrund läuft normal weiter. Die Startseite zeigt eine Zeile mit „Beenden“-Knopf; am gewählten Datum endet der Modus von selbst"]},
   {v:69,t:["⚙️ <b>Einrichten jetzt komplett in Schubladen</b>: auch Adresse, Dach &amp; Anlage und Stromtarif sind einklappbar (mit Status im Kopf); die Anlagenleistung (kWp) ist zu „Dach &amp; Anlage“ gezogen. Beim allerersten Einrichten stehen die Basis-Gruppen offen","📊 <b>Kalibrierung transparent</b>: unter „Prognose kalibrieren“ siehst du jetzt je Tag Prognose vs. echten Ertrag als Grafik, die Ø-Genauigkeit und im Aufklapper jede Eingabe (einzeln löschbar). Der doppelte manuelle Prognose-Faktor unter „Für Experten“ ist dafür entfallen","📜 <b>Bilanz aufgeräumt</b>: sichtbar sind die letzten 3 Läufe, das ganze Archiv steckt im Aufklapper – der CSV-Export enthält weiterhin alles"]},
   {v:68,t:["⚙️ <b>Einrichten aufgeräumt</b>: die optionalen Bereiche stecken jetzt in drei aufklappbaren Gruppen – 🏡 Haushalt (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung) und 💾 Daten &amp; Geräte (Meine Geräte · Backup). Jede Kopfzeile zeigt schon zugeklappt den Status (z. B. „🔋 an · 🚗 an · 🚿 an · 🔥 aus“) – Inhalte und Funktionen sind unverändert"]},
@@ -3104,7 +3105,8 @@ function renderDashboard(arr){
 function renderDashVorschlaege(tagKey, arr){
   const box=$("dash-vorschlag"); if(!box)return;
   const dash=$("dashboard");
-  const list=vorschlaegeFuer(tagKey);
+  // Urlaubs-Modus: auch die Rhythmus-Karte pausiert für Tage im Urlaubszeitraum (v71)
+  const list=urlaubAn(tagKey)?[]:vorschlaegeFuer(tagKey);
   if(!list.length){ box.hidden=true; box.innerHTML=""; if(dash)dash.classList.remove("hat-vorschlag"); return; }
   box.hidden=false;
   if(dash)dash.classList.add("hat-vorschlag"); // Geräteliste schrumpft, damit alles scrollfrei bleibt
