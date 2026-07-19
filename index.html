@@ -192,6 +192,17 @@ h2{font-size:17px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em}
 .abschnitt .hilfe{font-size:12px;color:var(--grau);margin-bottom:10px;line-height:1.5}
 /* Einheitliche Abschnitts-Kopfzeile mit Icon-Kachel (Apple-Look, wie im Hilfe-Sheet) */
 .frage-kopf{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+/* Einrichten: einklappbare Gruppen mit Status-Kopf (v68) */
+details.egrp{border:1px solid var(--linie);border-radius:16px;margin-bottom:14px;overflow:hidden;background:rgba(120,130,145,.04)}
+details.egrp>summary{list-style:none;display:flex;align-items:center;gap:11px;padding:12px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+details.egrp>summary::-webkit-details-marker{display:none}
+.eg-tx{min-width:0;flex:1}
+.eg-tx b{display:block;font-size:14.5px;color:var(--nacht);white-space:nowrap}
+.eg-tx small{display:block;font-size:10.5px;color:var(--grau);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eg-st{text-align:right;font-size:10px;color:var(--grau);font-weight:600;flex-shrink:0;line-height:1.55;max-width:34%}
+.eg-pfeil{color:var(--grau);font-size:16px;flex-shrink:0;transition:transform var(--schnell)}
+details.egrp[open] .eg-pfeil{transform:rotate(90deg)}
+details.egrp>.eg-body{padding:14px 13px 0;border-top:1px dashed var(--linie)}
 .fk-ic{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
 .fk-ic.sonne{background:var(--sonne-hell)}
 .fk-ic.gruen{background:var(--gruen-hell)}
@@ -1119,6 +1130,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="zahl-feld"><input id="f-festpreis" value="0,32" inputmode="decimal"><span class="einheit">€/kWh Arbeitspreis</span></div>
     </div>
   </div>
+  <details class="egrp" id="grp-haushalt">
+    <summary><span class="fk-ic sonne">🏡</span><span class="eg-tx"><b>Haushalt</b><small>Speicher · E-Auto · Hintergrund-Verbrauch</small></span><span class="eg-st" id="eg-st-haushalt"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
   <div class="abschnitt">
     <div class="frage-kopf"><span class="fk-ic grau">🔋</span><span class="fk-titel">Dein Stromspeicher<span class="fk-opt">optional</span></span></div>
     <label class="switch-zeile">
@@ -1215,11 +1229,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="hilfe" id="hz-info" style="margin-top:8px"></div>
     </div>
   </div>
-  <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
-    <div class="frage-kopf"><span class="fk-ic sonne">★</span><span class="fk-titel">Meine Geräte</span></div>
-    <div class="hilfe">Deine gespeicherten Geräte – Symbol antippen zum Ändern, umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
-    <div class="meine-verwaltung" id="meine-verwaltung"></div>
-  </div>
+    </div>
+  </details>
+  <details class="egrp" id="grp-genau">
+    <summary><span class="fk-ic blau">🎛️</span><span class="eg-tx"><b>Genauigkeit</b><small>Datenquelle · Prognose kalibrieren</small></span><span class="eg-st" id="eg-st-genau"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
   <div class="abschnitt">
     <div class="frage-kopf"><span class="fk-ic blau">🛰️</span><span class="fk-titel">Datenquelle Sonnenprognose</span></div>
     <div class="hilfe">Forecast.Solar rechnet im kostenlosen Tarif oft zu niedrig. <b>Open-Meteo</b> (DWD-Modell ICON-D2) ist ebenfalls kostenlos, braucht <b>kein Konto</b> und trifft in Deutschland häufig besser. Beim Wechsel wird die Kalibrierung zurückgesetzt – sie gilt je Quelle.</div>
@@ -1234,6 +1248,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <button class="merken-knopf" id="btn-kalib" style="margin-top:10px">✓ Übernehmen &amp; kalibrieren</button>
     <div class="hilfe" id="kalib-status" style="margin-top:8px"></div>
   </div>
+    </div>
+  </details>
+  <details class="egrp" id="grp-daten">
+    <summary><span class="fk-ic grau">💾</span><span class="eg-tx"><b>Daten &amp; Geräte</b><small>Meine Geräte · Backup &amp; Umzug</small></span><span class="eg-st" id="eg-st-daten"></span><span class="eg-pfeil">›</span></summary>
+    <div class="eg-body">
+  <div class="abschnitt" id="meine-verwaltung-abschnitt" hidden>
+    <div class="frage-kopf"><span class="fk-ic sonne">★</span><span class="fk-titel">Meine Geräte</span></div>
+    <div class="hilfe">Deine gespeicherten Geräte – Symbol antippen zum Ändern, umbenennen (✏️) oder löschen (🗑). Zum Hinzufügen erscheinen sie oben unter „＋ Gerät hinzufügen".</div>
+    <div class="meine-verwaltung" id="meine-verwaltung"></div>
+  </div>
   <div class="abschnitt">
     <div class="frage-kopf"><span class="fk-ic grau">💾</span><span class="fk-titel">Deine Daten<span class="fk-opt">Backup &amp; Umzug</span></span></div>
     <div class="hilfe">Alles liegt nur auf diesem Gerät. Sichere es als Datei – für den Handywechsel oder falls der Browser Website-Daten löscht. Die Datei bleibt bei dir, nichts wird hochgeladen.</div>
@@ -1244,6 +1268,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <input type="file" id="backup-datei" accept=".json,application/json" hidden>
     <div class="hilfe" id="backup-status" style="margin-top:8px"></div>
   </div>
+    </div>
+  </details>
   <details class="experte">
     <summary>Für Experten</summary>
     <div class="abschnitt" style="margin-top:12px">
@@ -1603,8 +1629,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=67;
+const APP_VERSION=68;
 const NEUES=[
+  {v:68,t:["⚙️ <b>Einrichten aufgeräumt</b>: die optionalen Bereiche stecken jetzt in drei aufklappbaren Gruppen – 🏡 Haushalt (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung) und 💾 Daten &amp; Geräte (Meine Geräte · Backup). Jede Kopfzeile zeigt schon zugeklappt den Status (z. B. „🔋 an · 🚗 an · 🚿 an · 🔥 aus“) – Inhalte und Funktionen sind unverändert"]},
   {v:67,t:["☁️ <b>„Prognose geändert“-Hinweis</b>: verliert ein geplanter Lauf durch neue Wetterdaten deutlich Sonne UND gibt es ein klar besseres Fenster, fragt die App dezent „Verschieben oder behalten?“ – nichts springt mehr von allein, 📌-verankerte Läufe bleiben unangetastet","📈 Die Tageszahl <b>„Sonnenertrag heute“ schreibt die Vergangenheit nicht mehr um</b>: abgelaufene Stunden werden eingefroren, nur die Zukunft wird weiter aktualisiert – die Zahl springt dadurch deutlich weniger"]},
   {v:66,t:["🏠 <b>Hintergrund-Verbrauch in 3 Bausteinen</b> statt eines Grundlast-Reglers: 🔌 Sockel (mit Tagesprofil), 🚿 <b>Warmwasser der Wärmepumpe</b> (Tages-kWh verteilt auf frei einstellbare Läufe, „☀️ folgt der Sonne“ möglich) und 🔥 <b>Heizung mit Heizkurve</b> – die Heizlast kommt automatisch aus der Wettervorhersage (je kälter, desto mehr, inkl. Kältezuschlag). Die Saison-Zonen entfallen dadurch","🗓️ Der Tagesplan zeigt automatische WP-Läufe als eigene <b>Hintergrund-Spur</b> (gestrichelt, nur Info) – die Sonnenkurve und „freie Sonne“ werden dadurch ehrlicher, die Speicher-Kurve bekommt ihre echten Morgen-/Abend-Dellen"]},
   {v:65,t:["🏠 <b>Grundlast-Tagesprofil</b>: die Grundlast wird jetzt realistisch über den Tag verteilt (morgens weniger, nachmittags mehr) statt flach – gemessen an einer echten Anlage. Der Regler legt weiter den Ø-Wert fest; ab-/zuschaltbar unter Einrichten → Grundlast"]},
@@ -3688,6 +3715,10 @@ async function laden(force){
 let ausTagesplan=false; // Geräteauswahl aus dem Tagesplan geöffnet? Dann dorthin zurückkehren.
 function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");
   if(id==="sheet-tagesplan"&&magBewegung()&&!demoAktiv){const c=$("planer-chart");if(c){c.classList.remove("eo-eingang");void c.offsetWidth;c.classList.add("eo-eingang");}}
+  if(id==="sheet-einrichten"){ // Gruppen starten immer zugeklappt & Status frisch (v68)
+    document.querySelectorAll("#sheet-einrichten details.egrp").forEach(d=>{d.open=false;});
+    renderEgrpStatus();
+  }
 }
 // Aus einem Sheet in ein anderes wechseln (statt stapeln): erst alle schließen, dann öffnen.
 function wechsleZuSheet(id){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));sheetAuf(id);}
@@ -4171,6 +4202,17 @@ function syncRegler(){
   const det=$("akku-details");if(det)det.hidden=!cfg.akku_an;
   const ra=$("rg-akku");
   if(ra){ra.max=Math.max(1,cfg.akku_kwh||10);ra.value=Math.min(parseFloat(ra.max),cfg.akku_stand||0);$("rg-akku-val").textContent=dz((cfg.akku_stand||0).toFixed(1))+" kWh";}
+  renderEgrpStatus();
+}
+// Mini-Status in den zugeklappten Einrichten-Gruppen: worum es geht UND wie es steht.
+function renderEgrpStatus(){
+  const anAus=v=>v?"an":"aus";
+  const h=$("eg-st-haushalt");
+  if(h)h.textContent="🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
+  const g=$("eg-st-genau");
+  if(g)g.textContent=(cfg.pvQuelle==="om"?"Open-Meteo":"Forecast.Solar")+" · "+((cfg.kalib||[]).length?"kalibriert ("+cfg.kalib.length+(cfg.kalib.length===1?" Tag":" Tage")+")":"unkalibriert");
+  const d=$("eg-st-daten");
+  if(d)d.textContent=(meineGeraete.length?meineGeraete.length+(meineGeraete.length===1?" Gerät":" Geräte")+" · ":"")+(cfg.letztesBackup?"Backup ✓":"kein Backup");
 }
 // Hintergrund-Verbrauch: Sockel-Regler + Warmwasser-Läufe + Heizkurve (drei Bausteine)
 function uhrStrHG(z){const h=Math.floor(z),m=Math.round((z-h)*60);return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;}

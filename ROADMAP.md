@@ -99,6 +99,16 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #21 Einrichten aufgeräumt: 3 Gruppen mit Status-Kopf  ✅ v68
+- Optionale Bereiche in drei einklappbare Gruppen (details.egrp): 🏡 Haushalt
+  (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung),
+  💾 Daten & Geräte (Meine Geräte · Backup). Basis (Adresse, Dach, Tarif) bleibt offen.
+- Kopfzeilen zeigen zugeklappt einen Mini-Status („🔋 an · 🚗 an · 🚿 an · 🔥 aus",
+  Quelle/kalibriert, Geräteanzahl/Backup) – live via renderEgrpStatus() in syncRegler.
+- Gruppen starten bei jedem Öffnen zugeklappt (sheetAuf). Reine Optik, keine Logik
+  geändert; alle IDs/Handler unverändert. Weitere Einstiegs-Ideen (A Presets, C
+  Vollständigkeit, D Hinweis-Hub, 1 Deadline, 3–6) gesammelt im Ideen-Mock-up.
+
 ### #20 Prognose-Drift-Hinweis + stabile Tageszahl  ✅ v67
 - **Hinweis „Prognose geändert":** Beim Platzieren merkt sich die App je Lauf die freie
   Sonne im gewählten Fenster (`cfg.planRef`). Verliert das Fenster durch neue Wetterdaten
