@@ -99,6 +99,20 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #20 Prognose-Drift-Hinweis + stabile Tageszahl  ✅ v67
+- **Hinweis „Prognose geändert":** Beim Platzieren merkt sich die App je Lauf die freie
+  Sonne im gewählten Fenster (`cfg.planRef`). Verliert das Fenster durch neue Wetterdaten
+  >25 % UND gibt es ein klar besseres Fenster (≥25 % + 0,3 kWh mehr), erscheint auf der
+  Startseite ein dezentes Banner mit „→ Verschieben / Behalten". Nichts springt von allein;
+  📌-verankerte, laufende und EV-Split-Läufe sind ausgenommen. „Behalten" merkt sich die
+  Entscheidung je Lauf und Tag (`cfg.driftWeg`); eine neue Position setzt die Referenz frisch.
+- **Stabile Tageszahl:** Abgelaufene Stunden von HEUTE werden eingefroren (`eo-pv-fix`,
+  letzter gesehener Prognosewert) – neue Modellläufe schreiben die Vergangenheit nicht mehr
+  um, nur die Zukunft bewegt die Zahl noch. Neuer Tag leert den Speicher; in der Demo aus;
+  ohne geladene Prognose wird nichts (bei 0) eingefroren.
+- Hintergrund: DWD ICON-D2 rechnet ~alle 3 h neu; ±20–30 % Revision an Wolkentagen ist
+  normal. Die App zeigt das ehrlich, macht es aber jetzt handhabbar statt verwirrend.
+
 ### #11b Hintergrund-Verbrauch in 3 Bausteinen  ✅ v66
 - **Umgesetzt:** Der eine Grundlast-Regler (samt Saison-Zonen) wurde durch drei Bausteine
   ersetzt, die die App stundengenau addiert (`hgProfil`, an jede Stunde als `s.hg` gehängt):
