@@ -99,6 +99,18 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #23 Urlaubs-Modus  ✅ v70  ·  Jetzt-Ampel  ❌ verworfen
+- **Urlaubs-Modus (v70):** Schalter unter Einrichten → 🏡 Haushalt (cfg.urlaub
+  {aktiv,von,bis} + cfg.urlaubLog für die Serie). Dauer per Chips (Wochenende /
+  1 Woche / 2 Wochen) oder Datumsfeld. Während aktiv: Vorschläge, Fällig-Hinweise,
+  Routine-Banner, Drift-Hinweis und Rückblick pausiert; Routinen fließen nicht in
+  die Tagesplanung (geraeteFuerTag), manuelle Geräte bleiben möglich; die
+  Bilanz-Serie überbrückt Urlaubstage dauerhaft (serieTage + urlaubLog).
+  Startseiten-Zeile mit „Beenden"-Knopf; endet am Datum von selbst (urlaubTick).
+- **Jetzt-Ampel: verworfen** (Nutzer-Entscheid, fachlich richtig): Eine Ampel
+  kennt das Gerät nicht – „grün" für eine Waschmaschine kann für ein E-Auto mit
+  20 kWh falsch sein. Ohne Kontext wäre sie Schein-Präzision.
+
 ### #22 Einrichten komplett in Schubladen + Kalib-Transparenz + Bilanz-Archiv  ✅ v69
 - **Basis auch einklappbar:** Adresse, Dach & Anlage, Stromtarif als egrp-Gruppen mit
   Status-Kopf („✓ Köln", „Süd · ~25° · 7,7 kWp", „dynamisch · +18 ct"). kWp-Feld aus

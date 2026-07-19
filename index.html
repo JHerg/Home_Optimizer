@@ -812,6 +812,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 .drift-btns button:active{transform:scale(.97)}
 #drift-mv{background:var(--netz);color:#fff}
 #drift-x{background:rgba(120,130,145,.15);color:var(--nacht)}
+/* v70: Urlaubs-Modus-Zeile auf der Startseite */
+.ur-banner{display:flex;align-items:center;gap:9px;margin:0 0 12px;background:radial-gradient(120% 100% at 0% 0%,rgba(59,111,212,.14),rgba(59,111,212,0) 62%),var(--karte);border:1px solid var(--linie);border-radius:14px;padding:10px 13px;font-size:12.5px;color:var(--tinte);line-height:1.45}
+.ur-banner b{color:var(--nacht)}
+.ur-banner button{margin-left:auto;flex-shrink:0;border:none;background:rgba(120,130,145,.15);color:var(--nacht);border-radius:10px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer}
 /* Backup-Knöpfe (#12) + CSV (#15) */
 .daten-knoepfe{display:flex;gap:9px;flex-wrap:wrap;margin-top:4px}
 .daten-knoepfe .merken-knopf{flex:1 1 45%;margin-top:6px}
@@ -929,6 +933,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <div id="dashboard" hidden>
   <div id="dash-curve-wrap"></div>
   <div class="karte dash-hero" id="dash-hero"></div>
+  <div class="ur-banner" id="ur-banner" hidden></div>
   <div id="dash-vorschlag" hidden></div>
   <div class="dash-drift" id="dash-drift" hidden></div>
   <div class="dash-ev" id="dash-ev" hidden></div>
@@ -1254,6 +1259,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="hilfe" id="hz-info" style="margin-top:8px"></div>
     </div>
   </div>
+  <div class="abschnitt">
+    <label class="switch-zeile">
+      <span>✈️ Urlaubs-Modus<span class="fk-opt">niemand zu Hause</span></span>
+      <span class="switch"><input type="checkbox" id="rg-ur-an"><span class="switch-ui"></span></span>
+    </label>
+    <div id="ur-details" hidden>
+      <div class="hilfe" style="margin:8px 0 6px">Bis wann seid ihr weg? (letzter Urlaubstag)</div>
+      <div class="wahl" id="w-urlaub"></div>
+      <div class="zahl-feld" style="margin-top:8px"><input type="date" id="f-ur-bis" aria-label="Letzter Urlaubstag"><span class="einheit">eigenes Datum</span></div>
+      <div class="hilfe" style="margin-top:8px">Solange ihr weg seid: 🔕 keine Vorschläge &amp; Fällig-Hinweise · 🔁 Routinen pausieren (zählen nicht als verpasst) · 🔥 deine Bilanz-Serie bleibt eingefroren · ⚙️ der Hintergrund (Kühlschrank, WP) läuft normal weiter. Endet am Datum von selbst – die App begrüßt euch normal zurück.</div>
+    </div>
+  </div>
     </div>
   </details>
   <details class="egrp" id="grp-genau">
@@ -1548,7 +1565,22 @@ const $=id=>document.getElementById(id);
 let cfg={lat:null,lon:null,kwp:7.6,neigung:25,azimut:0,aufschlag:18,schwelle:400,
   faktor:1.0,kalib:[],pvQuelle:"om",erledigt:{},plaene:{},tarif:"dynamisch",festpreis:0.32,akku_an:false,akku_kwh:10,akku_stand:5,ev_an:false,ev_kw:11,fsKey:"",adresse:"",gl_profil_an:true,
   ww_an:false,ww_kwh:2.0,ww_kw:2.3,ww_l:[{an:true,z:5},{an:true,z:13,auto:true},{an:true,z:21}],
-  hz_an:false,hz_grenze:15,hz_p0:1.2};
+  hz_an:false,hz_grenze:15,hz_p0:1.2,urlaub:null,urlaubLog:[]};
+
+/* ===== Urlaubs-Modus (v70): niemand zu Hause -> Vorschläge/Routinen pausieren, Serie einfrieren ===== */
+function addTageKey(key,n){ return new Date(Date.parse(key+"T12:00:00Z")+n*86400000).toISOString().slice(0,10); }
+function urlaubAktiv(){ const u=cfg.urlaub; return !!(u&&u.aktiv&&heuteStr()<=u.bis); }
+function urlaubAn(tagStr){ const u=cfg.urlaub; return !!(u&&u.aktiv&&tagStr>=u.von&&tagStr<=u.bis); }
+// Auch vergangene Urlaube (Log) zählen – die Bilanz-Serie überbrückt diese Tage dauerhaft.
+function imUrlaubLog(d){
+  if(cfg.urlaub&&cfg.urlaub.aktiv&&d>=cfg.urlaub.von&&d<=cfg.urlaub.bis)return true;
+  return (cfg.urlaubLog||[]).some(u=>u&&d>=u.von&&d<=u.bis);
+}
+// Abgelaufenen Urlaub automatisch beenden (läuft bei jedem Aktualisieren).
+function urlaubTick(){
+  const u=cfg.urlaub;
+  if(u&&u.aktiv&&heuteStr()>u.bis){ u.aktiv=false; speichern(); if(typeof zeigeToast==="function")zeigeToast("✈️ Urlaub vorbei – die App plant wieder mit!",null); }
+}
 
 /* Grundlast-Tagesform: relativer Verlauf über 24 h (Mittelwert = 1.0), gemessen aus
    der Verbraucherleistung der eigenen Anlage (Sockel ohne Geräte-Spitzen, Ø mehrerer Tage).
@@ -1653,8 +1685,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=69;
+const APP_VERSION=70;
 const NEUES=[
+  {v:70,t:["✈️ <b>Urlaubs-Modus</b> (Einrichten → Haushalt): niemand zu Hause? Dann pausieren Vorschläge, Fällig-Hinweise und Routinen (nichts zählt als verpasst), deine <b>Bilanz-Serie bleibt eingefroren</b> und der Hintergrund läuft normal weiter. Die Startseite zeigt eine Zeile mit „Beenden“-Knopf; am gewählten Datum endet der Modus von selbst"]},
   {v:69,t:["⚙️ <b>Einrichten jetzt komplett in Schubladen</b>: auch Adresse, Dach &amp; Anlage und Stromtarif sind einklappbar (mit Status im Kopf); die Anlagenleistung (kWp) ist zu „Dach &amp; Anlage“ gezogen. Beim allerersten Einrichten stehen die Basis-Gruppen offen","📊 <b>Kalibrierung transparent</b>: unter „Prognose kalibrieren“ siehst du jetzt je Tag Prognose vs. echten Ertrag als Grafik, die Ø-Genauigkeit und im Aufklapper jede Eingabe (einzeln löschbar). Der doppelte manuelle Prognose-Faktor unter „Für Experten“ ist dafür entfallen","📜 <b>Bilanz aufgeräumt</b>: sichtbar sind die letzten 3 Läufe, das ganze Archiv steckt im Aufklapper – der CSV-Export enthält weiterhin alles"]},
   {v:68,t:["⚙️ <b>Einrichten aufgeräumt</b>: die optionalen Bereiche stecken jetzt in drei aufklappbaren Gruppen – 🏡 Haushalt (Speicher · E-Auto · Hintergrund), 🎛️ Genauigkeit (Datenquelle · Kalibrierung) und 💾 Daten &amp; Geräte (Meine Geräte · Backup). Jede Kopfzeile zeigt schon zugeklappt den Status (z. B. „🔋 an · 🚗 an · 🚿 an · 🔥 aus“) – Inhalte und Funktionen sind unverändert"]},
   {v:67,t:["☁️ <b>„Prognose geändert“-Hinweis</b>: verliert ein geplanter Lauf durch neue Wetterdaten deutlich Sonne UND gibt es ein klar besseres Fenster, fragt die App dezent „Verschieben oder behalten?“ – nichts springt mehr von allein, 📌-verankerte Läufe bleiben unangetastet","📈 Die Tageszahl <b>„Sonnenertrag heute“ schreibt die Vergangenheit nicht mehr um</b>: abgelaufene Stunden werden eingefroren, nur die Zukunft wird weiter aktualisiert – die Zahl springt dadurch deutlich weniger"]},
@@ -1893,8 +1926,9 @@ function geraeteFuerTag(tagStr){
     const rest=tagAnzahl(tagStr,g.name)-(zaehl[g.name]||0);
     if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
   });
-  // Routinen + übernommene Vorschläge sind bereits tagesbezogen (Anzahl 1)
-  routinenFuerTag(tagStr).concat(uebernommeneFuerTag(tagStr)).forEach(g=>{
+  // Routinen + übernommene Vorschläge sind bereits tagesbezogen (Anzahl 1).
+  // Im Urlaubs-Modus pausieren sie – manuell gewählte Geräte bleiben möglich.
+  if(!urlaubAn(tagStr))routinenFuerTag(tagStr).concat(uebernommeneFuerTag(tagStr)).forEach(g=>{
     const rest=(g.anzahl!=null?g.anzahl:1)-(zaehl[g.name]||0);
     if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
   });
@@ -2645,6 +2679,7 @@ function renderChips(){
 // Gelernte Vorschläge ("Für heute vorgeschlagen") rendern und verdrahten.
 function renderVorschlaege(tagStr){
   const box=$("vorschlag-box"); if(!box)return;
+  if(urlaubAn(tagStr)){box.hidden=true;box.innerHTML="";return;} // Urlaub: keine Vorschläge
   const list=vorschlaegeFuer(tagStr);
   const fast=fastLernbar(tagStr);
   if(!list.length && !fast){box.hidden=true;box.innerHTML="";return;}
@@ -2882,6 +2917,17 @@ function renderDashboard(arr){
   const jetztF = tag==="heute" ? jetztStundeF() : -1; // minutengenau für „läuft/vorbei"
   const G=himmelGeometrie(arr),{HOR,X,arcY,arcD,surfD,priceD,gridD}=G;
   const kwhTag = arr.reduce((a,s)=>a+Math.max(0,s.pv||0),0)/1000;
+  // v70: Urlaubs-Zeile – zeigt den Modus und bietet das Beenden direkt an
+  { const ub=$("ur-banner");
+    if(ub){
+      if(urlaubAktiv()&&!demoAktiv){
+        const b=cfg.urlaub.bis;
+        ub.hidden=false;
+        ub.innerHTML='✈️ <span>Urlaubs-Modus <b>bis '+WOCHENTAG_KURZ[wochentagVonKey(b)]+'., '+b.slice(8,10)+'.'+b.slice(5,7)+'.</b> – Vorschläge &amp; Routinen pausiert.</span><button id="ur-ende">Beenden</button>';
+        const be=$("ur-ende"); if(be)be.onclick=urlaubBeenden;
+      } else ub.hidden=true;
+    }
+  }
   // --- Speicher-Füllstand als dezente Fläche (nur wenn Speicher aktiv), aus Sonne + Grundlast (+ geplante Läufe) ---
   const battD = cfg.akku_an ? akkuPfadD(simuliere(arr, platzierungen.map(b=>Object.assign({},b))), G) : "";
   const battLeg = (cfg.akku_an && battD)
@@ -2922,7 +2968,7 @@ function renderDashboard(arr){
   // schlechter als bei der Platzierung, UND gibt es ein klar besseres Fenster, dann dezent
   // fragen. Nichts springt von allein; 📌-verankerte und laufende Blöcke bleiben unangetastet.
   { const dEl=$("dash-drift");
-    if(dEl && !demoAktiv){
+    if(dEl && !demoAktiv && !urlaubAktiv()){
       let best=null;
       const refs=(cfg.planRef||{})[tagKey]||{}, weg=(cfg.driftWeg||{})[tagKey]||{};
       platzierungen.forEach(b=>{
@@ -3380,6 +3426,7 @@ function tageskarten(zeigenTag){
   const kv=$("karte-verlauf");if(kv)kv.hidden=(tag!=="verlauf");
 }
 function aktualisieren(){
+  urlaubTick(); // abgelaufenen Urlaub automatisch beenden
   if(tag==="woche"||tag==="verlauf"){
     tageskarten(false);
     $("routine-banner").hidden=true;
@@ -3416,7 +3463,7 @@ function aktualisieren(){
 function renderRueckblick(){
   const el=$("rueckblick-banner"); if(!el)return;
   const hk=heuteStr();
-  if(demoAktiv||tag!=="heute"||cfg.rueckblickWeg===hk){ el.hidden=true; return; }
+  if(demoAktiv||tag!=="heute"||cfg.rueckblickWeg===hk||urlaubAktiv()){ el.hidden=true; return; }
   const g=new Date(Date.parse(hk+"T12:00:00Z")-86400000).toISOString().slice(0,10);
   let n=0,son=0,k=0,spar=0;
   Object.values(cfg.verlauf||{}).forEach(l=>(l||[]).forEach(e=>{
@@ -3436,7 +3483,7 @@ function routineBanner(tagStr){
   const el=$("routine-banner");
   const done=new Set(erledigtListe(tagStr).map(e=>e.name));
   const faellig=routinen.filter(r=>r.aktiv!==false&&routineFaelligAn(r,tagStr)&&!done.has(r.name));
-  if(tag!=="heute"||!faellig.length){el.hidden=true;return;}
+  if(tag!=="heute"||urlaubAn(tagStr)||!faellig.length){el.hidden=true;return;}
   const teile=faellig.map(r=>{
     const b=platzierungen.find(p=>p.routine&&p.name===r.name);
     return r.icon+" "+r.name+(b?" ("+b.start+"–"+(b.start+b.dauer)+" Uhr)":"");
@@ -3590,7 +3637,12 @@ function vortagStr(d){ return new Date(Date.parse(d+"T12:00:00Z")-86400000).toIS
 function serieTage(alle){
   const set=new Set(alle.filter(x=>x.son>0).map(x=>x.d));
   let cur=heuteStr(); if(!set.has(cur))cur=vortagStr(cur);
-  let n=0; while(set.has(cur)){ n++; cur=vortagStr(cur); }
+  let n=0;
+  for(let i=0;i<3650;i++){ // Sicherheitsgrenze
+    if(set.has(cur)){ n++; cur=vortagStr(cur); }
+    else if(imUrlaubLog(cur)){ cur=vortagStr(cur); } // Urlaubstage überbrücken die Serie
+    else break;
+  }
   return n;
 }
 function renderVerlauf(){
@@ -4064,7 +4116,7 @@ $("btn-einrichten").onclick=()=>{
   $("f-festpreis").value=dz(cfg.festpreis);
   $("f-fs-key").value=cfg.fsKey||"";
   $("f-kalib-real").value="";
-  syncRegler();renderGrundlast();
+  syncRegler();renderGrundlast();renderUrlaub();
   kalibUI();
   renderWahl("w-richtung",richtungen,cfg.azimut,v=>cfg.azimut=v);
   renderWahl("w-neigung",neigungen,cfg.neigung,v=>cfg.neigung=v);
@@ -4286,7 +4338,7 @@ function renderEgrpStatus(){
   const tf=$("eg-st-tarif");
   if(tf)tf.textContent=cfg.tarif==="fest"?("fest · "+dz(Math.round((cfg.festpreis||0)*100))+" ct"):("dynamisch · +"+dz(cfg.aufschlag)+" ct");
   const h=$("eg-st-haushalt");
-  if(h)h.textContent="🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
+  if(h)h.textContent=(urlaubAktiv()?"✈️ bis "+cfg.urlaub.bis.slice(8,10)+"."+cfg.urlaub.bis.slice(5,7)+". · ":"")+"🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
   const g=$("eg-st-genau");
   if(g)g.textContent=(cfg.pvQuelle==="om"?"Open-Meteo":"Forecast.Solar")+" · "+((cfg.kalib||[]).length?"kalibriert ("+cfg.kalib.length+(cfg.kalib.length===1?" Tag":" Tage")+")":"unkalibriert");
   const d=$("eg-st-daten");
@@ -4382,6 +4434,44 @@ if($("rg-hzgrenze"))$("rg-hzgrenze").oninput=()=>{cfg.hz_grenze=parseFloat($("rg
 if($("rg-hzgrenze"))$("rg-hzgrenze").onchange=()=>speichern();
 if($("rg-hzp0"))$("rg-hzp0").oninput=()=>{cfg.hz_p0=parseFloat($("rg-hzp0").value)||1.2;renderGrundlast();platzSig="";aktualisieren();};
 if($("rg-hzp0"))$("rg-hzp0").onchange=()=>speichern();
+/* ---- Urlaubs-Modus (v70) ---- */
+function naechsterSonntag(){ const dow=wochentagVonKey(heuteStr()); return addTageKey(heuteStr(),(7-dow)%7); } // 0=So -> heute
+function renderUrlaub(){
+  const an=$("rg-ur-an"); if(!an)return;
+  const u=cfg.urlaub, aktiv=urlaubAktiv();
+  an.checked=aktiv;
+  const det=$("ur-details"); if(det)det.hidden=!aktiv;
+  if(aktiv){
+    const so=naechsterSonntag();
+    const opts=[["Wochenende",so],["1 Woche",addTageKey(heuteStr(),7)],["2 Wochen",addTageKey(heuteStr(),14)]];
+    renderWahl("w-urlaub",opts,u.bis,v=>setzeUrlaubBis(v));
+    const f=$("f-ur-bis"); if(f){ f.value=u.bis; f.min=heuteStr(); }
+  }
+}
+function setzeUrlaubBis(bis){
+  if(!cfg.urlaub)return;
+  if(bis<heuteStr())bis=heuteStr();
+  cfg.urlaub.bis=bis;
+  const log=cfg.urlaubLog||[]; if(log.length)log[log.length-1].bis=bis;
+  speichern(); platzSig=""; renderUrlaub(); renderEgrpStatus(); aktualisieren();
+}
+function urlaubBeenden(){
+  if(!cfg.urlaub)return;
+  cfg.urlaub.aktiv=false;
+  // Log ehrlich kürzen: ab heute sind wir wieder da – gestern war der letzte Urlaubstag.
+  const g=addTageKey(heuteStr(),-1), log=cfg.urlaubLog||[];
+  if(log.length){ const l=log[log.length-1]; if(l.von>g)log.pop(); else l.bis=g; }
+  speichern(); platzSig=""; renderUrlaub(); renderEgrpStatus(); aktualisieren();
+  zeigeToast("✈️ Urlaubs-Modus beendet – die App plant wieder mit!",null);
+}
+if($("rg-ur-an"))$("rg-ur-an").onchange=()=>{
+  if($("rg-ur-an").checked){
+    cfg.urlaub={aktiv:true,von:heuteStr(),bis:naechsterSonntag()};
+    cfg.urlaubLog=(cfg.urlaubLog||[]).slice(-11); cfg.urlaubLog.push({von:heuteStr(),bis:cfg.urlaub.bis});
+    speichern(); platzSig=""; renderUrlaub(); renderEgrpStatus(); aktualisieren();
+  } else urlaubBeenden();
+};
+if($("f-ur-bis"))$("f-ur-bis").onchange=()=>{ const v=$("f-ur-bis").value; if(v)setzeUrlaubBis(v); };
 
 /* Gerät hinzufügen */
 function renderTypen(){
@@ -5041,6 +5131,7 @@ function ladeDemoBasis(){
   cfg.tagAnzahl={}; cfg.plaene={}; cfg.erledigt={}; cfg.uebernommen={}; cfg.abgelehnt={}; cfg.routineSkip={};
   cfg.ev_an=false; cfg.rueckblickWeg=heuteStr(); // EV führt erst der eigene Demo-Schritt ein; Rückblick stört die Tour nicht
   cfg.ww_an=false; cfg.hz_an=false;              // Wärmepumpen-Bausteine führt ebenfalls ein eigener Schritt ein
+  cfg.urlaub=null;                                // Demo läuft nie im Urlaubs-Modus
   platzSig=""; tag="heute"; demoClose();
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag==="heute"));
   aktualisieren();
