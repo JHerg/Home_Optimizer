@@ -1685,8 +1685,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=71;
+const APP_VERSION=72;
 const NEUES=[
+  {v:72,t:["📊 <b>Eine Wahrheit für die Prognose</b>: „Heutige Prognose“ beim Kalibrieren zeigt jetzt exakt dieselbe Zahl wie die Startseite (abgelaufene Stunden eingefroren). Kalibriert wird damit gegen das, was die App dir <b>wirklich</b> vorhergesagt hat – nicht gegen die nachträglich umgeschriebene Modellmeinung. Faktor und ±-Genauigkeit werden dadurch fairer"]},
   {v:71,t:["✈️ <b>Urlaubs-Modus dichtgemacht</b>: auch die „Aus deinem Rhythmus – fällig“-Karte auf der Startseite pausiert jetzt für alle Tage im Urlaubszeitraum (Heute UND Morgen). Ab dem Tag nach Urlaubsende sind Vorschläge automatisch wieder aktiv – so kannst du am letzten Urlaubstag schon den Rückkehrtag planen"]},
   {v:70,t:["✈️ <b>Urlaubs-Modus</b> (Einrichten → Haushalt): niemand zu Hause? Dann pausieren Vorschläge, Fällig-Hinweise und Routinen (nichts zählt als verpasst), deine <b>Bilanz-Serie bleibt eingefroren</b> und der Hintergrund läuft normal weiter. Die Startseite zeigt eine Zeile mit „Beenden“-Knopf; am gewählten Datum endet der Modus von selbst"]},
   {v:69,t:["⚙️ <b>Einrichten jetzt komplett in Schubladen</b>: auch Adresse, Dach &amp; Anlage und Stromtarif sind einklappbar (mit Status im Kopf); die Anlagenleistung (kWp) ist zu „Dach &amp; Anlage“ gezogen. Beim allerersten Einrichten stehen die Basis-Gruppen offen","📊 <b>Kalibrierung transparent</b>: unter „Prognose kalibrieren“ siehst du jetzt je Tag Prognose vs. echten Ertrag als Grafik, die Ø-Genauigkeit und im Aufklapper jede Eingabe (einzeln löschbar). Der doppelte manuelle Prognose-Faktor unter „Für Experten“ ist dafür entfallen","📜 <b>Bilanz aufgeräumt</b>: sichtbar sind die letzten 3 Läufe, das ganze Archiv steckt im Aufklapper – der CSV-Export enthält weiterhin alles"]},
@@ -4010,8 +4011,18 @@ function setzePvQuelle(v){
 renderWahl("w-pvquelle",pvQuellen,cfg.pvQuelle||"fs",setzePvQuelle);
 pvQuelleHinweis();
 /* ---------- Prognose-Kalibrierung (aus echtem EMS-Ertrag) ---------- */
-function prognoseHeute(){ // heutige (bereits faktorierte) Prognose in kWh
-  let s=0;const t=heuteStr();for(let h=0;h<24;h++)s+=(daten.pv[t+"-"+h]||0);return s/1000;
+// Heutige (bereits faktorierte) Prognose in kWh – mit demselben eingefrorenen Blick wie
+// die Startseite (v72): abgelaufene Stunden behalten den Wert, der galt, als sie abliefen.
+// Kalibriert wird so gegen das, was die App WIRKLICH vorhergesagt hat – nicht gegen die
+// nachträglich revidierte Modellmeinung (die schrieb die Vergangenheit sonst um, z. B. 19→23).
+function prognoseHeute(){
+  const t=heuteStr();
+  let fix=null;
+  try{ fix=JSON.parse(localStorage.getItem(PVFIX_KEY)||"null"); }catch(e){}
+  if(demoAktiv||(fix&&fix.tag!==t))fix=null;
+  let s=0;
+  for(let h=0;h<24;h++){ const w=(fix&&fix.w&&fix.w[h]!=null)?fix.w[h]:(daten.pv[t+"-"+h]||0); s+=w; }
+  return s/1000;
 }
 // Faktor = MEDIAN der Verhältnisse real/roh über die gespeicherten Tage.
 // Median statt Mittelwert: ein einzelner Wetter-Ausreißer-Tag (Prognose weit daneben)

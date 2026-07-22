@@ -99,6 +99,16 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #24 Eine Wahrheit für die Prognose  ✅ v72
+- **Nutzer-Fund:** Startseite zeigte 19 kWh (eingefrorene Sicht, v67), „Prognose
+  kalibrieren" aber 23 kWh (rohe, nachträglich revidierte Modelldaten). Dadurch wurde
+  gegen die falsche Zahl kalibriert (22,5→19,3 = „+17 %", obwohl die gesehene Prognose
+  fast perfekt traf) – Faktor und ±-Genauigkeit wurden unfair verzerrt.
+- **Fix:** prognoseHeute() nutzt denselben eingefrorenen Blick (eo-pv-fix) wie die
+  Startseite. Kalibriert wird gegen das, was die App WIRKLICH angezeigt hat. In der
+  Demo bewusst ohne Einfrieren. Edge ehrlich benannt: Eintrag nach Mitternacht nutzt
+  den Roh-Wert des neuen Tages.
+
 ### #23 Urlaubs-Modus  ✅ v70 (+v71-Fix)  ·  Jetzt-Ampel  ❌ verworfen
 - **v71-Nachbesserung (Nutzer-Fund):** Die zweite Vorschlagsfläche – die
   „Aus deinem Rhythmus – fällig"-Karte auf der Startseite (renderDashVorschlaege /
