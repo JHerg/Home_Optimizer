@@ -812,6 +812,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 .drift-btns button:active{transform:scale(.97)}
 #drift-mv{background:var(--netz);color:#fff}
 #drift-x{background:rgba(120,130,145,.15);color:var(--nacht)}
+.ung-spaet{display:inline-block;margin-top:6px}
 /* v70: Urlaubs-Modus-Zeile auf der Startseite */
 .ur-banner{display:flex;align-items:center;gap:9px;margin:0 0 12px;background:radial-gradient(120% 100% at 0% 0%,rgba(59,111,212,.14),rgba(59,111,212,0) 62%),var(--karte);border:1px solid var(--linie);border-radius:14px;padding:10px 13px;font-size:12.5px;color:var(--tinte);line-height:1.45}
 .ur-banner b{color:var(--nacht)}
@@ -1685,8 +1686,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=72;
+const APP_VERSION=73;
 const NEUES=[
+  {v:73,t:["🌙 <b>„Heute ausnahmsweise bis 24 Uhr“</b>: passt ein Gerät nicht mehr in sein Zeitfenster (z. B. Waschmaschine um 22:30), erklärt die Warnung jetzt klar, dass das <b>Zeitfenster des Geräts</b> endet – und ein Knopf erlaubt den späten Lauf mit einem Tipp <b>nur für heute</b>. Morgen gilt wieder das normale Fenster"]},
   {v:72,t:["📊 <b>Eine Wahrheit für die Prognose</b>: „Heutige Prognose“ beim Kalibrieren zeigt jetzt exakt dieselbe Zahl wie die Startseite (abgelaufene Stunden eingefroren). Kalibriert wird damit gegen das, was die App dir <b>wirklich</b> vorhergesagt hat – nicht gegen die nachträglich umgeschriebene Modellmeinung. Faktor und ±-Genauigkeit werden dadurch fairer"]},
   {v:71,t:["✈️ <b>Urlaubs-Modus dichtgemacht</b>: auch die „Aus deinem Rhythmus – fällig“-Karte auf der Startseite pausiert jetzt für alle Tage im Urlaubszeitraum (Heute UND Morgen). Ab dem Tag nach Urlaubsende sind Vorschläge automatisch wieder aktiv – so kannst du am letzten Urlaubstag schon den Rückkehrtag planen"]},
   {v:70,t:["✈️ <b>Urlaubs-Modus</b> (Einrichten → Haushalt): niemand zu Hause? Dann pausieren Vorschläge, Fällig-Hinweise und Routinen (nichts zählt als verpasst), deine <b>Bilanz-Serie bleibt eingefroren</b> und der Hintergrund läuft normal weiter. Die Startseite zeigt eine Zeile mit „Beenden“-Knopf; am gewählten Datum endet der Modus von selbst"]},
@@ -1934,6 +1936,10 @@ function geraeteFuerTag(tagStr){
     const rest=(g.anzahl!=null?g.anzahl:1)-(zaehl[g.name]||0);
     if(rest>0)out.push(Object.assign({},g,{anzahl:rest}));
   });
+  // 🌙 „Heute ausnahmsweise bis 24 Uhr" (v73): Tages-Ausnahme fürs Zeitfenster einzelner
+  // Geräte – gilt nur für diesen Tag, morgen greift wieder das normale Fenster.
+  if(cfg.spaetHeute&&cfg.spaetHeute.tag===tagStr&&Array.isArray(cfg.spaetHeute.namen))
+    out.forEach(g=>{ if(cfg.spaetHeute.namen.includes(g.name))g.bis=24; });
   return out;
 }
 // Ein Gerät (Vorlage) dem aktuell gezeigten Tag hinzufügen; Vorlage nur einmal in der Liste halten.
@@ -2724,22 +2730,41 @@ function sichereVorschlag(arr){
 function ungeplantHtml(){
   if(!ungeplant.length)return "";
   const heuteTag=(tag==="heute");
+  const jetztF=heuteTag?jetztStundeF():-1;
+  const jetztTxt=heuteTag?new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",timeZone:"Europe/Berlin"}):"";
   const zeilen=ungeplant.map((u,i)=>{
     const anzahl=u.fehlend>1?' ('+u.fehlend+'×)':'';
     let grund="";
-    if(u.abStart!=null&&u.dauer!=null&&u.bis!=null)
-      grund=': frühester freier Start '+u.abStart+' Uhr + '+dz(u.dauer)+' h Laufzeit passt nicht mehr vor '+u.bis+' Uhr';
+    if(u.abStart!=null&&u.dauer!=null&&u.bis!=null){
+      // Klartext (v73): erst das Fensterende nennen, dann warum es nicht mehr reicht.
+      grund=': das Zeitfenster dieses Geräts endet um <b>'+u.bis+' Uhr</b> – '+
+        ((heuteTag&&jetztF>=u.bis-u.dauer)
+          ? 'es ist schon '+jetztTxt+', die '+dz(u.dauer)+' h Laufzeit würden nicht mehr rechtzeitig fertig'
+          : 'ab '+u.abStart+' Uhr ist keine freie Lücke von '+dz(u.dauer)+' h mehr übrig');
+    }
     const hak=heuteTag?' <button class="ung-hak" data-ungeplant="'+i+'">✓ gelaufen</button>':'';
-    return '<li>'+u.icon+' '+u.name+anzahl+grund+hak+'</li>';
+    // 🌙 Ein-Tipp-Ausweg: nur wenn der Lauf vor Mitternacht noch fertig würde
+    const spaet=(heuteTag&&u.bis<24&&u.dauer!=null&&jetztF>=0&&(jetztF+u.dauer)<=24)
+      ? ' <button class="ung-hak ung-spaet" data-spaet="'+i+'">🌙 Heute ausnahmsweise bis 24 Uhr</button>':'';
+    return '<li>'+u.icon+' '+u.name+anzahl+grund+hak+spaet+'</li>';
   }).join("");
   return '<div class="v-haupt warn" style="margin-bottom:12px">⚠️ '+(heuteTag?"Heute":"An diesem Tag")+
     ' nicht mehr einplanbar:<ul style="margin:6px 0 4px 18px;font-weight:600">'+zeilen+
-    '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln'+(heuteTag?', „✓ gelaufen" antippen':'')+' oder im Gerät das Zeitfenster erweitern.</span></div>';
+    '</ul><span style="font-weight:600">Tipp: auf „Morgen" wechseln'+(heuteTag?', „✓ gelaufen" antippen':'')+' oder im Gerät das Zeitfenster dauerhaft erweitern.</span></div>';
 }
 function wireUngeplant(tagKey){
   document.querySelectorAll('#planer-warnung [data-ungeplant]').forEach(b=>b.onclick=()=>{
     const u=ungeplant[+b.dataset.ungeplant];if(!u)return;
     markiereErledigt(tagKey,u.name,u.icon,undefined,undefined,u.kwh);
+  });
+  // 🌙 Zeitfenster nur für HEUTE auf 24 Uhr erweitern und sofort neu planen (v73)
+  document.querySelectorAll('#planer-warnung [data-spaet]').forEach(b=>b.onclick=()=>{
+    const u=ungeplant[+b.dataset.spaet];if(!u)return;
+    const hk=heuteStr();
+    if(!cfg.spaetHeute||cfg.spaetHeute.tag!==hk)cfg.spaetHeute={tag:hk,namen:[]};
+    if(!cfg.spaetHeute.namen.includes(u.name))cfg.spaetHeute.namen.push(u.name);
+    speichern();platzSig="";haptik(12);aktualisieren();
+    zeigeToast("🌙 "+kurzName(u.name)+": heute bis 24 Uhr erlaubt – neu geplant",null);
   });
 }
 // "Heute schon gelaufen"-Liste – jeder Durchgang einzeln, mit Laufzeit-Änderung (✎) und Zurück.

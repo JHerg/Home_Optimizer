@@ -99,6 +99,17 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #25 Zeitfenster-Klartext + „Heute ausnahmsweise bis 24 Uhr"  ✅ v73
+- **Nutzer-Fund:** Die „nicht mehr einplanbar"-Warnung nannte zweimal „22 Uhr" mit zwei
+  Bedeutungen (jetzt vs. Fensterende), ohne das Geräte-Zeitfenster zu erwähnen – unverständlich.
+- **Klartext:** Warnung nennt jetzt explizit das Fensterende und die aktuelle Uhrzeit
+  („das Zeitfenster dieses Geräts endet um 22 Uhr – es ist schon 22:30 …"), Uhrzeit fest
+  in Europe/Berlin.
+- **🌙-Knopf:** erweitert das Fenster des Geräts mit einem Tipp NUR für heute auf 24 Uhr
+  (cfg.spaetHeute={tag,namen}, angewendet in geraeteFuerTag) und plant sofort neu; erscheint
+  nur, wenn der Lauf vor Mitternacht noch fertig würde. Morgen gilt wieder das normale
+  Fenster; abgelaufene Ausnahmen (anderer Tag) werden ignoriert.
+
 ### #24 Eine Wahrheit für die Prognose  ✅ v72
 - **Nutzer-Fund:** Startseite zeigte 19 kWh (eingefrorene Sicht, v67), „Prognose
   kalibrieren" aber 23 kWh (rohe, nachträglich revidierte Modelldaten). Dadurch wurde
