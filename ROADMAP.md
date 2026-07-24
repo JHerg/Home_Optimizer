@@ -99,6 +99,18 @@ Status-Legende: ⬜ offen · 🔄 in Arbeit · ✅ erledigt · ❌ verworfen
 - **Aufwand sehr hoch:** pro Hersteller API/Auth, wahrscheinlich Backend/Proxy (CORS).
 - **Nutzen sehr hoch:** größter „Magie"-Sprung; eigenes Projekt.
 
+### #26 Viertelstunden-Planung  ✅ v74
+- **Nutzer-Fund:** Bestätigen war 15-min-genau, Planen aber nur stündlich – lief die
+  Bettwäsche bis 9:30, wurde die nächste Maschine erst ab 10:00 angeboten (aufgerundet).
+- **Umgesetzt:** Auto-Platzierung, Belegt-Prüfung und Drag arbeiten jetzt im
+  15-Min-Raster (96 Viertelstunden statt 24 Stunden). `bestesFensterSonne` probiert
+  Viertelstunden-Starts und bewertet die Sonnendeckung je Viertel; neuer Helfer
+  `belegeFenster` reserviert Viertel + zieht den Überschuss anteilig je Stunde ab;
+  Laufzeiten werden nicht mehr auf ganze Stunden aufgerundet (echte Gerätedauer).
+  `maschinenBelegung`/`belegungsKonflikt` auf 96 Slots; Drag rastet in 15-Min-Schritten;
+  Block-Titel & „nicht einplanbar"-Zeiten via uhrStr (9:30 statt 9.5). Preise/Sonne
+  bleiben Stundenwerte (anteilig gerechnet); gespeicherte Pläne bleiben kompatibel.
+
 ### #25 Zeitfenster-Klartext + „Heute ausnahmsweise bis 24 Uhr"  ✅ v73
 - **Nutzer-Fund:** Die „nicht mehr einplanbar"-Warnung nannte zweimal „22 Uhr" mit zwei
   Bedeutungen (jetzt vs. Fensterende), ohne das Geräte-Zeitfenster zu erwähnen – unverständlich.

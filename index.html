@@ -1686,8 +1686,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=73;
+const APP_VERSION=74;
 const NEUES=[
+  {v:74,t:["⏱️ <b>Planung im 15-Minuten-Raster</b>: neue Geräte werden jetzt viertelstundengenau eingeplant statt nur zu vollen Stunden. Läuft z. B. die Bettwäsche bis 9:30, kann die nächste Maschine direkt um 9:30 starten – keine verschenkte Sonne mehr durch Aufrunden. Auch das Verschieben per Finger rastet jetzt in 15-Minuten-Schritten"]},
   {v:73,t:["🌙 <b>„Heute ausnahmsweise bis 24 Uhr“</b>: passt ein Gerät nicht mehr in sein Zeitfenster (z. B. Waschmaschine um 22:30), erklärt die Warnung jetzt klar, dass das <b>Zeitfenster des Geräts</b> endet – und ein Knopf erlaubt den späten Lauf mit einem Tipp <b>nur für heute</b>. Morgen gilt wieder das normale Fenster"]},
   {v:72,t:["📊 <b>Eine Wahrheit für die Prognose</b>: „Heutige Prognose“ beim Kalibrieren zeigt jetzt exakt dieselbe Zahl wie die Startseite (abgelaufene Stunden eingefroren). Kalibriert wird damit gegen das, was die App dir <b>wirklich</b> vorhergesagt hat – nicht gegen die nachträglich umgeschriebene Modellmeinung. Faktor und ±-Genauigkeit werden dadurch fairer"]},
   {v:71,t:["✈️ <b>Urlaubs-Modus dichtgemacht</b>: auch die „Aus deinem Rhythmus – fällig“-Karte auf der Startseite pausiert jetzt für alle Tage im Urlaubszeitraum (Heute UND Morgen). Ab dem Tag nach Urlaubsende sind Vorschläge automatisch wieder aktiv – so kannst du am letzten Urlaubstag schon den Rückkehrtag planen"]},
@@ -2419,23 +2420,37 @@ function stunden(tagStr){
 // Bestes Fenster fuer EIN Geraet unter Beruecksichtigung des noch freien
 // Sonnenueberschusses (restKW je Stunde). Verschiedene Geraete duerfen sich Stunden
 // teilen, solange der Ueberschuss reicht; der ungedeckte Anteil zahlt Netzpreis.
-// belegt[h]=true blockiert Stunden, in denen dieselbe Maschine schon laeuft
+// belegt[q]=true blockiert Viertelstunden, in denen dieselbe Maschine schon laeuft
 // (gleicher Geraetetyp kann nicht parallel laufen).
+// Bestes Startfenster im 15-Minuten-Raster (v74). dauer/von/bis in Stunden (Viertel erlaubt),
+// belegt ist ein 96er-Viertelstunden-Array. Bewertet wird die ungedeckte Netzkosten je Viertel.
 function bestesFensterSonne(arr,restKW,devKW,dauer,von,bis,belegt){
-  let best=null, startH=von;
-  if(tag==="heute")startH=Math.max(von,berlinTeile(new Date()).stunde);
-  for(let start=startH;start<=bis-dauer;start++){
+  const dauerQ=Math.max(1,Math.round(dauer*4));
+  let vonQ=Math.round(von*4);
+  if(tag==="heute")vonQ=Math.max(vonQ, Math.ceil(jetztStundeF()*4)); // nicht in die Vergangenheit
+  const bisQ=Math.round(bis*4);
+  let best=null;
+  for(let startQ=vonQ; startQ<=bisQ-dauerQ; startQ++){
     let sum=0,ok=true;
-    for(let i=0;i<dauer;i++){
-      const h=start+i,s=arr[h];
-      if(s.eff==null||(belegt&&belegt[h])){ok=false;break;}
+    for(let i=0;i<dauerQ;i++){
+      const q=startQ+i, h=Math.floor(q/4), s=arr[h];
+      if(!s||s.eff==null||(belegt&&belegt[q])){ok=false;break;}
       const gedeckt=Math.min(devKW,restKW[h]);
       const preis=(s.voll!=null?s.voll:s.eff);
-      sum+=(devKW-gedeckt)*preis;
+      sum+=(devKW-gedeckt)*preis*0.25; // je Viertelstunde
     }
-    if(ok&&(best==null||sum<best.sum))best={start,sum};
+    if(ok&&(best==null||sum<best.sum))best={start:startQ/4,sum};
   }
   return best;
+}
+// Belegt Viertelstunden [start, start+dauer) und zieht den freien Überschuss anteilig je Stunde ab.
+function belegeFenster(restKW,belegt,start,dauer,devKW){
+  const q0=Math.round(start*4), qn=Math.max(1,Math.round(dauer*4)), ende=start+qn/4;
+  for(let h=Math.floor(start);h<Math.ceil(ende)&&h>=0&&h<24;h++){
+    const ol=Math.min(ende,h+1)-Math.max(start,h);
+    if(ol>0)restKW[h]=Math.max(0,restKW[h]-devKW*ol);
+  }
+  for(let i=0;i<qn;i++){const q=q0+i;if(q>=0&&q<96)belegt[q]=true;}
 }
 // Auto-Vorschlag: platziert alle Geraete-Durchgaenge ueberschussbewusst als Startpunkt.
 // Nutzt planGeraete = manuelle Geraete + faellige Routinen des gezeigten Tages.
@@ -2451,31 +2466,31 @@ function autoPlatzierung(arr){
   const fixSet=new Set(gespeichert.filter(s=>s.fix&&!s.teil).map(s=>s.key+"#"+s.run)); // verankerte Läufe
   const splitMap=new Map();
   gespeichert.filter(s=>s.teil).forEach(s=>{ const k=s.key+"#"+s.run; const o=splitMap.get(k)||{}; o[s.teil]={start:s.start,dauer:s.dauer,ed:s.ed}; splitMap.set(k,o); });
-  // Belegung je Geraetetyp: dieselbe Maschine kann nicht parallel laufen
+  // Belegung je Geraetetyp im 15-Min-Raster (96 Viertelstunden): dieselbe Maschine nicht parallel
   const belegtProTyp={};
-  const belegtVon=t=>belegtProTyp[t]||(belegtProTyp[t]=new Array(24).fill(false));
+  const belegtVon=t=>belegtProTyp[t]||(belegtProTyp[t]=new Array(96).fill(false));
   // ---- 0) Bereits gelaufene Läufe reservieren ihr ECHTES Fenster (bis zur echten Endzeit).
   //         Danach ist die Maschine wieder frei – ein weiterer Waschgang wird dahinter platziert. ----
   erledigtListe(tagKeyAktuell()).forEach(e=>{
     if(e.s==null||e.e==null)return;
     const v=findeVorlage(e.name);
     const belegt=belegtVon(maschineKey(v&&v.typ, e.name));
-    for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++)belegt[h]=true;
+    for(let q=Math.floor(e.s*4);q<Math.ceil(e.e*4)&&q>=0&&q<96;q++)belegt[q]=true;
   });
-  // ---- 1) Verankerte Geräte ZUERST platzieren – sie reservieren ihre Stunden ----
+  // ---- 1) Verankerte Geräte ZUERST platzieren – sie reservieren ihre Viertelstunden ----
   planGeraete.forEach((g,gi)=>{
-    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
+    const dauer=Math.max(0.25,Math.round(g.dauer*4)/4), devKW=g.kwh/g.dauer, key=deviceKey(g);
     const belegt=belegtVon(maschineKey(g.typ,g.name));
     for(let n=0;n<g.anzahl;n++){
       if(!fixSet.has(key+"#"+n))continue;
       const start=Math.max(g.von,Math.min(g.bis-dauer,startMap.get(key+"#"+n)));
-      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+      belegeFenster(restKW,belegt,start,dauer,devKW);
       bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key,_fix:true});
     }
   });
   // ---- 2) Übrige Läufe: gespeicherte Position (nicht verankert) oder frische Sonnen-Optimierung ----
   planGeraete.forEach((g,gi)=>{
-    const dauer=Math.max(1,Math.ceil(g.dauer)), devKW=g.kwh/g.dauer, key=deviceKey(g);
+    const dauer=Math.max(0.25,Math.round(g.dauer*4)/4), devKW=g.kwh/g.dauer, key=deviceKey(g);
     const belegt=belegtVon(maschineKey(g.typ,g.name)); // gleiche Maschine (Sammelkategorie: pro Name)
     let naechsterStart = g.von, platziert = 0;
     for(let n=0;n<g.anzahl;n++){
@@ -2488,7 +2503,7 @@ function autoPlatzierung(arr){
       if(sp&&sp[1]&&sp[2]){
         const dges=sp[1].dauer+sp[2].dauer;
         [1,2].forEach(t=>{ const w=sp[t];
-          for(let i=0;i<w.dauer;i++){const h=w.start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+          belegeFenster(restKW,belegt,w.start,w.dauer,devKW);
           bloecke.push({gi,run:n,start:w.start,dauer:w.dauer,kwh:g.kwh*w.dauer/dges,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:(w.ed!=null?w.ed:w.dauer),routine:false,_key:key,_fix:false,_teil:t,_split:true});
         });
         naechsterStart=Math.max(naechsterStart,Math.max(sp[1].start+sp[1].dauer,sp[2].start+sp[2].dauer));
@@ -2505,11 +2520,11 @@ function autoPlatzierung(arr){
         // Nur E-Auto (Ladeplaner an), ab 3 h, 1 Durchgang: beide Varianten durchrechnen und die
         // mit deutlich geringeren ungedeckten Netzkosten nehmen (>=10 % besser + echte Lücke).
         if(cfg.ev_an && g.typ==="ba" && !g.routine && dauer>=3 && g.anzahl===1){
-          const d1=Math.ceil(dauer/2), d2=dauer-d1;
+          const dauerQ=Math.round(dauer*4), d1Q=Math.ceil(dauerQ/2), d1=d1Q/4, d2=(dauerQ-d1Q)/4;
           const rk2=restKW.slice(), bel2=belegt.slice();
           const f1=bestesFensterSonne(arr,rk2,devKW,d1,naechsterStart,g.bis,bel2);
           if(f1){
-            for(let i=0;i<d1;i++){const h=f1.start+i;if(h>=0&&h<24){rk2[h]=Math.max(0,rk2[h]-devKW);bel2[h]=true;}}
+            belegeFenster(rk2,bel2,f1.start,d1,devKW);
             const f2=bestesFensterSonne(arr,rk2,devKW,d2,naechsterStart,g.bis,bel2);
             if(f2 && (f1.sum+f2.sum) < f.sum - Math.max(3, 0.10*f.sum)){
               const wA=(f1.start<=f2.start)?{s:f1.start,d:d1}:{s:f2.start,d:d2};
@@ -2517,7 +2532,7 @@ function autoPlatzierung(arr){
               if(wB.s > wA.s+wA.d){ // echte Lücke – sonst ist es faktisch EIN Fenster
                 const ed1=Math.min(g.dauer,wA.d), ed2=Math.max(0.25,Math.round((g.dauer-ed1)*4)/4);
                 [[wA,1,ed1],[wB,2,ed2]].forEach(([w,t,ed])=>{
-                  for(let i=0;i<w.d;i++){const h=w.s+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+                  belegeFenster(restKW,belegt,w.s,w.d,devKW);
                   bloecke.push({gi,run:n,start:w.s,dauer:w.d,kwh:g.kwh*w.d/dauer,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:ed,routine:false,_key:key,_fix:false,_teil:t,_split:true});
                 });
                 naechsterStart=wB.s+wB.d; platziert++; continue;
@@ -2528,12 +2543,12 @@ function autoPlatzierung(arr){
         start=f.start;
       }
       naechsterStart = start + dauer;
-      for(let i=0;i<dauer;i++){const h=start+i;if(h>=0&&h<24){restKW[h]=Math.max(0,restKW[h]-devKW);belegt[h]=true;}}
+      belegeFenster(restKW,belegt,start,dauer,devKW);
       bloecke.push({gi,run:n,start,dauer,kwh:g.kwh,devKW,icon:g.icon,name:g.name,von:g.von,bis:Math.min(24,g.bis),echteDauer:g.dauer,routine:!!g.routine,_key:key,_fix:false});
       platziert++;
     }
     if(platziert<g.anzahl){
-      const jetzt=(tag==="heute")?berlinTeile(new Date()).stunde:0;
+      const jetzt=(tag==="heute")?Math.ceil(jetztStundeF()*4)/4:0;
       ungeplant.push({icon:g.icon,name:g.name,kwh:g.kwh,fehlend:g.anzahl-platziert,
         abStart:Math.max(naechsterStart,jetzt),dauer,bis:Math.min(24,g.bis)});
     }
@@ -2627,22 +2642,22 @@ function typVon(b){
   return maschineKey(typ,name);
 }
 function maschinenBelegung(key, exceptBlk){
-  const belegt=new Array(24).fill(null);
+  const belegt=new Array(96).fill(null); // 15-Min-Raster (v74)
   platzierungen.forEach(b=>{
     if(b===exceptBlk || typVon(b)!==key)return;
-    for(let h=b.start;h<b.start+b.dauer&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:b.name,s:b.start,e:b.start+b.dauer,done:false};
+    for(let q=Math.floor(b.start*4);q<Math.ceil((b.start+b.dauer)*4)&&q>=0&&q<96;q++) if(!belegt[q])belegt[q]={name:b.name,s:b.start,e:b.start+b.dauer,done:false};
   });
   erledigtListe(tagKeyAktuell()).forEach(e=>{
     if(e.s==null||e.e==null)return;
     const v=findeVorlage(e.name); const ek=maschineKey(v&&v.typ, e.name);
     if(ek!==key)return;
-    for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h>=0&&h<24;h++) if(!belegt[h])belegt[h]={name:e.name,s:e.s,e:e.e,done:true};
+    for(let q=Math.floor(e.s*4);q<Math.ceil(e.e*4)&&q>=0&&q<96;q++) if(!belegt[q])belegt[q]={name:e.name,s:e.s,e:e.e,done:true};
   });
   return belegt;
 }
-// Kollidiert das Fenster [start, start+dauer) mit einer belegten Stunde? Gibt den Konflikt-Lauf oder null.
+// Kollidiert das Fenster [start, start+dauer) mit einer belegten Viertelstunde? Gibt den Konflikt-Lauf oder null.
 function belegungsKonflikt(belegt,start,dauer){
-  for(let h=start;h<start+dauer&&h>=0&&h<24;h++) if(belegt[h])return belegt[h];
+  for(let q=Math.floor(start*4);q<Math.ceil((start+dauer)*4)&&q>=0&&q<96;q++) if(belegt[q])return belegt[q];
   return null;
 }
 function maschinenKonfliktToast(blk,k){
@@ -2740,7 +2755,7 @@ function ungeplantHtml(){
       grund=': das Zeitfenster dieses Geräts endet um <b>'+u.bis+' Uhr</b> – '+
         ((heuteTag&&jetztF>=u.bis-u.dauer)
           ? 'es ist schon '+jetztTxt+', die '+dz(u.dauer)+' h Laufzeit würden nicht mehr rechtzeitig fertig'
-          : 'ab '+u.abStart+' Uhr ist keine freie Lücke von '+dz(u.dauer)+' h mehr übrig');
+          : 'ab '+uhrStr(u.abStart)+' Uhr ist keine freie Lücke von '+dz(u.dauer)+' h mehr übrig');
     }
     const hak=heuteTag?' <button class="ung-hak" data-ungeplant="'+i+'">✓ gelaufen</button>':'';
     // 🌙 Ein-Tipp-Ausweg: nur wenn der Lauf vor Mitternacht noch fertig würde
@@ -3304,7 +3319,7 @@ function renderPlaner(arr){
     el.style.left=(b.start/24*100)+"%";el.style.width=(b.dauer/24*100)+"%";el.style.top=(b._lane*40)+"px";
     el.innerHTML='<span class="pbacc"></span>'+(b._fix?'<span class="pbpin">📌</span>':(b.routine?'<span class="pbb">🔁</span>':''))+'<span class="pbi">'+b.icon+'</span><span class="pbp"></span>';
     if(b._fix)el.classList.add("fix");
-    el.title=b.name+" ("+b.start+"–"+(b.start+b.dauer)+" Uhr) – ziehen zum Verschieben";
+    el.title=b.name+" ("+uhrStr(b.start)+"–"+uhrStr(b.start+b.dauer)+" Uhr) – ziehen zum Verschieben";
     el.addEventListener("pointerdown",e=>starteDrag(e,b,el));
     b._el=el;
     bl.appendChild(el);
@@ -3321,19 +3336,19 @@ function renderPlaner(arr){
   function starteDrag(e,blk,el){
     if(e.button!=null&&e.button!==0)return;
     e.preventDefault();
-    const rect=$("planer-leiste").getBoundingClientRect(),hw=rect.width/24,x0=e.clientX,s0=blk.start;
+    const rect=$("planer-leiste").getBoundingClientRect(),qw=rect.width/96,x0=e.clientX,s0=blk.start;
     try{el.setPointerCapture(e.pointerId);}catch(_){}
     el.classList.add("zieht");
-    const belegt=maschinenBelegung(typVon(blk),blk); // Stunden, in denen dieselbe Maschine schon läuft
+    const belegt=maschinenBelegung(typVon(blk),blk); // Viertelstunden, in denen dieselbe Maschine läuft
     let konflikt=null;
     const move=ev=>{
-      const dh=Math.round((ev.clientX-x0)/hw);
-      const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dh));
+      const dq=Math.round((ev.clientX-x0)/qw);            // 15-Min-Schritte (v74)
+      const ns=Math.max(blk.von,Math.min(blk.bis-blk.dauer,s0+dq*0.25));
       if(ns===blk.start)return;
       const k=belegungsKonflikt(belegt,ns,blk.dauer);
-      if(k){konflikt=k;el.classList.add("blockiert");return;} // nicht in belegte Stunden ziehen
+      if(k){konflikt=k;el.classList.add("blockiert");return;} // nicht in belegte Viertelstunden ziehen
       el.classList.remove("blockiert");
-      blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+ns+"–"+(ns+blk.dauer)+" Uhr)";updateSim();
+      blk.start=ns;el.style.left=(ns/24*100)+"%";el.title=blk.name+" ("+uhrStr(ns)+"–"+uhrStr(ns+blk.dauer)+" Uhr)";updateSim();
     };
     const up=()=>{el.classList.remove("zieht","blockiert");speicherePlan();if(konflikt)maschinenKonfliktToast(blk,konflikt);window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",up);window.removeEventListener("pointercancel",up);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",up);window.addEventListener("pointercancel",up);
