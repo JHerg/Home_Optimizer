@@ -48,6 +48,19 @@ per Web-Deploy (main pushen = alle Nutzer aktuell, ohne Store-Review).
 - [ ] Interner Test → geschlossener Test (12 Tester / 14 Tage) → Produktion
       (Review meist wenige Tage).
 
+## Monetarisierung – Entscheidung (Juli 2026)
+- App bleibt **kostenlos** (kein Kaufpreis, keine Werbung) → bleibt **nicht-kommerziell**
+  → alle Datenquellen (Open-Meteo, Forecast.Solar, aWATTar, Nominatim) bleiben gratis.
+  Bezahlen würde die kommerziellen Stufen auslösen (Open-Meteo ~29 $/Monat etc.).
+- **Spenden-Knopf** (dezent, optional) als einzige Einnahmequelle – Idee: kleine
+  „Trinkgeld"-Stufen, z. B. 1 € / 3 € / 5 € + freier Betrag.
+- ⚠️ **Erst in der Store-App umsetzen, NICHT in der aktuellen Web-Version.**
+- ⚠️ Mechanik im Play Store: Spenden **nicht** über Google Play Billing abwickeln
+  (nur für registrierte gemeinnützige Orgs erlaubt), sondern per Link auf einen
+  externen Dienst: Ko-fi / Buy Me a Coffee / PayPal.me / Liberapay / GitHub Sponsors.
+  Hält es gebührenarm und store-konform. (Für die iOS-/Web-Version genügt ebenfalls
+  ein externer Link.)
+
 ## Phase 4 – Betrieb
 - Inhaltliche Updates wie bisher (vXX live schalten – Store-App zeigt sie sofort).
 - ~1×/Jahr Wrapper-Update wegen targetSdk-Pflicht.
