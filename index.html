@@ -1686,8 +1686,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=74;
+const APP_VERSION=75;
 const NEUES=[
+  {v:75,t:["🕘 Kleiner Nachschliff zur Viertelstunden-Planung: die Uhrzeit in der Geräte-Liste steht jetzt sauber als <b>9:30</b> statt „9.5"]},
   {v:74,t:["⏱️ <b>Planung im 15-Minuten-Raster</b>: neue Geräte werden jetzt viertelstundengenau eingeplant statt nur zu vollen Stunden. Läuft z. B. die Bettwäsche bis 9:30, kann die nächste Maschine direkt um 9:30 starten – keine verschenkte Sonne mehr durch Aufrunden. Auch das Verschieben per Finger rastet jetzt in 15-Minuten-Schritten"]},
   {v:73,t:["🌙 <b>„Heute ausnahmsweise bis 24 Uhr“</b>: passt ein Gerät nicht mehr in sein Zeitfenster (z. B. Waschmaschine um 22:30), erklärt die Warnung jetzt klar, dass das <b>Zeitfenster des Geräts</b> endet – und ein Knopf erlaubt den späten Lauf mit einem Tipp <b>nur für heute</b>. Morgen gilt wieder das normale Fenster"]},
   {v:72,t:["📊 <b>Eine Wahrheit für die Prognose</b>: „Heutige Prognose“ beim Kalibrieren zeigt jetzt exakt dieselbe Zahl wie die Startseite (abgelaufene Stunden eingefroren). Kalibriert wird damit gegen das, was die App dir <b>wirklich</b> vorhergesagt hat – nicht gegen die nachträglich umgeschriebene Modellmeinung. Faktor und ±-Genauigkeit werden dadurch fairer"]},
@@ -3379,7 +3380,7 @@ function renderPlaner(arr){
         '<div class="pl-zeile'+(b._fix?" fix":"")+'" data-idx="'+idx+'">'+
           '<span class="pl-ic">'+b.icon+'</span>'+
           '<span class="pl-info"><span class="pl-name">'+(b._fix?"📌 ":"")+(b.routine?"🔁 ":"")+kurzName(b.name)+teilLbl+'</span>'+
-            '<span class="pl-zeit">'+b.start+'–'+(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
+            '<span class="pl-zeit">'+uhrStr(b.start)+'–'+uhrStr(b.start+b.dauer)+' Uhr · '+dz(b.kwh.toFixed(1))+' kWh · <span class="pl-cov'+(gruen>=50?" gut":"")+'" title="Anteil aus '+(akkuAn?"Sonne/Speicher":"Sonne")+'">'+gruen+'% ☀️</span></span></span>'+
           '<span class="pl-akt">'+
             '<span class="pl-nudge"><button data-nudge="'+idx+'" data-dir="-1" aria-label="'+b.name+' früher"'+(kannFrueher?"":" disabled")+'>−</button>'+
             '<button data-nudge="'+idx+'" data-dir="1" aria-label="'+b.name+' später"'+(kannSpaeter?"":" disabled")+'>＋</button></span>'+
@@ -3529,7 +3530,7 @@ function routineBanner(tagStr){
   if(tag!=="heute"||urlaubAn(tagStr)||!faellig.length){el.hidden=true;return;}
   const teile=faellig.map(r=>{
     const b=platzierungen.find(p=>p.routine&&p.name===r.name);
-    return r.icon+" "+r.name+(b?" ("+b.start+"–"+(b.start+b.dauer)+" Uhr)":"");
+    return r.icon+" "+r.name+(b?" ("+uhrStr(b.start)+"–"+uhrStr(b.start+b.dauer)+" Uhr)":"");
   });
   el.hidden=false;
   el.innerHTML="🔁 Heute geplant: "+teile.join(" · ");
