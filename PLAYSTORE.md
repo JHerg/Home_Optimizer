@@ -32,6 +32,27 @@ per Web-Deploy (main pushen = alle Nutzer aktuell, ohne Store-Review).
 - [x] Statusbar-/Theme-Farben: theme-color-Meta jetzt medien-gescopt (hell/dunkel)
       und per JS mit dem Farbmodus synchron; Test mit Android-Chromium (Playwright).
 
+## Vorab testen – als Android-App, OHNE Store & OHNE 25 $ (jederzeit)
+Man kann die App als echte Handy-App ausprobieren, bevor irgendetwas hochgeladen
+oder bezahlt wird. Drei Stufen, von „sofort" bis „echtes Paket":
+1. **Sofort & ohne Werkzeug – PWA installieren:** Website in Chrome auf Android
+   öffnen → Menü ⋮ → „App installieren"/„Zum Startbildschirm hinzufügen". Läuft dann
+   als Vollbild-App vom Homescreen (dank manifest `display: standalone`). Kein Store,
+   kein Konto, 0 €. Ideal, um die Optik als App zu prüfen – geht schon **heute** mit v77.
+2. **Als echtes App-Paket (APK/AAB) – lokal aufs eigene Handy:** Bubblewrap erzeugt
+   aus der PWA ein **Android-Studio-Projekt** (Gradle). In Android Studio bauen →
+   per USB aufs eigene Handy installieren („Sideloading") oder im Emulator starten.
+   Kein Store, kein Konto, 0 €. Hinweis: ohne verifizierte Domain zeigt die TWA eine
+   dünne Adressleiste – für Funktions-/Optikprüfung egal; für den sauberen Vollbild-
+   Eindruck braucht es die Domain (Asset Links, Phase 2).
+3. Erst wenn alles passt: 25 $-Konto + Upload (Phase 3).
+
+**Kotlin / Android Studio (aus YouTube):** Unser TWA-Weg **ist** ein Android-Studio-
+Projekt – Bubblewrap generiert es. Der Kotlin/Java-Anteil ist nur ein winziger
+Wrapper (Start-Activity). Die App selbst wird **nicht** in Kotlin neu geschrieben –
+ein kompletter Native-Neubau brächte keinen Mehrwert und würde die Ein-Codebasis
+(Web-Deploy = alle aktuell) zerstören.
+
 ## Phase 2 – Verpacken & Signieren (Werkzeugarbeit)
 - [ ] AAB mit **Bubblewrap/PWABuilder** erzeugen; Play App Signing.
 - [ ] **Digital Asset Links** (`/.well-known/assetlinks.json` im Wurzelverzeichnis
