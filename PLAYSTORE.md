@@ -17,17 +17,20 @@ per Web-Deploy (main pushen = alle Nutzer aktuell, ohne Store-Review).
       professioneller, unabhängig von github.io und vereinfacht die Asset Links
       (sonst Zusatz-Repo `jherg.github.io` fürs Wurzelverzeichnis nötig).
 
-## Phase 1 – Web-App „store-fit" machen (Entwicklung, 2–3 Releases)
-- [ ] **Android-Zurück-Taste** ⭐ wichtigster Umbau: Sheets/Tabs in die
-      Browser-History integrieren, damit „Zurück" erst Blätter schließt statt die
-      App zu beenden. (Verbessert nebenbei die iPhone-Wisch-Geste.)
-- [ ] **Manifest-Vollausbau**: id, description, `purpose: maskable`-Icons
-      (Sicherheitsrand!), Splash-Farben (background_color), Screenshots, lang=de.
-- [ ] **Datenschutzerklärung + Impressum** als eigene Seite (Pflicht-URL für den
-      Store-Eintrag). Inhalt: keine Konten/Cloud/Tracking, alles lokal; API-Abrufe
-      benennen (Adresse→Nominatim-Geocoding, Koordinaten→Open-Meteo/Forecast.Solar,
-      Preise→aWATTar).
-- [ ] Statusbar-/Theme-Farben Android, Test mit Android-Chrome-Profil (Playwright).
+## Phase 1 – Web-App „store-fit" machen (Entwicklung, 2–3 Releases) ✅ erledigt (v77)
+- [x] **Android-Zurück-Taste** ⭐ wichtigster Umbau: Sheets/Overlays/Dialoge in die
+      Browser-History integriert (History-Trap), „Zurück"/Wisch-zurück schließt erst
+      Blätter statt die App zu beenden. Playwright-Test `test_back.js` (12/12).
+- [x] **Manifest-Vollausbau**: id, lang=de, dir, description, categories,
+      `purpose: maskable`-Icons mit Safe-Zone (icon-maskable-192/512, Rand über
+      fortgesetzten Verlauf), background_color/theme_color, 2 Screenshots.
+- [x] **Datenschutzerklärung + Impressum** als eigene Seite `datenschutz.html`
+      (verlinkt aus „Datenquellen & Rechtliches"). Benennt alle API-Abrufe
+      (Nominatim, Open-Meteo, Forecast.Solar, aWATTar), betont lokal/kein Konto.
+      ⚠️ Impressum enthält Platzhalter für Name + ladungsfähige Anschrift –
+      **vor Store-Veröffentlichung ausfüllen** (§ 5 DDG).
+- [x] Statusbar-/Theme-Farben: theme-color-Meta jetzt medien-gescopt (hell/dunkel)
+      und per JS mit dem Farbmodus synchron; Test mit Android-Chromium (Playwright).
 
 ## Phase 2 – Verpacken & Signieren (Werkzeugarbeit)
 - [ ] AAB mit **Bubblewrap/PWABuilder** erzeugen; Play App Signing.

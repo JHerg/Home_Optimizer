@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E4EEF4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1A24" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="index, follow">
+<title>Datenschutz & Impressum · Energie-Optimierer</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+  :root{
+    --papier:#EDF1F6; --karte:#FFFFFF; --nacht:#10233A; --tinte:#374A5E;
+    --grau:#5A6875; --sonne:#F5A00C; --linie:#DCE4EC; --link:#0A6CBF;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --papier:#0A1420; --karte:#18242F; --nacht:#EAF1FA; --tinte:#B7C4D2;
+           --grau:#8A98A6; --linie:#293848; --link:#5FB0FF; }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--papier);color:var(--tinte);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    padding:env(safe-area-inset-top) 16px calc(40px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust:100%;}
+  .wrap{max-width:720px;margin:0 auto;padding-top:24px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  header img{width:44px;height:44px;border-radius:11px}
+  h1{font-size:24px;color:var(--nacht);margin:18px 0 4px}
+  h2{font-size:18px;color:var(--nacht);margin:30px 0 6px}
+  h3{font-size:15px;color:var(--nacht);margin:18px 0 2px}
+  p,li{margin:6px 0}
+  a{color:var(--link)}
+  .stand{color:var(--grau);font-size:14px;margin:0 0 10px}
+  .karte{background:var(--karte);border:1px solid var(--linie);border-radius:16px;
+    padding:18px 20px;margin:16px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .platzhalter{color:var(--grau);font-style:italic}
+  .hinweis{background:rgba(245,160,12,.10);border:1px solid rgba(245,160,12,.35);
+    border-radius:12px;padding:12px 14px;font-size:14px;color:var(--tinte)}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0;display:block;overflow-x:auto}
+  th,td{border:1px solid var(--linie);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:rgba(0,0,0,.03);color:var(--nacht);white-space:nowrap}
+  @media (prefers-color-scheme: dark){ th{background:rgba(255,255,255,.05)} }
+  .zurueck{display:inline-block;margin-top:26px;color:var(--link);text-decoration:none;font-weight:600}
+  footer{color:var(--grau);font-size:13px;margin-top:30px;border-top:1px solid var(--linie);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icon.svg" alt="">
+    <div>
+      <div style="font-weight:700;color:var(--nacht);font-size:18px">Energie-Optimierer</div>
+      <div style="color:var(--grau);font-size:13px">Datenschutz &amp; Impressum</div>
+    </div>
+  </header>
+
+  <h1>Datenschutzerklärung</h1>
+  <p class="stand">Stand: Juli 2026</p>
+
+  <div class="karte">
+    <p><b>Kurzfassung:</b> Der Energie-Optimierer speichert alle deine Angaben
+    ausschließlich <b>lokal auf deinem Gerät</b>. Es gibt <b>kein Nutzerkonto</b>,
+    <b>keine Cloud</b>, <b>kein Tracking</b> und <b>keine Werbung</b>. Wir (der Betreiber
+    der App) erhalten <b>keine</b> deiner Daten. Für die Prognosen fragt die App direkt
+    von deinem Gerät aus einige öffentliche Wetter-, Preis- und Kartendienste ab –
+    dabei werden nur die dafür nötigen Angaben (Adresse bzw. Koordinaten) übertragen.</p>
+  </div>
+
+  <h2>1. Verantwortlicher</h2>
+  <p>Verantwortlich für die Datenverarbeitung im Sinne der DSGVO ist die im
+  <a href="#impressum">Impressum</a> genannte Person.</p>
+
+  <h2>2. Lokale Speicherung auf deinem Gerät</h2>
+  <p>Deine Einstellungen (z. B. Anlagendaten, Geräte, Zeitfenster, Verlauf) werden im
+  lokalen Speicher deines Browsers bzw. der App (<code>localStorage</code>) abgelegt.
+  Diese Daten verlassen dein Gerät nicht und sind für uns nicht einsehbar. Du kannst
+  sie jederzeit über die Funktion „Zurücksetzen" in der App oder durch Löschen der
+  App-/Browserdaten vollständig entfernen.</p>
+  <p>Es werden <b>keine Cookies</b> zu Analyse- oder Werbezwecken gesetzt.</p>
+
+  <h2>3. Abrufe externer Dienste</h2>
+  <p>Damit die App Sonnen- und Preisprognosen anzeigen kann, ruft sie – direkt von
+  deinem Gerät aus – folgende Dienste auf. Dabei können technisch bedingt deine
+  IP-Adresse sowie die genannten Angaben an den jeweiligen Anbieter übermittelt werden.
+  Auf die Datenverarbeitung dieser Anbieter haben wir keinen Einfluss; es gelten deren
+  Datenschutzbestimmungen.</p>
+  <table>
+    <thead><tr><th>Dienst</th><th>Zweck</th><th>Übermittelte Daten</th><th>Anbieter / Datenschutz</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Nominatim (OpenStreetMap)</td>
+        <td>Adresssuche → Koordinaten (Geocoding)</td>
+        <td>eingegebener Adress­text, IP-Adresse</td>
+        <td><a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OpenStreetMap Foundation</a></td>
+      </tr>
+      <tr>
+        <td>Open-Meteo</td>
+        <td>Wetter- &amp; Sonnenprognose</td>
+        <td>Koordinaten (Breite/Länge), IP-Adresse</td>
+        <td><a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Open-Meteo</a></td>
+      </tr>
+      <tr>
+        <td>Forecast.Solar</td>
+        <td>alternative Ertragsprognose</td>
+        <td>Koordinaten, Anlagenausrichtung, IP-Adresse</td>
+        <td><a href="https://forecast.solar/" target="_blank" rel="noopener">Forecast.Solar</a></td>
+      </tr>
+      <tr>
+        <td>aWATTar</td>
+        <td>Börsenstrompreise (dynamischer Tarif)</td>
+        <td>IP-Adresse (keine persönlichen Angaben)</td>
+        <td><a href="https://www.awattar.de/services/api" target="_blank" rel="noopener">aWATTar</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der
+  Kernfunktion der App: standortbezogene Sonnen- und Preisprognose). Es findet keine
+  darüber hinausgehende Profilbildung statt.</p>
+
+  <h2>4. Hosting</h2>
+  <p>Die App wird als statische Web-App bereitgestellt. Beim Aufruf verarbeitet der
+  Hosting-Anbieter technisch notwendige Zugriffsdaten (z. B. IP-Adresse, Zeitpunkt,
+  abgerufene Datei) in Server-Logs, um die Auslieferung zu ermöglichen und die
+  Sicherheit zu gewährleisten (Art. 6 Abs. 1 lit. f DSGVO).</p>
+  <p class="hinweis"><span class="platzhalter">[Hosting-Anbieter eintragen, z. B.
+  „GitHub Pages, GitHub Inc." – siehe dessen Datenschutzhinweise.]</span></p>
+
+  <h2>5. Keine Weitergabe / kein Tracking</h2>
+  <p>Es findet keine Übermittlung deiner Nutzungsdaten an Dritte zu Analyse- oder
+  Werbezwecken statt. Es werden keine Analyse-Tools (wie z. B. Google Analytics)
+  eingesetzt.</p>
+
+  <h2>6. Deine Rechte</h2>
+  <p>Dir stehen nach der DSGVO die Rechte auf Auskunft (Art. 15), Berichtigung
+  (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenübertragbarkeit
+  (Art. 20) und Widerspruch (Art. 21) zu. Da wir selbst keine personenbezogenen Daten
+  von dir speichern, betreffen diese Rechte vor allem die oben genannten externen
+  Anbieter. Du hast zudem das Recht, dich bei einer Datenschutz-Aufsichtsbehörde zu
+  beschweren.</p>
+
+  <h2>7. Kinder</h2>
+  <p>Die App richtet sich nicht gezielt an Kinder und erhebt keine Daten über sie.</p>
+
+  <h1 id="impressum">Impressum</h1>
+  <p>Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz) / § 18 MStV:</p>
+  <div class="karte">
+    <p class="platzhalter">[Vollständiger Name]</p>
+    <p class="platzhalter">[Straße und Hausnummer]</p>
+    <p class="platzhalter">[PLZ und Ort]</p>
+    <p class="platzhalter">[Land]</p>
+    <p><b>Kontakt:</b><br>
+       E-Mail: <a href="mailto:JLadriere@gmx.de">JLadriere@gmx.de</a></p>
+    <p class="hinweis">Bitte diese Platzhalter vor der Veröffentlichung im Play Store
+    durch die vollständige ladungsfähige Anschrift ersetzen – für einen
+    Store-Eintrag als Privatperson ist eine erreichbare Postadresse Pflicht.</p>
+  </div>
+
+  <h3>Haftung für Inhalte</h3>
+  <p>Der Energie-Optimierer ist ein beratendes Werkzeug. Prognosen, Preise und
+  Ersparnisangaben sind <b>Schätzungen ohne Gewähr</b>. Die App <b>steuert keine
+  Geräte</b>; jede Nutzung erfolgt in eigener Verantwortung. Eine Haftung für
+  Schäden, die aus der Nutzung der bereitgestellten Informationen entstehen, ist –
+  soweit gesetzlich zulässig – ausgeschlossen.</p>
+
+  <h3>Haftung für Links</h3>
+  <p>Diese App verweist auf externe Websites Dritter, auf deren Inhalte wir keinen
+  Einfluss haben. Für diese fremden Inhalte ist stets der jeweilige Anbieter
+  verantwortlich.</p>
+
+  <a class="zurueck" href="./index.html">← Zurück zur App</a>
+
+  <footer>Energie-Optimierer · 100 % lokal · kein Konto · kein Tracking</footer>
+</div>
+</body>
+</html>

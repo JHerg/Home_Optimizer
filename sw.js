@@ -2,10 +2,11 @@
    Ziel: Offline nutzbar + beim Neustart (online) immer die frische Version.
    Strategie: Navigation/HTML = network-first, statische Assets = cache-first,
    API-Aufrufe (Preise/Sonne/Adresse) = immer direkt aus dem Netz (nie cachen). */
-const CACHE = "energie-optimierer-v76";
+const CACHE = "energie-optimierer-v77";
 const SHELL = [
-  "./", "./index.html", "./manifest.webmanifest",
-  "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"
+  "./", "./index.html", "./manifest.webmanifest", "./datenschutz.html",
+  "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png",
+  "./icon-maskable-192.png", "./icon-maskable-512.png"
 ];
 
 self.addEventListener("install", e => {

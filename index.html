@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#E4EEF4">
+<meta name="theme-color" content="#E4EEF4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1A24" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -959,6 +960,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="qi-titel">⚖️ Haftung</div>
       <div>Beratendes Werkzeug: Prognose, Preise und Ersparnis sind <b>Schätzungen ohne Gewähr</b>. Die App <b>steuert keine Geräte</b> – Nutzung auf eigene Verantwortung.</div>
     </div>
+    <div class="qi-block"><div class="qi-titel">📄 Rechtliches</div><div><a href="datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung &amp; Impressum</a></div></div>
     <div class="qi-block"><div class="qi-titel">ⓘ App</div><div>Energie-Optimierer · <span id="app-version">–</span></div></div>
   </div>
 </details>
@@ -1686,8 +1688,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=76;
+const APP_VERSION=77;
 const NEUES=[
+  {v:77,t:["📱 <b>Android-Zurück-Taste &amp; Wisch-zurück</b>: Die Zurück-Taste – und die Zurück-Wischgeste am Bildschirmrand – schließt jetzt erst offene Blätter und Dialoge, statt gleich die App zu verlassen","🔒 <b>Datenschutzerklärung &amp; Impressum</b> als eigene Seite (unten unter „Datenquellen &amp; Rechtliches“) plus Feinschliff am App-Symbol – Vorbereitung, damit die App in den Google Play Store kann"]},
   {v:76,t:["⏱️ Die <b>− / ＋ Tasten</b> in der Geräte-Liste verschieben jetzt auch in <b>15-Minuten-Schritten</b> (vorher ganze Stunden) – wie das Ziehen per Finger"]},
   {v:75,t:["🕘 Kleiner Nachschliff zur Viertelstunden-Planung: die Uhrzeit in der Geräte-Liste steht jetzt sauber als <b>9:30</b> statt „9.5"]},
   {v:74,t:["⏱️ <b>Planung im 15-Minuten-Raster</b>: neue Geräte werden jetzt viertelstundengenau eingeplant statt nur zu vollen Stunden. Läuft z. B. die Bettwäsche bis 9:30, kann die nächste Maschine direkt um 9:30 starten – keine verschenkte Sonne mehr durch Aufrunden. Auch das Verschieben per Finger rastet jetzt in 15-Minuten-Schritten"]},
@@ -2885,6 +2888,7 @@ function vielleichtFaellig(){
   faelligGezeigt=true;
   faelligState=liste.map(it=>({name:it.name,icon:it.icon,kwh:it.kwh,start:it.start,ende:it.ende,plantEnde:it.ende,checked:true}));
   renderFaellig();
+  eoArmTrap();
   $("schleier").classList.add("offen");$("sheet-faellig").classList.add("offen");
 }
 function renderFaellig(){
@@ -2909,6 +2913,7 @@ function renderFaellig(){
 function faelligZu(){
   $("sheet-faellig").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  eoSyncClose();
 }
 if($("faellig-ok"))$("faellig-ok").onclick=()=>{
   const hk=heuteStr();
@@ -3840,7 +3845,7 @@ async function laden(force){
 
 /* ---------- Sheets ---------- */
 let ausTagesplan=false; // Geräteauswahl aus dem Tagesplan geöffnet? Dann dorthin zurückkehren.
-function sheetAuf(id){$("schleier").classList.add("offen");$(id).classList.add("offen");
+function sheetAuf(id){eoArmTrap();$("schleier").classList.add("offen");$(id).classList.add("offen");
   if(id==="sheet-tagesplan"&&magBewegung()&&!demoAktiv){const c=$("planer-chart");if(c){c.classList.remove("eo-eingang");void c.offsetWidth;c.classList.add("eo-eingang");}}
   if(id==="sheet-einrichten"){ // Gruppen starten immer zugeklappt & Status frisch (v68)
     document.querySelectorAll("#sheet-einrichten details.egrp").forEach(d=>{d.open=false;});
@@ -3875,11 +3880,43 @@ function sheetZu(){
   document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("offen"));
   // Änderungen aus Tagesplan/Geräte-Sheet auf der kompakten Startseite spiegeln
   if(warPlanOderGeraete && (tag==="heute"||tag==="morgen") && aktuelleStunden) renderDashboard(aktuelleStunden);
+  eoSyncClose();
 }
 // Schließen der Geräteauswahl: aus dem Tagesplan gekommen -> dorthin zurück statt aufs Dashboard.
 function geraeteSheetZu(){ if(ausTagesplan){ausTagesplan=false;wechsleZuSheet("sheet-tagesplan");} else sheetZu(); }
 $("schleier").onclick=sheetZu;
 document.querySelectorAll("[data-zu]").forEach(b=>b.onclick=sheetZu);
+
+/* ===== Android-Zurück-Taste (v77): Overlays schließen statt die App zu verlassen =====
+   Beim Öffnen eines Overlays legen wir einen History-Eintrag („Trap") an. Die
+   Hardware-Zurück-Taste (bzw. iOS-Wisch-zurück) löst dann popstate aus → wir schließen
+   das oberste Overlay statt die App zu beenden. Programmatisches Schließen (✕/Schleier)
+   räumt den Trap-Eintrag sauber wieder ab, damit History und UI synchron bleiben. */
+let eoTrapArmed=false, eoIgnorePop=false, eoClosingFromPop=false;
+function eoArmTrap(){ if(!eoTrapArmed){ try{history.pushState({eoTrap:true},"");}catch(_){}; eoTrapArmed=true; } }
+function eoAnyOverlay(){
+  return !!document.querySelector(".sheet.offen") ||
+    (($("demo-overlay")&&!$("demo-overlay").hidden)) ||
+    (($("schleier")&&$("schleier").classList.contains("offen")));
+}
+// Schließt das oberste Overlay (gleiche Priorität wie ✕/Schleier). Gibt true, wenn etwas geschlossen wurde.
+function eoBack(){
+  if($("demo-overlay")&&!$("demo-overlay").hidden){ demoEnde(); return true; }
+  if($("sheet-faellig")&&$("sheet-faellig").classList.contains("offen")){ faelligZu(); return true; }
+  if(document.querySelector(".sheet.offen")||($("schleier")&&$("schleier").classList.contains("offen"))){ sheetZu(); return true; }
+  return false;
+}
+// Nach programmatischem Schließen: den Trap-History-Eintrag konsumieren (sofern nicht gerade
+// selbst durch popstate ausgelöst).
+function eoSyncClose(){
+  if(eoClosingFromPop)return;
+  if(eoTrapArmed && !eoAnyOverlay()){ eoIgnorePop=true; eoTrapArmed=false; try{history.back();}catch(_){eoIgnorePop=false;} }
+}
+window.addEventListener("popstate",function(){
+  if(eoIgnorePop){ eoIgnorePop=false; return; } // von uns selbst ausgelöst
+  eoTrapArmed=false;
+  if(eoAnyOverlay()){ eoClosingFromPop=true; eoBack(); eoClosingFromPop=false; }
+});
 if($("geraete-zu"))$("geraete-zu").onclick=geraeteSheetZu;
 
 /* Eigenes Texteingabe-Sheet (statt prompt(), das in installierten iOS-Apps oft blockiert ist).
@@ -3890,7 +3927,7 @@ function frageText(titel,vorgabe){
     eingabeResolve=resolve;
     $("eingabe-titel").textContent=titel;
     const f=$("eingabe-feld");f.value=vorgabe||"";
-    $("schleier").classList.add("offen");$("sheet-eingabe").classList.add("offen");
+    eoArmTrap();$("schleier").classList.add("offen");$("sheet-eingabe").classList.add("offen");
     setTimeout(()=>{try{f.focus();f.select();}catch(_){}} ,60);
   });
 }
@@ -3898,6 +3935,7 @@ function eingabeFertig(wert){
   const r=eingabeResolve;eingabeResolve=null;
   $("sheet-eingabe").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  eoSyncClose();
   if(r)r(wert);
 }
 $("eingabe-ok").onclick=()=>eingabeFertig($("eingabe-feld").value.trim());
@@ -3911,13 +3949,14 @@ function frageIcon(titel,aktuell){
     iconResolve=resolve;
     $("icon-titel").textContent=titel||"Symbol wählen";
     renderIconWahl("icon-wahl-box",aktuell,ic=>iconFertig(ic));
-    $("schleier").classList.add("offen");$("sheet-icon").classList.add("offen");
+    eoArmTrap();$("schleier").classList.add("offen");$("sheet-icon").classList.add("offen");
   });
 }
 function iconFertig(wert){
   const r=iconResolve;iconResolve=null;
   $("sheet-icon").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  eoSyncClose();
   if(r)r(wert||null);
 }
 $("icon-x").onclick=()=>iconFertig(null);
@@ -3936,7 +3975,7 @@ function frageLaufzeit(titel, s0, e0, minH, maxH){
     lzE=lzSnap(Math.max(lzS+LZ_STEP,Math.min(lzMax,e0)));
     $("lauf-titel").textContent=titel;
     lzRender();
-    $("schleier").classList.add("offen");$("sheet-lauf").classList.add("offen");
+    eoArmTrap();$("schleier").classList.add("offen");$("sheet-lauf").classList.add("offen");
   });
 }
 function lzRender(){
@@ -3953,6 +3992,7 @@ function laufFertig(wert){
   const r=laufResolve;laufResolve=null;
   $("sheet-lauf").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  eoSyncClose();
   if(r)r(wert);
 }
 $("lauf-ok").onclick=()=>laufFertig({s:lzS,e:lzE});
@@ -3983,13 +4023,14 @@ function frageJaNein(titel,text,jaLabel){
     $("frage-titel").textContent=titel;
     $("frage-text").textContent=text||"";
     $("frage-ja").textContent=jaLabel||"Löschen";
-    $("schleier").classList.add("offen");$("sheet-frage").classList.add("offen");
+    eoArmTrap();$("schleier").classList.add("offen");$("sheet-frage").classList.add("offen");
   });
 }
 function frageFertig(ja){
   const r=frageResolve;frageResolve=null;
   $("sheet-frage").classList.remove("offen");
   if(!document.querySelector(".sheet.offen"))$("schleier").classList.remove("offen");
+  eoSyncClose();
   if(r)r(!!ja);
 }
 $("frage-ja").onclick=()=>frageFertig(true);
@@ -5041,7 +5082,9 @@ function themaAnwenden(){
   const b=$("btn-thema");
   if(b){ b.textContent = pref==="auto"?"🌗":(pref==="hell"?"☀️":"🌙");
     b.title = "Farbmodus: "+(pref==="auto"?"Automatisch":(pref==="hell"?"Hell":"Dunkel")); }
-  const m=document.querySelector('meta[name="theme-color"]'); if(m)m.setAttribute("content",dark?"#0F1A24":"#E4EEF4");
+  // Beide (medien-gescopten) theme-color-Metas gleichziehen, damit die manuelle
+  // Umschaltung immer gewinnt – egal welches Systemschema gerade aktiv ist.
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>m.setAttribute("content",dark?"#0F1A24":"#E4EEF4"));
   ambienteAnwenden();
 }
 $("btn-thema").onclick=()=>{
@@ -5242,7 +5285,7 @@ function demoStart(){
   demoSnap={ zustand:JSON.stringify({cfg,geraete,meineGeraete,routinen}), daten:JSON.stringify(daten), tag, wochen:wochenSonne };
   demoAktiv=true; demoPlaying=true; demoIdx=0;
   demoDatenEinspielen();
-  demoClose(); $("demo-overlay").hidden=false; if($("demo-play"))$("demo-play").textContent="⏸";
+  demoClose(); eoArmTrap(); $("demo-overlay").hidden=false; if($("demo-play"))$("demo-play").textContent="⏸";
   demoGoto(0,true);
 }
 function demoEnde(){
@@ -5257,6 +5300,7 @@ function demoEnde(){
   demoSnap=null; platzSig=""; demoClose();
   document.querySelectorAll(".tabbar .tab").forEach(b=>b.classList.toggle("on",b.dataset.tag===tag));
   aktualisieren();
+  eoSyncClose();
 }
 // #10: App teilen – echtes Teilen (Web Share, iOS-fähig) statt erfundener Reviews.
 function appTeilen(){
