@@ -1686,8 +1686,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=75;
+const APP_VERSION=76;
 const NEUES=[
+  {v:76,t:["⏱️ Die <b>− / ＋ Tasten</b> in der Geräte-Liste verschieben jetzt auch in <b>15-Minuten-Schritten</b> (vorher ganze Stunden) – wie das Ziehen per Finger"]},
   {v:75,t:["🕘 Kleiner Nachschliff zur Viertelstunden-Planung: die Uhrzeit in der Geräte-Liste steht jetzt sauber als <b>9:30</b> statt „9.5"]},
   {v:74,t:["⏱️ <b>Planung im 15-Minuten-Raster</b>: neue Geräte werden jetzt viertelstundengenau eingeplant statt nur zu vollen Stunden. Läuft z. B. die Bettwäsche bis 9:30, kann die nächste Maschine direkt um 9:30 starten – keine verschenkte Sonne mehr durch Aufrunden. Auch das Verschieben per Finger rastet jetzt in 15-Minuten-Schritten"]},
   {v:73,t:["🌙 <b>„Heute ausnahmsweise bis 24 Uhr“</b>: passt ein Gerät nicht mehr in sein Zeitfenster (z. B. Waschmaschine um 22:30), erklärt die Warnung jetzt klar, dass das <b>Zeitfenster des Geräts</b> endet – und ein Knopf erlaubt den späten Lauf mit einem Tipp <b>nur für heute</b>. Morgen gilt wieder das normale Fenster"]},
@@ -3393,7 +3394,8 @@ function renderPlaner(arr){
     $("planer-liste").querySelectorAll(".pl-zeile").forEach(z=>swipeGesten(z,tagKey));
     $("planer-liste").querySelectorAll("[data-nudge]").forEach(btn=>btn.onclick=()=>{
       const b=platzierungen[+btn.dataset.nudge];if(!b)return;
-      const ns=Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)));
+      // − / ＋ verschieben in 15-Minuten-Schritten (v76)
+      const ns=Math.round(Math.max(b.von,Math.min(b.bis-b.dauer,b.start+(+btn.dataset.dir)*0.25))*4)/4;
       if(ns===b.start)return;
       const k=belegungsKonflikt(maschinenBelegung(typVon(b),b),ns,b.dauer);
       if(k){maschinenKonfliktToast(b,k);return;} // dieselbe Maschine ist in der Zielzeit belegt
