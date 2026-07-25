@@ -7,43 +7,73 @@ Zuletzt aktualisiert: Juli 2026 (Stand v79)
 
 ---
 
-## ~~Rang 1 – Hakeliges Scrollen~~ ✅ erledigt in v79
+## Rang 1 – „Warum diese App?" – eine Zweck-Seite ⭐ NEU
 
-Vom Betreiber gemeldet: In der Geräteliste auf der Startseite (und im Tagesplan)
-lässt sich per Finger schlecht nach oben/unten scrollen.
+Vom Betreiber angestoßen und als wichtig eingestuft. Bisher erklärt die App
+nirgends, **wofür es sie gibt und für wen** – und vor allem nicht, wie sie sich
+von einer EMS-App unterscheidet. Genau diese Abgrenzung ist ihr Daseinsgrund.
 
-**Drei Ursachen, die sich überlagern** (im Code verifiziert):
+### Die Kernbotschaft (Worte des Betreibers, verdichtet)
 
-1. **Wischerkennung zu großzügig.** Regel bisher:
-   `|dx| > 8 && |dx| > |dy| + 2`. Ein leicht schräger Scrollversuch
-   (dx=10, dy=7) gilt damit schon als Wischen → Liste bleibt stehen.
-2. **`touch-action` fehlt auf `.dash-row`.** Die Tagesplan-Zeilen (`.pl-zeile`)
-   haben `touch-action: pan-y`, die Startseiten-Zeilen nicht. Dadurch läuft dort
-   alles über die (fehleranfällige) JS-Erkennung.
-3. **Scrollkasten im Scrollkasten.** `.dash-rows` hat `max-height:172px;
-   overflow-y:auto` – ca. drei Zeilen. Verschachteltes Scrollen ist auf dem
-   Handy immer fummelig, und am Ende springt es nicht sauber auf die Seite über.
+> Ein EMS steuert, was **fest angeschlossen** ist. Diese App plant alles
+> **andere** – die Geräte, die du selbst startest.
 
-**Umgesetzt in v79 (alle drei in einem Abwasch):**
-- Gemeinsamer Helfer `gestenModus(cx,cy)` für beide Wisch-Funktionen.
-  Neue Regel: `SWIPE_MIN=14`, `SWIPE_FAKTOR=1.8`, `SCROLL_MIN=6` – im Zweifel
-  gewinnt das Scrollen, nur klar Waagerechtes wischt.
-- `touch-action: pan-y` auf `.dash-row` ergänzt.
-- Mini-Scrollkasten entfernt → erste **4** Geräte offen, Rest in
-  `<details class="experte dash-mehr">`. Damit entfielen auch der
-  Überlauf-Schleier (`hat-mehr`) und das Schrumpfen auf 88 px (`hat-vorschlag`).
-- Test: `test_scroll.js` 16/16 – prüft die Gesten mit echten Touch-Ereignissen
-  (schräg → scrollen, waagerecht → wischen) statt nur die Rechenlogik.
+- **Zielgruppe:** Haushalte mit PV, deren Geräte **nicht** am EMS hängen –
+  kleine Helfer wie auch größere Verbraucher, die **unregelmäßig** laufen und
+  deshalb nicht zur planbaren Grundlast gehören. „Kleinvieh macht auch Mist."
+- **Die Lücke:** Die wenigsten Geräte sind wirklich ans EMS angeschlossen. Für
+  alles übrige ist man bisher **auf sich allein gestellt**.
+- **Die App steuert nichts** – sie berät. Deshalb braucht sie keine
+  Geräte-Anbindung, keine Konten, keine laufenden Kosten. **Deshalb ist sie
+  kostenlos.** Live-Steuerung ist und bleibt Aufgabe des EMS.
+
+### Die zwei Hebel, die die App nutzt
+
+1. **Sonne** – wann scheint sie, auch **vorausschauend**: heute, morgen und über
+   den Wochenausblick („wann ist wieder ein guter Tag?"). Was sich aufschieben
+   lässt, wandert dorthin, wo Sonne frei ist.
+2. **Dynamischer Strompreis** – wenn wenig Sonne da ist, zählt der günstige
+   Zeitpunkt am Netz. Die Börsenpreise für den Folgetag stehen **ab etwa 14 Uhr**
+   zur Verfügung; ab dann kann die App den nächsten Tag vollständig planen.
+
+### Was auf die Seite gehört
+
+- Sinn & Zweck in einfachen Worten (Text oben)
+- Klare Trennung **EMS ↔ diese App** – am besten als Gegenüberstellung
+- Die beiden Hebel (Sonne / dynamischer Preis) kurz erklärt
+- **Verlinkung auf die Demo-Tour** – zeigen statt beschreiben
+- **Spenden-Knopf** (siehe unten) – hier ist sein natürlicher Platz
+- Im gewohnten Look der App
+
+### Spenden-Knopf – Entscheidung gefallen
+
+- **Dienst: PayPal** (vom Betreiber favorisiert – kennt in Deutschland fast jeder)
+- **Platz: auf dieser Zweck-Seite.** Wer liest, warum es die App gibt, ist im
+  richtigen Moment. Optionaler Zweitplatz: unten in der Bilanz unter „Deine
+  Wirkung" – beim Bauen entscheiden, ob beides oder nur einer.
+- **Ausdrücklich nicht:** Startseite (Arbeitsfläche), Pop-up, Tab-Leiste
+- Ton: Danke, nicht Schranke – „Diese App ist kostenlos, werbefrei und sammelt
+  keine Daten. Wenn sie dir hilft: ☕"
+- Zurückhaltung: „nicht mehr anzeigen"-Möglichkeit; kein Betteln
+- Technisch: externer Link (PayPal.me). Im Play Store ohnehin Pflicht – Googles
+  eigene Bezahlfunktion ist für Spenden gesperrt. Ein Link deckt Web, iPhone und
+  Android ab.
+
+### Warum das obendrein Arbeit spart
+
+Genau dieser Text ist später die **Store-Beschreibung** (Play Store Phase 3
+verlangt Kurz- und Langbeschreibung). Einmal gut formuliert = zweimal genutzt.
 
 ---
 
-## Rang 2 – Übersicht bei wachsenden Daten ← **jetzt oben**
+## Rang 2 – Übersicht bei wachsenden Daten
 
 Ziel des Betreibers: Der Look soll nicht zerreißen, je mehr Daten sich ansammeln.
 
 **Regel: „Drei sichtbar, Rest im Aufklapper."**
 Vorlage existiert bereits und funktioniert: Bilanz-Archiv („27 weitere Läufe
-anzeigen") und die sechs `details.egrp`-Klappgruppen im Einrichten.
+anzeigen"), die sechs `details.egrp`-Klappgruppen im Einrichten und seit v79
+die Geräteliste auf der Startseite.
 
 | Stelle | Wächst mit | Vorschlag |
 |---|---|---|
@@ -58,41 +88,13 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ---
 
-## Rang 3 – Spendenknopf
-
-Entscheidung steht: App bleibt **kostenlos und werbefrei** (siehe PLAYSTORE.md),
-Spenden sind die einzige Einnahmequelle. Umsetzung **erst mit der Store-Runde**.
-
-**Platzierung – zwei Plätze, kein dritter:**
-- **Hauptplatz: unten in der Bilanz**, direkt unter „Deine Wirkung". Der Moment,
-  in dem jemand die eigene Ersparnis sieht – da wirkt die Frage stimmig.
-- **Zweitplatz: in der Hilfe („?")**, als ruhige Dauer-Zeile zum Wiederfinden.
-
-**Ausdrücklich nicht:** Startseite (Arbeitsfläche), Pop-up, Tab-Leiste,
-Unterbrechung jeder Art.
-
-**Zurückhaltung eingebaut:**
-- Erst nach ca. **10 bestätigten Läufen** zeigen
-- **„Nicht mehr anzeigen"** daneben, dauerhaft wirksam
-- Ton: Danke, nicht Schranke – „Diese App ist kostenlos, werbefrei und sammelt
-  keine Daten. Wenn sie dir hilft: ☕"
-
-**Technik:** externer Link (Ko-fi / Buy Me a Coffee / PayPal.me / Liberapay).
-Im Play Store Pflicht – Googles Bezahlfunktion ist für Spenden gesperrt.
-Ein Link deckt Web, iPhone und Android ab. Beträge (1/3/5 €) beim Dienst selbst.
-
-❓ **Offene Entscheidung Betreiber:** Welcher Dienst? Ko-fi ist am freundlichsten
-gestaltet, PayPal.me kennt in Deutschland dagegen fast jeder.
-
----
-
 ## Offene Punkte (kein Rang – Erinnerung)
 
 - **Impressum**: enthält noch Platzhalter statt ladungsfähiger Anschrift.
   Nötig, bevor die Seite öffentlich auffindbar wird (aktuell per `noindex` +
   robots.txt bewusst versteckt).
-- **Play Store Phase 3**: Konto (25 $), 12 Tester über 14 Tage, Store-Texte,
-  Feature-Grafik 1024×500.
+- **Play Store Phase 3**: Konto (25 $), 12 Tester über 14 Tage, Store-Texte
+  (→ kommen aus Rang 1), Feature-Grafik 1024×500.
 - **Fester Signaturschlüssel**: Der Bau-Workflow erzeugt derzeit je Lauf einen
   neuen Schlüssel → `.well-known/assetlinks.json` müsste bei jedem Neubau
   mitziehen. Vor dem Store einmal festzurren (Secrets sind im Workflow schon
@@ -105,9 +107,14 @@ gestaltet, PayPal.me kennt in Deutschland dagegen fast jeder.
 
 ## Erledigt
 
-- **v79** – Hakeliges Scrollen (Rang 1): Wischerkennung gab dem Scrollen den
-  Vorrang, `touch-action` ergänzt, verschachtelter Scrollkasten der
-  Startseiten-Geräteliste durch einen Aufklapper ersetzt.
+- **v79** – Hakeliges Scrollen (früher Rang 1). Drei Ursachen überlagerten sich:
+  die Wischerkennung war zu großzügig (`|dx|>8 && |dx|>|dy|+2` wertete schon
+  einen leicht schrägen Scrollversuch als Wischen), `.dash-row` fehlte
+  `touch-action:pan-y`, und die Startseiten-Liste war ein eigener Scrollkasten
+  (`max-height:172px`, mit Vorschlags-Chip sogar 88 px). Gelöst über den
+  gemeinsamen Helfer `gestenModus()` (im Zweifel gewinnt Scrollen),
+  `touch-action` und einen Aufklapper statt Scrollkasten.
+  Test: `test_scroll.js` 16/16 mit echten Touch-Ereignissen.
 - **v78** – Mehrere Läufe pro Gerät und Tag wurden nur einmal gezählt (Bilanz
   zeigte einen Durchgang zu wenig). Ursache: `protokolliereLauf` ersetzte den
   ganzen Tag statt des einzelnen Laufs.
@@ -117,3 +124,5 @@ gestaltet, PayPal.me kennt in Deutschland dagegen fast jeder.
 - **APK** per GitHub-Actions-Workflow baubar, Digital Asset Links veröffentlicht
   (App läuft im Vollbild ohne Adressleiste).
 - **Suchmaschinen** während der Testphase ausgesperrt.
+- **Monetarisierung entschieden**: kostenlos & werbefrei, Spenden per PayPal
+  (Details siehe Rang 1 und PLAYSTORE.md).
