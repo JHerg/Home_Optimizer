@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "eu.energieoptimierer.app",
+      "sha256_cert_fingerprints": [
+        "49:76:31:75:EE:B5:D2:F5:A9:34:02:62:D6:6E:1B:DE:0B:D8:6A:92:94:0A:52:6D:77:EF:B1:A8:E1:DB:92:46"
+      ]
+    }
+  }
+]
