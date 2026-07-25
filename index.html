@@ -648,7 +648,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-del-bg,.dash-pin-bg{position:absolute;inset:0;display:flex;align-items:center;font-size:16px;opacity:0}
 .dash-del-bg{background:var(--rot);justify-content:flex-end;padding-right:16px}
 .dash-pin-bg{background:var(--sonne);justify-content:flex-start;padding-left:16px}
-.dash-row{position:relative;display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:12px;cursor:pointer;transition:background var(--schnell)}
+/* touch-action:pan-y = „senkrecht darf der Browser selbst scrollen" (wie .pl-zeile).
+   Ohne diese Angabe musste jede Berührung durch die JS-Wischerkennung. */
+.dash-row{position:relative;display:flex;align-items:center;gap:11px;padding:8px 8px;border-radius:12px;cursor:pointer;transition:background var(--schnell);touch-action:pan-y}
 .dash-row:active{background:var(--papier)}
 .dash-row.wischt{background:var(--karte)}
 .dash-ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;background:var(--papier)}
@@ -663,12 +665,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-leer .dash-leer-btn{margin-top:11px;display:inline-block;border:none;border-radius:100px;background:var(--sonne);color:#3A2600;font-family:var(--sans);font-size:13.5px;font-weight:700;padding:9px 18px;cursor:pointer}
 .dash-leer .dash-leer-btn:active{transform:scale(.96)}
 .dash-plan{position:relative}
-.dash-plan-card.hat-mehr .dash-plan{padding-bottom:16px}
-.dash-plan-card.hat-mehr .dash-plan::after{content:"";position:absolute;left:0;right:0;bottom:0;height:30px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--glass))}
-.dash-plan-card.hat-mehr .dash-plan::before{content:"↓ mehr Geräte";position:absolute;left:50%;bottom:1px;transform:translateX(-50%);z-index:2;pointer-events:none;font-size:9.5px;font-weight:700;color:var(--grau);letter-spacing:.02em}
-.dash-rows{max-height:172px;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-#dashboard.hat-vorschlag .dash-rows{max-height:88px} /* Platz für den Vorschlags-Chip – Liste scrollt intern */
-.dash-rows::-webkit-scrollbar{display:none}
+/* Der frühere Überlauf-Schleier samt „↓ mehr Geräte" entfällt: es gibt keinen
+   internen Scrollbereich mehr, der Rest steckt sichtbar im Aufklapper. */
+/* Kein eigener Scrollbereich mehr: die Liste zeigt die ersten Geräte und legt den
+   Rest in einen Aufklapper (.dash-mehr). Verschachteltes Scrollen war auf dem
+   Handy kaum bedienbar und hat mit den Wischgesten um jede Berührung gerungen. */
+.dash-rows{overflow:visible}
+.dash-mehr{margin-top:6px;padding:10px 12px}
+.dash-mehr .dash-rows{margin-top:4px}
 .dash-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:100px;margin-left:2px;vertical-align:middle;letter-spacing:.01em}
 .dash-badge.run{background:var(--gruen-hell);color:var(--gruen)}
 .dash-badge.run i{width:6px;height:6px;border-radius:50%;background:var(--gruen);animation:dash-blink 1.4s ease-in-out infinite}
@@ -1691,8 +1695,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=78;
+const APP_VERSION=79;
 const NEUES=[
+  {v:79,t:["👆 <b>Scrollen klappt jetzt zuverlässig</b>: In der Geräteliste wurde ein leicht schräger Wisch nach unten oft als „zur Seite wischen“ gewertet – die Liste blieb stehen. Jetzt gewinnt im Zweifel immer das Scrollen; nur eine klar waagerechte Bewegung entfernt oder verankert ein Gerät","📋 <b>Die Geräteliste auf der Startseite scrollt nicht mehr in sich selbst.</b> Statt eines winzigen Fensterchens (das mit Vorschlags-Hinweis nur noch anderthalb Zeilen hoch war) stehen die ersten vier Geräte offen da, der Rest steckt in „weitere Geräte anzeigen“ – wie das Archiv in der Bilanz"]},
   {v:78,t:["🔧 <b>Mehrere Läufe pro Gerät und Tag werden jetzt vollständig gezählt</b>: Lief z. B. die Waschmaschine zweimal am selben Tag (etwa direkt nacheinander), stand in der Bilanz bisher nur <b>einer</b> der Durchgänge – der frühere wurde vom späteren überschrieben. Jetzt zählt jeder Durchgang einzeln, in „Letzte Läufe“ wie auch in Sonne, Ersparnis und CO₂","♻️ Für <b>heute</b> holt die App verlorene Durchgänge automatisch zurück (aus der Liste „Heute schon gelaufen“). Ältere Tage lassen sich leider nicht mehr rekonstruieren"]},
   {v:77,t:["📱 <b>Android-Zurück-Taste &amp; Wisch-zurück</b>: Die Zurück-Taste – und die Zurück-Wischgeste am Bildschirmrand – schließt jetzt erst offene Blätter und Dialoge, statt gleich die App zu verlassen","🔒 <b>Datenschutzerklärung &amp; Impressum</b> als eigene Seite (unten unter „Datenquellen &amp; Rechtliches“) plus Feinschliff am App-Symbol – Vorbereitung, damit die App in den Google Play Store kann"]},
   {v:76,t:["⏱️ Die <b>− / ＋ Tasten</b> in der Geräte-Liste verschieben jetzt auch in <b>15-Minuten-Schritten</b> (vorher ganze Stunden) – wie das Ziehen per Finger"]},
@@ -1811,7 +1816,20 @@ function entferneMitUndo(tagKey,b){
   entferneGeraetVomTag(tagKey,b.name,b.routine);
   zeigeToast((b.routine?"🔁 ":"")+b.icon+" "+kurzName(b.name)+" entfernt", ()=>zustandWiederherstellen(snap));
 }
-// Nach links wischen auf einer Tagesplan-Zeile = entfernen (mit Rückgängig).
+/* Wischen oder Scrollen? – gemeinsame Entscheidung für alle Listenzeilen.
+   Im Zweifel gewinnt das SCROLLEN: Nur eine klar waagerechte Bewegung gilt als
+   Wischgeste. Früher reichten „8 px zur Seite und 2 px mehr als nach unten" –
+   dadurch wurde ein leicht schräger Scrollversuch (z. B. 10 zur Seite, 7 nach
+   unten) als Wischen gewertet und die Liste blieb stehen. */
+const SWIPE_MIN=14;       // Mindeststrecke waagerecht, bevor gewischt wird
+const SWIPE_FAKTOR=1.8;   // waagerecht muss die Senkrechte klar dominieren
+const SCROLL_MIN=6;       // ab hier gilt: hier will jemand scrollen
+function gestenModus(cx,cy){
+  const ax=Math.abs(cx), ay=Math.abs(cy);
+  if(ay>SCROLL_MIN && ay*SWIPE_FAKTOR>=ax) return "off";    // senkrechte Absicht -> Seite scrollen lassen
+  if(ax>SWIPE_MIN && ax>ay*SWIPE_FAKTOR)   return "swipe";  // eindeutig waagerecht -> Wischgeste
+  return "pending";                                          // noch nicht entscheidbar
+}
 // Wischgesten auf einer Tagesplan-Zeile: links = entfernen (mit Rückgängig), rechts = Zeit verankern/lösen.
 function swipeGesten(zeile,tagKey){
   const wrap=zeile.parentNode, del=wrap.querySelector(".pl-del-bg"), pin=wrap.querySelector(".pl-pin-bg");
@@ -1824,9 +1842,9 @@ function swipeGesten(zeile,tagKey){
     if(modus==="off")return;
     const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
     if(modus==="pending"){
-      if(Math.abs(cx)>8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";}
-      else if(Math.abs(cy)>8){modus="off";return;}
-      else return;
+      const m=gestenModus(cx,cy);
+      if(m!=="swipe"){ if(m==="off")modus="off"; return; } // scrollen lassen oder weiter abwarten
+      modus="swipe";
     }
     dx=cx;                                               // links (−) = entfernen, rechts (+) = verankern
     zeile.style.transform="translateX("+dx+"px)";
@@ -1864,9 +1882,9 @@ function swipeDash(zeile,tagKey){
     if(modus==="off")return;
     const cx=e.touches[0].clientX-x0, cy=e.touches[0].clientY-y0;
     if(modus==="pending"){
-      if(Math.abs(cx)>8 && Math.abs(cx)>Math.abs(cy)+2){modus="swipe";zeile.classList.add("wischt");}
-      else if(Math.abs(cy)>8){modus="off";return;}
-      else return;
+      const m=gestenModus(cx,cy);
+      if(m!=="swipe"){ if(m==="off")modus="off"; return; } // scrollen lassen oder weiter abwarten
+      modus="swipe"; zeile.classList.add("wischt");
     }
     dx=cx;
     zeile.style.transform="translateX("+dx+"px)";
@@ -3109,7 +3127,13 @@ function renderDashboard(arr){
   items.sort((a,b)=>a.start-b.start);
   let rows="";
   if(items.length){
-    items.forEach(it=>{
+    /* Erste Geräte offen, Rest im Aufklapper – statt eines eigenen kleinen
+       Scrollkastens in der Karte. Verschachteltes Scrollen war auf dem Handy
+       kaum bedienbar (der Kasten war nur ~3 Zeilen bzw. mit Vorschlags-Chip
+       sogar ~1,5 Zeilen hoch). Gleiches Muster wie das Archiv in der Bilanz. */
+    const DASH_OFFEN=4;
+    let rowsRest=""; let restAnz=0;
+    items.forEach((it,idx)=>{
       const zeit = it.start>=24 ? "ohne feste Zeit" : (it.ende!=null? uhrStr(it.start)+"–"+uhrStr(it.ende)+" Uhr" : uhrStr(it.start)+" Uhr");
       const kwhStr = it.kwh!=null? " · "+dz(it.kwh.toFixed(1))+" kWh" : "";
       // Status-Badge
@@ -3128,11 +3152,15 @@ function renderDashboard(arr){
         '<span class="dash-info"><span class="dash-nm">'+nm+'</span>'+
           '<span class="dash-sub">'+zeit+kwhStr+badge+'</span></span>'+
         right+'</div>';
-      rows+='<div class="dash-swipe">'+
+      const block='<div class="dash-swipe">'+
         (it.done?"":'<div class="dash-del-bg"><span>🗑</span></div><div class="dash-pin-bg"><span>📌</span></div>')+
         zeileHtml+'</div>';
+      if(idx<DASH_OFFEN) rows+=block; else { rowsRest+=block; restAnz++; }
     });
-    rows='<div class="dash-rows">'+rows+'</div>';
+    rows='<div class="dash-rows">'+rows+'</div>'+
+      (restAnz?'<details class="experte dash-mehr"><summary>📋 '+
+        (restAnz===1?'1 weiteres Gerät':restAnz+' weitere Geräte')+
+        ' anzeigen</summary><div class="dash-rows">'+rowsRest+'</div></details>':'');
   } else {
     rows='<div class="dash-leer">'+
       (!kannPlanen ? 'Noch keine Preisdaten für diesen Tag.'
@@ -3166,9 +3194,8 @@ function renderDashboard(arr){
   dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ swipeDash(r,tagKey); });
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
   const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
-  // Scroll-Hinweis: Liste scrollt intern, wenn mehr Geräte als sichtbar
-  const card=$("dash-plan-card"), dr=card.querySelector(".dash-rows");
-  card.classList.toggle("hat-mehr", !!(dr && dr.scrollHeight>dr.clientHeight+2));
+  // Hinweis: Die Verdrahtung oben erfasst über querySelectorAll auch die Zeilen
+  // im Aufklapper „weitere Geräte" – dort gelten Tippen und Wischen genauso.
   // --- Gelernte, heute fällige Vorschläge direkt auf der Startseite ---
   renderDashVorschlaege(tagKey, arr);
   // Einmalige, dezente Einblendung der Startseite (nach dem ersten echten Rendern).
@@ -3177,12 +3204,12 @@ function renderDashboard(arr){
 // „💡 Fällig"-Chips auf der Startseite: gelerntes Muster wird hier sichtbar & mit 1 Tipp übernommen.
 function renderDashVorschlaege(tagKey, arr){
   const box=$("dash-vorschlag"); if(!box)return;
-  const dash=$("dashboard");
   // Urlaubs-Modus: auch die Rhythmus-Karte pausiert für Tage im Urlaubszeitraum (v71)
   const list=urlaubAn(tagKey)?[]:vorschlaegeFuer(tagKey);
-  if(!list.length){ box.hidden=true; box.innerHTML=""; if(dash)dash.classList.remove("hat-vorschlag"); return; }
+  if(!list.length){ box.hidden=true; box.innerHTML=""; return; }
   box.hidden=false;
-  if(dash)dash.classList.add("hat-vorschlag"); // Geräteliste schrumpft, damit alles scrollfrei bleibt
+  // (Früher schrumpfte hier die Geräteliste auf ~88 px, damit der Chip ohne
+  //  Scrollen passte. Entfällt – die Liste klappt den Rest jetzt selbst weg.)
   box.innerHTML='<div class="dash-vs-titel">💡 Aus deinem Rhythmus – heute fällig</div>'+
     list.map(v=>'<div class="dash-vs">'+
       '<span class="dash-vs-ic">'+v.icon+'</span>'+
