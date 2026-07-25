@@ -1691,8 +1691,9 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=77;
+const APP_VERSION=78;
 const NEUES=[
+  {v:78,t:["🔧 <b>Mehrere Läufe pro Gerät und Tag werden jetzt vollständig gezählt</b>: Lief z. B. die Waschmaschine zweimal am selben Tag (etwa direkt nacheinander), stand in der Bilanz bisher nur <b>einer</b> der Durchgänge – der frühere wurde vom späteren überschrieben. Jetzt zählt jeder Durchgang einzeln, in „Letzte Läufe“ wie auch in Sonne, Ersparnis und CO₂","♻️ Für <b>heute</b> holt die App verlorene Durchgänge automatisch zurück (aus der Liste „Heute schon gelaufen“). Ältere Tage lassen sich leider nicht mehr rekonstruieren"]},
   {v:77,t:["📱 <b>Android-Zurück-Taste &amp; Wisch-zurück</b>: Die Zurück-Taste – und die Zurück-Wischgeste am Bildschirmrand – schließt jetzt erst offene Blätter und Dialoge, statt gleich die App zu verlassen","🔒 <b>Datenschutzerklärung &amp; Impressum</b> als eigene Seite (unten unter „Datenquellen &amp; Rechtliches“) plus Feinschliff am App-Symbol – Vorbereitung, damit die App in den Google Play Store kann"]},
   {v:76,t:["⏱️ Die <b>− / ＋ Tasten</b> in der Geräte-Liste verschieben jetzt auch in <b>15-Minuten-Schritten</b> (vorher ganze Stunden) – wie das Ziehen per Finger"]},
   {v:75,t:["🕘 Kleiner Nachschliff zur Viertelstunden-Planung: die Uhrzeit in der Geräte-Liste steht jetzt sauber als <b>9:30</b> statt „9.5"]},
@@ -1978,6 +1979,11 @@ function deviceKey(g){return (g.typ||"")+"|"+g.name;}
 // ===== Gewohnheits-Engine: lernt aus tatsächlichen Läufen und schlägt Fälliges vor =====
 // Einträge sind {d:"YYYY-MM-DD", s:Startstunde|null}; ältere reine Datums-Strings bleiben lesbar.
 function vDatum(e){return typeof e==="string"?e:(e&&e.d);}
+// Startstunde eines Verlaufseintrags (Alt-Einträge sind reine Datums-Strings ohne Zeit).
+function vStart(e){return (e&&typeof e==="object"&&e.s!=null)?e.s:null;}
+// Ein Lauf wird über Tag UND Startzeit identifiziert – nicht nur über den Tag,
+// sonst verdrängen sich mehrere Durchgänge desselben Geräts am selben Tag.
+function vGleicherLauf(e,tagKey,start){return vDatum(e)===tagKey && vStart(e)===(start==null?null:start);}
 // Ein bestätigter Lauf (Häkchen "schon gelaufen") wird selbstständig protokolliert:
 // Tag, Startstunde, kWh, Icon und Laufzeit – damit der Verlauf auch nach Gerätelöschung vollständig bleibt.
 const CO2_FAKTOR=0.38; // kg CO₂ je kWh Netzstrom (dt. Strommix, grober Richtwert)
@@ -2017,14 +2023,23 @@ function schaetzeLaufBilanz(dateStr,start,dauer,kwh){
   const son=Math.round(kwh*anteil*1000)/1000;
   return { son, spar:Math.round(son*SCHAETZ_PREIS_CT*10)/10, est:1 };
 }
-function protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bilanz){
+/* altStart: beim nachträglichen Ändern einer Laufzeit die ALTE Startzeit mitgeben,
+   damit genau dieser Eintrag ersetzt wird statt eine Dublette zu erzeugen.
+   Bis v77 wurde hier stattdessen der ganze Tag geleert – lief dasselbe Gerät
+   zweimal am Tag, überschrieb der zweite Lauf den ersten und in der Bilanz
+   („Letzte Läufe", Sonnen-/Sparsummen) tauchte nur noch einer auf. */
+function protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bilanz,altStart){
   cfg.verlauf=cfg.verlauf||{};
-  let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>vDatum(e)!==tagKey); // gleicher Tag: ersetzen
+  const ziel=(altStart!==undefined?altStart:start);
+  let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>!vGleicherLauf(e,tagKey,ziel)); // nur DIESEN Lauf ersetzen
   const e={d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)};
   if(icon)e.i=icon; if(dauer!=null)e.du=dauer;
   if(bilanz){ if(bilanz.son!=null)e.son=bilanz.son; if(bilanz.spar!=null)e.spar=bilanz.spar; }
   l.push(e);
-  l.sort((a,b)=>vDatum(a)<vDatum(b)?-1:1);
+  // Nach Tag, bei mehreren Läufen am selben Tag zusätzlich nach Startzeit sortieren.
+  l.sort((a,b)=>{ const da=vDatum(a),db=vDatum(b);
+    if(da!==db)return da<db?-1:1;
+    return (vStart(a)==null?-1:vStart(a))-(vStart(b)==null?-1:vStart(b)); });
   if(l.length>60)l=l.slice(l.length-60);            // Speicher deckeln
   cfg.verlauf[name]=l;
 }
@@ -2810,11 +2825,16 @@ function wireErledigt(tagKey){
   box.querySelectorAll("[data-erl-undo]").forEach(b=>b.onclick=()=>{
     const l=cfg.erledigt&&cfg.erledigt[tagKey];if(!l)return;
     const i=+b.dataset.erlUndo; const e=l[i]; if(!e)return;
-    const name=e.name; l.splice(i,1); // genau diesen Durchgang zurückholen
+    const name=e.name, altS=(e.s!=null?e.s:null); l.splice(i,1); // genau diesen Durchgang zurückholen
     if(!l.length)delete cfg.erledigt[tagKey];
-    // War es der letzte Durchgang dieses Geräts heute? Dann auch aus der Lern-Historie nehmen.
+    // Auch aus der Lern-Historie nur GENAU diesen Durchgang nehmen – andere Läufe
+    // desselben Geräts am selben Tag müssen erhalten bleiben.
     const nochDa=(cfg.erledigt[tagKey]||[]).some(x=>x.name===name);
-    if(!nochDa && cfg.verlauf && cfg.verlauf[name]) cfg.verlauf[name]=cfg.verlauf[name].filter(x=>vDatum(x)!==tagKey);
+    if(cfg.verlauf && cfg.verlauf[name]){
+      if(!nochDa) cfg.verlauf[name]=cfg.verlauf[name].filter(x=>vDatum(x)!==tagKey); // keiner mehr heute: Tag räumen
+      else{ const idx=cfg.verlauf[name].findIndex(x=>vGleicherLauf(x,tagKey,altS));
+            if(idx>=0)cfg.verlauf[name].splice(idx,1); }
+    }
     speichern();platzSig="";aktualisieren();
   });
   box.querySelectorAll("[data-erl-edit]").forEach(b=>b.onclick=async()=>{
@@ -2824,9 +2844,11 @@ function wireErledigt(tagKey){
     const minH=Math.min(e.s, v?v.von:e.s), maxH=Math.max(e.e, v?v.bis:e.e);
     const res=await frageLaufzeit((e.icon||"")+" "+kurzName(e.name), e.s, e.e, minH, maxH);
     if(!res)return;
+    const altS=e.s;              // alte Startzeit merken: identifiziert den zu ersetzenden Eintrag
     e.s=res.s; e.e=res.e;
-    // Lern-Historie dieses Tages an die geänderte Laufzeit anpassen (Startzeit + Dauer)
-    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s,laufBilanz(aktuelleStunden,e.s,e.e-e.s,e.k));
+    // Lern-Historie dieses Laufs an die geänderte Laufzeit anpassen (Startzeit + Dauer).
+    // Ohne altS würde beim Verschieben ein zweiter Eintrag entstehen.
+    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s,laufBilanz(aktuelleStunden,e.s,e.e-e.s,e.k),altS);
     speichern();platzSig="";aktualisieren(); // echtes Fenster fließt in Belegung/Reservierung ein → Rest wird frei
   });
 }
@@ -5174,6 +5196,30 @@ function seedPresets(){
       });
     });
     cfg.wirkungBackfill1=true;geaendert=true;
+  }
+  // Reparatur (v78): Bis v77 hielt die Lern-Historie nur EINEN Eintrag je Gerät und Tag –
+  // ein zweiter Durchgang desselben Geräts überschrieb den ersten und fehlte in der Bilanz.
+  // Für HEUTE lässt sich das aus der Erledigt-Liste rekonstruieren (dort steht jeder
+  // Durchgang einzeln). Ältere Tage sind verloren, weil „erledigt" nur heute vorhält.
+  if(!cfg.verlaufProLauf1){
+    const hk=heuteStr();
+    ((cfg.erledigt&&cfg.erledigt[hk])||[]).forEach(x=>{
+      if(!x||!x.name||x.s==null)return;
+      cfg.verlauf=cfg.verlauf||{};
+      const l=(cfg.verlauf[x.name]=cfg.verlauf[x.name]||[]);
+      if(l.some(v=>vGleicherLauf(v,hk,x.s)))return;          // dieser Lauf ist schon drin
+      const du=(x.e!=null?x.e-x.s:null);
+      const neu={d:hk, s:x.s, k:(x.k!=null?x.k:null)};
+      if(x.icon)neu.i=x.icon; if(du!=null)neu.du=du;
+      const b=schaetzeLaufBilanz(hk,x.s,du||1,x.k);          // echte Stundendaten fehlen hier noch → Schätzung
+      if(b){neu.son=b.son;neu.spar=b.spar;neu.est=1;}
+      l.push(neu);
+      l.sort((p,q)=>{ const dp=vDatum(p),dq=vDatum(q);
+        if(dp!==dq)return dp<dq?-1:1;
+        return (vStart(p)==null?-1:vStart(p))-(vStart(q)==null?-1:vStart(q)); });
+      geaendert=true;
+    });
+    cfg.verlaufProLauf1=true;geaendert=true;
   }
   if(geaendert)speichern();
 }
