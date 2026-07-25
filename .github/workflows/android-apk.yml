@@ -120,13 +120,24 @@ jobs:
           EOF
           cat twa-manifest.json
 
+      - name: Android-Projekt aus der Beschreibung erzeugen
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.storepass }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ steps.keystore.outputs.storepass }}
+        run: |
+          # Bubblewrap fragt sonst interaktiv nach ("regenerate project? Y/n") und
+          # bricht im automatischen Lauf ab. "yes" beantwortet die Rueckfragen.
+          yes | bubblewrap update --skipVersionUpgrade || true
+          echo "--- erzeugte Projektdateien ---"
+          ls -la
+
       - name: APK bauen
         env:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.storepass }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ steps.keystore.outputs.storepass }}
         run: |
-          set -e
-          bubblewrap build --skipPwaValidation
+          set -o pipefail
+          yes | bubblewrap build --skipPwaValidation
           echo "--- gebaute Dateien ---"
           ls -la *.apk *.aab 2>/dev/null || true
 
