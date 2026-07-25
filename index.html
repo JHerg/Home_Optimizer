@@ -244,6 +244,23 @@ details.egrp>.eg-body{padding:14px 13px 0;border-top:1px dashed var(--linie)}
 .hilfe-tipps div{font-size:12.5px;color:var(--tinte);line-height:1.5;padding:11px 0}
 .hilfe-tipps div+div{border-top:.5px solid var(--linie)}
 .hilfe-tipps b{color:var(--nacht);font-weight:600}
+/* „Wofür ist das?" – Positionierung ganz oben im Hilfe-Blatt */
+.zweck{background:var(--papier);border-radius:14px;padding:14px 16px;margin:2px 0 12px}
+.zweck .z-kern{font-size:15px;font-weight:700;color:var(--nacht);line-height:1.35;margin-bottom:7px}
+.zweck .z-tx{font-size:13.5px;color:var(--tinte);line-height:1.55}
+.zweck .z-tx+.z-tx{margin-top:9px}
+.zweck .z-frage{font-size:13.5px;font-weight:700;color:var(--nacht);margin-top:12px}
+.zweck b{color:var(--nacht);font-weight:600}
+.hebel{display:flex;flex-direction:column;gap:9px;margin:0 0 14px}
+.hebel div{background:var(--papier);border-radius:12px;padding:11px 14px;font-size:13.5px;color:var(--tinte);line-height:1.5}
+.hebel b{color:var(--nacht);font-weight:600}
+/* Spenden – bewusst leise: eine Zeile Text, ein Knopf, kein Aufreißer */
+.spenden{background:var(--sonne-hell);border-radius:14px;padding:14px 16px;margin:14px 0 4px}
+.spenden .sp-tx{font-size:13px;color:var(--tinte);line-height:1.55}
+.spenden .sp-btn{display:block;width:100%;margin-top:11px;padding:12px;border:none;border-radius:12px;
+  background:var(--knopf);color:var(--knopf-fg);font-family:var(--sans);font-size:14px;font-weight:700;
+  text-align:center;text-decoration:none;cursor:pointer;transition:transform var(--schnell)}
+.spenden .sp-btn:active{transform:scale(.98)}
 .hilfe-fertig{width:100%;padding:15px;border:none;border-radius:14px;background:var(--knopf);color:var(--knopf-fg);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;transition:transform var(--schnell)}
 .hilfe-fertig:active{transform:scale(.98)}
 .adresse-zeile{display:flex;gap:8px}
@@ -1044,10 +1061,26 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
      ============================================================================ -->
 <div class="sheet" id="sheet-hilfe" role="dialog" aria-label="So funktioniert's">
   <button class="sheet-schliessen" data-zu>✕</button>
-  <h3>So funktioniert's ☀️</h3>
-  <div class="sub">Mehr Eigenverbrauch, weniger Netzbezug – in Kürze.</div>
+  <h3>Wofür ist das? ☀️</h3>
+  <div class="sub">Mehr eigener Sonnenstrom im Haus – bei den Geräten, die du selbst startest.</div>
 
-  <div class="hilfe-features">
+  <div class="zweck">
+    <div class="z-kern">Waschen, wenn die Sonne scheint – statt wenn der Zähler läuft.</div>
+    <div class="z-tx">Deine Anlage liefert tagsüber Strom, der oft für Centbeträge ins Netz geht. Gleichzeitig läuft die Waschmaschine abends und kostet das Vierfache. Diese App sagt dir, <b>wann du starten solltest</b>, damit dein eigener Strom im Haus bleibt.</div>
+    <div class="z-frage">Und was ist mit dem Energiemanager?</div>
+    <div class="z-tx">Ein EMS regelt, was <b>fest angeschlossen</b> ist – Wärmepumpe, Speicher, Wallbox. Waschmaschine, Trockner und Spülmaschine hängen bei den wenigsten daran. Die startest du selbst, sie laufen unregelmäßig – und genau da bist du bisher auf dich allein gestellt. Diese App füllt diese Lücke: <b>Sie steuert nichts, sie nennt dir den richtigen Moment.</b></div>
+  </div>
+
+  <div class="hebel">
+    <div>☀️ <b>Deine Sonne.</b> Die App weiß, wann dein Dach heute, morgen und diese Woche Strom übrig hat. Was sich aufschieben lässt, wandert dorthin.</div>
+    <div>💶 <b>Der Strompreis.</b> Wenn wenig Sonne da ist, zählt der günstige Zeitpunkt am Netz. Ab etwa 14 Uhr stehen die Börsenpreise für morgen fest – ab dann ist der ganze nächste Tag planbar.</div>
+  </div>
+
+  <button class="hilfe-fertig demo-start-btn" id="btn-demo-start">▶ Demo-Tour ansehen (läuft automatisch ab)</button>
+
+  <details class="experte" style="margin:14px 0 0">
+    <summary>☀️ So funktioniert's – Schritt für Schritt</summary>
+  <div class="hilfe-features" style="margin-top:10px">
     <div class="hilfe-feature">
       <div class="hf-ic sonne">☀️</div>
       <div class="hf-body"><div class="hf-titel">Freie Sonne finden</div>
@@ -1079,16 +1112,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
         <div class="hf-sub">Die App <b>berät nur</b> – starten musst du (oder dein Energiemanager). Alles bleibt <b>lokal</b>, kein Konto, keine Cloud.</div></div>
     </div>
   </div>
+  </details>
 
-  <div class="hilfe-tipps">
+  <details class="experte" style="margin:8px 0 0">
+    <summary>👆 Tipps zur Bedienung</summary>
+  <div class="hilfe-tipps" style="margin-top:6px">
     <div>👆 <b>Wischen im Tagesplan:</b> nach links = Gerät aus dem Tag, nach rechts = 📌 Zeit festhalten.</div>
     <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
     <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
     <div>💶 <b>Dynamischer Tarif:</b> Wie Börsenpreise im Sommer/Winter typisch verlaufen, zeigt „Einrichten → 📈 Preis-Wissen".</div>
     <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Sonnen-Ausblick, Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
   </div>
+  </details>
 
-  <details class="experte" style="margin:14px 0 0">
+  <details class="experte" style="margin:8px 0 0">
     <summary>📋 Was ist neu (Versionen)</summary>
     <div id="neu-verlauf" style="margin-top:10px"></div>
   </details>
@@ -1099,8 +1136,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="vt-tx">Alles läuft direkt in deinem Browser – deine Daten bleiben auf deinem Gerät. Offene, überprüfbare Datenquellen (Open-Meteo, aWATTar, OpenStreetMap). Die App <b>berät nur</b> – starten musst du selbst.</div>
   </div>
 
+  <div class="spenden" id="spenden-hilfe" hidden></div>
+
   <button class="hilfe-fertig teilen-btn" id="btn-teilen">❤️ Gefällt dir? App teilen</button>
-  <button class="hilfe-fertig demo-start-btn" id="btn-demo-start">▶ Demo-Tour ansehen (läuft automatisch ab)</button>
   <button class="hilfe-fertig" data-zu>Los geht's</button>
 </div>
 
@@ -1695,8 +1733,24 @@ function ladeGespeichert(){
 }
 
 /* App-Version + „Was ist neu": pro Release oben einen Eintrag ergänzen (neueste zuerst). */
-const APP_VERSION=79;
+/* Spenden – bewusst leise: eine Zeile Text, ein Knopf, kein Aufreißer.
+   Solange hier kein Ziel eingetragen ist, erscheint der Block NIRGENDS –
+   lieber nichts zeigen als einen Knopf, der ins Leere führt.
+   Eintragen z. B.: "https://paypal.me/DEINNAME" */
+const SPENDEN_URL="";
+function renderSpenden(){
+  document.querySelectorAll(".spenden").forEach(el=>{
+    if(!SPENDEN_URL){ el.hidden=true; el.innerHTML=""; return; }
+    el.hidden=false;
+    el.innerHTML='<div class="sp-tx">Diese App ist <b>kostenlos und werbefrei</b> – sie steuert nichts '+
+      'und sammelt nichts, alle Daten bleiben auf deinem Gerät. Wenn sie dir hilft, kannst du die '+
+      'Weiterentwicklung mit einem kleinen Beitrag unterstützen.</div>'+
+      '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
+  });
+}
+const APP_VERSION=80;
 const NEUES=[
+  {v:80,t:["🎯 <b>Neu im „?“: Wofür ist das eigentlich?</b> Ganz oben steht jetzt, worum es geht – und worin sich die App von einem Energiemanager unterscheidet: Ein EMS regelt, was <b>fest angeschlossen</b> ist. Diese App plant alles <b>andere</b> – Waschmaschine, Trockner, Spülmaschine und Co., die du selbst startest","📖 <b>Das Hilfe-Blatt ist dadurch kürzer geworden, nicht länger</b>: Die Schritt-für-Schritt-Erklärung und die Bedienungs-Tipps stecken jetzt in Aufklappern, die Demo-Tour steht weiter oben"]},
   {v:79,t:["👆 <b>Scrollen klappt jetzt zuverlässig</b>: In der Geräteliste wurde ein leicht schräger Wisch nach unten oft als „zur Seite wischen“ gewertet – die Liste blieb stehen. Jetzt gewinnt im Zweifel immer das Scrollen; nur eine klar waagerechte Bewegung entfernt oder verankert ein Gerät","📋 <b>Die Geräteliste auf der Startseite scrollt nicht mehr in sich selbst.</b> Statt eines winzigen Fensterchens (das mit Vorschlags-Hinweis nur noch anderthalb Zeilen hoch war) stehen die ersten vier Geräte offen da, der Rest steckt in „weitere Geräte anzeigen“ – wie das Archiv in der Bilanz"]},
   {v:78,t:["🔧 <b>Mehrere Läufe pro Gerät und Tag werden jetzt vollständig gezählt</b>: Lief z. B. die Waschmaschine zweimal am selben Tag (etwa direkt nacheinander), stand in der Bilanz bisher nur <b>einer</b> der Durchgänge – der frühere wurde vom späteren überschrieben. Jetzt zählt jeder Durchgang einzeln, in „Letzte Läufe“ wie auch in Sonne, Ersparnis und CO₂","♻️ Für <b>heute</b> holt die App verlorene Durchgänge automatisch zurück (aus der Liste „Heute schon gelaufen“). Ältere Tage lassen sich leider nicht mehr rekonstruieren"]},
   {v:77,t:["📱 <b>Android-Zurück-Taste &amp; Wisch-zurück</b>: Die Zurück-Taste – und die Zurück-Wischgeste am Bildschirmrand – schließt jetzt erst offene Blätter und Dialoge, statt gleich die App zu verlassen","🔒 <b>Datenschutzerklärung &amp; Impressum</b> als eigene Seite (unten unter „Datenquellen &amp; Rechtliches“) plus Feinschliff am App-Symbol – Vorbereitung, damit die App in den Google Play Store kann"]},
@@ -3850,8 +3904,11 @@ function renderVerlauf(){
       '<div class="vl-tab-wrap" style="margin-top:8px"><table class="vl-tab"><tbody>'+rowsAlt+'</tbody></table></div></details>':'')+
     '<button class="csv-btn" id="btn-csv">⬇️ Alle Läufe als CSV exportieren (Excel)</button>'+
     ((alle.length>=20 && (!cfg.letztesBackup || (Date.now()-cfg.letztesBackup)>60*86400000))
-      ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'');
+      ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'')+
+    // Spenden direkt unter „Deine Wirkung" – hier sieht man gerade, was die App gebracht hat.
+    '<div class="spenden" id="spenden-bilanz" hidden></div>';
   const cbtn=$("btn-csv"); if(cbtn)cbtn.onclick=()=>exportiereCSV(alle);
+  renderSpenden();
   box.querySelectorAll(".wk-seg-b").forEach(b=>b.onclick=()=>{ bilanzZeitraum=b.dataset.z; renderVerlauf(); });
   box.querySelectorAll(".wk-kachel b, .wk-hero .wk-euro").forEach((el,i)=>zaehlElement(el,"wk"+bilanzZeitraum+i));
 }
@@ -5390,6 +5447,7 @@ function appTeilen(){
 }
 if($("btn-teilen"))$("btn-teilen").onclick=appTeilen;
 if($("btn-demo-start"))$("btn-demo-start").onclick=demoStart;
+renderSpenden(); // Spendenblock im Hilfe-Blatt (erscheint nur mit hinterlegtem Ziel)
 if($("demo-prev"))$("demo-prev").onclick=()=>demoGoto(demoIdx-1,true);
 if($("demo-next"))$("demo-next").onclick=()=>demoGoto(demoIdx+1,true);
 if($("demo-play"))$("demo-play").onclick=()=>demoSetPlay(!demoPlaying);

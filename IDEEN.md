@@ -3,11 +3,27 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v79)
+Zuletzt aktualisiert: Juli 2026 (Stand v80)
 
 ---
 
-## Rang 1 – „Warum diese App?" – eine Zweck-Seite ⭐ NEU
+## ~~Rang 1 – „Warum diese App?" – eine Zweck-Seite~~ ✅ gebaut in v80
+
+**Umgesetzt:** Nicht als eigener Reiter, sondern als neuer Abschnitt **oben im
+„?"-Blatt**. Damit das Blatt dadurch nicht länger wird, sind die bestehenden
+sechs Punkte („So funktioniert's") und die Bedienungs-Tipps in Aufklapper
+gewandert – das Blatt ist jetzt **kürzer als vorher**. Der Demo-Knopf steht
+weiter oben, direkt nach dem Zweck-Text.
+
+**Spenden:** Block gebaut, erscheint an zwei Stellen (Hilfe-Blatt nach dem
+Vertrauens-Abschnitt, Bilanz unter „Deine Wirkung"). Solange in
+`SPENDEN_URL` kein Ziel steht, wird er **überall ausgeblendet** – lieber
+nichts zeigen als ein Knopf ins Leere.
+⚠️ **Offen: PayPal.me-Link vom Betreiber**, dann in `SPENDEN_URL` eintragen.
+
+Test: `test_zweck.js` 13/13 (beide Zustände – mit und ohne hinterlegtes Ziel).
+
+<details><summary>Ursprüngliche Notizen zur Zweck-Seite</summary>
 
 Vom Betreiber angestoßen und als wichtig eingestuft. Bisher erklärt die App
 nirgends, **wofür es sie gibt und für wen** – und vor allem nicht, wie sie sich
@@ -62,11 +78,17 @@ von einer EMS-App unterscheidet. Genau diese Abgrenzung ist ihr Daseinsgrund.
 ### Warum das obendrein Arbeit spart
 
 Genau dieser Text ist später die **Store-Beschreibung** (Play Store Phase 3
-verlangt Kurz- und Langbeschreibung). Einmal gut formuliert = zweimal genutzt.
+verlangt Kurz- und Langbeschreibung). ⚠️ Einschränkung: Der **Aufmacher**
+braucht zwei Fassungen. In der App darf EMS-Wissen vorausgesetzt werden, im
+Store nicht – dort schaut jemand, der PV hat und sonst nichts. Deshalb steht
+in der App der Nutzen zuerst („Waschen, wenn die Sonne scheint") und die
+EMS-Abgrenzung als zweiter Absatz.
+
+</details>
 
 ---
 
-## Rang 2 – Übersicht bei wachsenden Daten
+## Rang 1 – Übersicht bei wachsenden Daten
 
 Ziel des Betreibers: Der Look soll nicht zerreißen, je mehr Daten sich ansammeln.
 
@@ -94,7 +116,8 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
   Nötig, bevor die Seite öffentlich auffindbar wird (aktuell per `noindex` +
   robots.txt bewusst versteckt).
 - **Play Store Phase 3**: Konto (25 $), 12 Tester über 14 Tage, Store-Texte
-  (→ kommen aus Rang 1), Feature-Grafik 1024×500.
+  (→ Grundlage ist der Zweck-Text aus v80, Aufmacher aber neu fassen –
+  siehe Einschränkung dort), Feature-Grafik 1024×500.
 - **Fester Signaturschlüssel**: Der Bau-Workflow erzeugt derzeit je Lauf einen
   neuen Schlüssel → `.well-known/assetlinks.json` müsste bei jedem Neubau
   mitziehen. Vor dem Store einmal festzurren (Secrets sind im Workflow schon
@@ -107,6 +130,9 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v80** – Zweck-Seite „Wofür ist das?" oben im „?"-Blatt; bestehende
+  Erklärungen in Aufklapper verschoben (Blatt wurde dadurch kürzer);
+  Spendenblock gebaut, erscheint erst mit hinterlegtem PayPal-Link.
 - **v79** – Hakeliges Scrollen (früher Rang 1). Drei Ursachen überlagerten sich:
   die Wischerkennung war zu großzügig (`|dx|>8 && |dx|>|dy|+2` wertete schon
   einen leicht schrägen Scrollversuch als Wischen), `.dash-row` fehlte
@@ -125,4 +151,4 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
   (App läuft im Vollbild ohne Adressleiste).
 - **Suchmaschinen** während der Testphase ausgesperrt.
 - **Monetarisierung entschieden**: kostenlos & werbefrei, Spenden per PayPal
-  (Details siehe Rang 1 und PLAYSTORE.md).
+  (Details im v80-Abschnitt oben und in PLAYSTORE.md).
