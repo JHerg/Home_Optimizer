@@ -136,10 +136,13 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.storepass }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ steps.keystore.outputs.storepass }}
         run: |
-          set -o pipefail
-          yes | bubblewrap build --skipPwaValidation
+          # Kein "yes |" mehr: der Schritt davor hat das Projekt samt
+          # manifest-checksum.txt erzeugt, es kommt also keine Rueckfrage mehr.
+          # (Die Pipe liess "yes" beim Beenden auf ein Broken Pipe laufen und
+          #  liess den Schritt trotz erfolgreichem Build fehlschlagen.)
+          bubblewrap build --skipPwaValidation
           echo "--- gebaute Dateien ---"
-          ls -la *.apk *.aab 2>/dev/null || true
+          ls -la *.apk *.aab
 
       - name: Signatur-Fingerprint anzeigen
         run: |
