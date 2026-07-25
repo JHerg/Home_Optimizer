@@ -1,0 +1,158 @@
+name: Android-APK bauen
+
+# Baut aus der PWA (energie-optimierer.eu) mit Bubblewrap ein Android-Paket (TWA).
+# Wird von Hand gestartet: Actions -> "Android-APK bauen" -> "Run workflow".
+# Ergebnis liegt danach unter dem Lauf als Artefakt "energie-optimierer-apk".
+
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Versionsname (z. B. 1.0.0)'
+        required: false
+        default: '1.0.0'
+      versionCode:
+        description: 'Versionsnummer (ganze Zahl, muss bei jedem Store-Upload steigen)'
+        required: false
+        default: '1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository holen
+        uses: actions/checkout@v4
+
+      - name: Node einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: JDK 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Android-SDK bereitstellen
+        uses: android-actions/setup-android@v3
+
+      - name: Bubblewrap installieren
+        run: npm install -g @bubblewrap/cli@latest
+
+      - name: Bubblewrap auf vorhandenes JDK/SDK zeigen
+        run: |
+          mkdir -p "$HOME/.bubblewrap"
+          cat > "$HOME/.bubblewrap/config.json" <<EOF
+          {
+            "jdkPath": "${JAVA_HOME}",
+            "androidSdkPath": "${ANDROID_SDK_ROOT}"
+          }
+          EOF
+          echo "JDK:  ${JAVA_HOME}"
+          echo "SDK:  ${ANDROID_SDK_ROOT}"
+
+      - name: Signaturschluessel bereitstellen
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          set -e
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "Nutze hinterlegten Schluessel aus den Repository-Secrets."
+            echo "$KEYSTORE_B64" | base64 -d > android.keystore
+            PASS="$KEYSTORE_PASSWORD"
+            echo "persistent=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Kein Secret hinterlegt - erzeuge einen Test-Schluessel fuer diesen Lauf."
+            PASS="energie-optimierer"
+            keytool -genkeypair -v \
+              -keystore android.keystore \
+              -alias energie \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$PASS" -keypass "$PASS" \
+              -dname "CN=Energie-Optimierer, O=Energie-Optimierer, C=DE"
+            echo "persistent=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "storepass=$PASS" >> "$GITHUB_OUTPUT"
+
+      - name: TWA-Projekt beschreiben
+        env:
+          VERSION_NAME: ${{ github.event.inputs.versionName }}
+          VERSION_CODE: ${{ github.event.inputs.versionCode }}
+        run: |
+          cat > twa-manifest.json <<EOF
+          {
+            "packageId": "eu.energieoptimierer.app",
+            "host": "energie-optimierer.eu",
+            "name": "Energie-Optimierer",
+            "launcherName": "Energie",
+            "display": "standalone",
+            "orientation": "portrait",
+            "themeColor": "#E4EEF4",
+            "themeColorDark": "#0F1A24",
+            "navigationColor": "#E4EEF4",
+            "navigationColorDark": "#0F1A24",
+            "navigationDividerColor": "#E4EEF4",
+            "navigationDividerColorDark": "#0F1A24",
+            "backgroundColor": "#E4EEF4",
+            "enableNotifications": false,
+            "startUrl": "/index.html",
+            "iconUrl": "https://energie-optimierer.eu/icon-512.png",
+            "maskableIconUrl": "https://energie-optimierer.eu/icon-maskable-512.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": { "path": "android.keystore", "alias": "energie" },
+            "appVersionName": "${VERSION_NAME:-1.0.0}",
+            "appVersionCode": ${VERSION_CODE:-1},
+            "shortcuts": [],
+            "generatorApp": "bubblewrap-cli",
+            "webManifestUrl": "https://energie-optimierer.eu/manifest.webmanifest",
+            "fallbackType": "customtabs",
+            "features": {},
+            "enableSiteSettingsShortcut": true,
+            "isChromeOSOnly": false,
+            "isMetaQuest": false,
+            "fullScopeUrl": "https://energie-optimierer.eu/",
+            "minSdkVersion": 21
+          }
+          EOF
+          cat twa-manifest.json
+
+      - name: APK bauen
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.storepass }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ steps.keystore.outputs.storepass }}
+        run: |
+          set -e
+          bubblewrap build --skipPwaValidation
+          echo "--- gebaute Dateien ---"
+          ls -la *.apk *.aab 2>/dev/null || true
+
+      - name: Signatur-Fingerprint anzeigen
+        run: |
+          echo "=============================================================="
+          echo " SHA-256 FINGERPRINT  (gehoert in .well-known/assetlinks.json)"
+          echo "=============================================================="
+          keytool -list -v \
+            -keystore android.keystore \
+            -alias energie \
+            -storepass "${{ steps.keystore.outputs.storepass }}" \
+          | grep -A1 "SHA256:" | head -3
+          echo "=============================================================="
+          if [ -f assetlinks.json ]; then
+            echo "--- von Bubblewrap erzeugte assetlinks.json ---"
+            cat assetlinks.json
+          fi
+
+      - name: APK als Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: energie-optimierer-apk
+          path: |
+            *.apk
+            *.aab
+            assetlinks.json
+          if-no-files-found: error
+          retention-days: 30
