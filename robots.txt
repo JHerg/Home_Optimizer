@@ -1,0 +1,10 @@
+# Testphase: Suchmaschinen sollen die Seite vorerst nicht in den Index nehmen.
+# Zum Freigeben spaeter einfach "Disallow: /" durch "Allow: /" ersetzen
+# (und die noindex-Angaben in index.html und datenschutz.html entfernen).
+User-agent: *
+Disallow: /
+
+# Die Verknuepfungsdatei fuer die Android-App bleibt ausdruecklich erreichbar.
+# (Android/Chrome pruefen sie direkt - robots.txt ist ohnehin nur eine
+#  Empfehlung an Suchmaschinen, keine Zugriffssperre.)
+Allow: /.well-known/
