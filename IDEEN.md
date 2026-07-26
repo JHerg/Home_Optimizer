@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v81)
+Zuletzt aktualisiert: Juli 2026 (Stand v82)
 
 ---
 
@@ -98,7 +98,7 @@ EMS-Abgrenzung als zweiter Absatz.
 
 ---
 
-## Rang 1 – Übersicht bei wachsenden Daten (Woche-Reiter)
+## ~~Rang 1 – Übersicht bei wachsenden Daten (Woche-Reiter)~~ ✅ erledigt in v81+v82
 
 **Gemessen** (8 Geräte, 3 Routinen, 6 Rhythmen; Bildschirm = 852 px):
 Heute 942 px · Bilanz 1285 px · **Woche 1849 px** ← der Problemfall.
@@ -112,7 +112,20 @@ vorziehen"; alle Tage ähnlich → neutraler Satz; besserer Tag kommt → „war
 lohnt". Test `test_ausblick.js` 18/18.
 Im Woche-Reiter bleibt der ausführliche Ausblick erhalten.
 
-**Noch offen – die fünf Aufräum-Punkte im Woche-Reiter** (grob −600 px):
+✅ **Teil 2 erledigt in v82:** Der Reiter heißt jetzt **„Routinen"** (Symbol 🔁,
+interner Schlüssel bleibt `woche`) und beschränkt sich auf das, was sich wiederholt.
+Der Ausblick ist dort ganz entfallen. **1849 → 764 px** – erstmals ein Bildschirm.
+Alles aufgeklappt: 1200 px. Test `test_routinen.js` 21/21.
+
+Umgesetzt: zwei Klappgruppen mit Anzahl (Routinen offen, Rhythmen zu), wiederholter
+Satz einmal über die Liste, breiter Knopf → 📌 in der Kopfzeile, Namen vor Etiketten
+(das Etikett bekam `flex-shrink:8`, sonst schrumpft der längere Name zuerst),
+gestrichelter Rand für geratene Rhythmen. Gerettet: Grafik-Erklärung unter den
+aufgeklappten Ausblick, Punkte-Legende ins ⓘ der Routinen-Gruppe. Demo-Tour
+angepasst (zeigte auf ein Element, das es dort nicht mehr gibt).
+
+<details><summary>Die ursprünglichen fünf Aufräum-Punkte</summary>
+
 
 1. **Derselbe Satz je Rhythmus** – „Nächster fälliger Lauf: heute – liegt schon
    als Vorschlag auf der Startseite." steht bei jedem Eintrag. → einmal über die
@@ -127,8 +140,10 @@ Im Woche-Reiter bleibt der ausführliche Ausblick erhalten.
    Einstellungen sind und das andere Vermutungen. → Klappgruppen mit Anzahl,
    Rhythmen optisch als „geraten" kennzeichnen (z. B. gestrichelter Rand).
 
-**Nebenfund:** Bilanz zeigt oben **1,8 €** und darunter **1,75 €** – dieselbe
-Zahl, zwei Rundungen. Sieht nach Fehler aus, ist keiner. Zwei Zeilen Fix.
+</details>
+
+**Noch offen – Nebenfund:** Bilanz zeigt oben **1,8 €** und darunter **1,75 €** –
+dieselbe Zahl, zwei Rundungen. Sieht nach Fehler aus, ist keiner. Zwei Zeilen Fix.
 
 ### Weitere Stellen, die mit Daten wachsen
 
@@ -176,6 +191,8 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v82** – Reiter „Woche" → „Routinen"; Ausblick dort entfernt, sechs
+  Aufräum-Punkte umgesetzt. 1849 → 764 px.
 - **v81** – Sonnen-Ausblick als aufklappbare Zeile auf die Startseite geholt
   (+55 px zugeklappt statt +254 px als eigener Kasten); Satz passt sich der
   Wetterlage an, Zustand wird gemerkt.

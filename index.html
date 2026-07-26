@@ -580,8 +580,16 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .rh-block:first-child{border-top:none;padding-top:2px}
 .rh-head{display:flex;align-items:center;gap:9px;margin-bottom:9px}
 .rh-ic{font-size:20px;line-height:1;flex-shrink:0}
-.rh-nm{font-size:14.5px;font-weight:700;color:var(--nacht);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rh-badge{margin-left:auto;font-size:11px;font-weight:700;color:#B4780A;background:var(--papier);border-radius:99px;padding:3px 10px;flex-shrink:0}
+/* Der NAME ist das, wonach man sucht – er bekommt den Platz und wächst mit.
+   Das Etikett („Mi · jede Woche") weicht zuerst; welcher Tag gemeint ist,
+   steht ohnehin eine Zeile tiefer in den Punkten. */
+.rh-nm{flex:1 1 auto;font-size:14.5px;font-weight:700;color:var(--nacht);min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* KEIN margin-left:auto – das würde den freien Platz schlucken, bevor der Name
+   wachsen kann. Der Name (flex:1) schiebt das Etikett von selbst nach rechts. */
+.rh-badge{font-size:11px;font-weight:700;color:#B4780A;background:var(--papier);
+  border-radius:99px;padding:3px 10px;flex:0 8 auto;min-width:0;max-width:40%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rh-mini{border:none;background:transparent;font-size:15px;line-height:1;padding:4px;cursor:pointer;flex-shrink:0;opacity:.8}
 .rh-mini:active{transform:scale(.9)}
 .rh-line{display:flex;align-items:center;gap:0}
@@ -596,6 +604,27 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .rh-note{font-size:11.5px;color:var(--grau);margin-top:9px;line-height:1.4}
 .rh-note b{color:#B4780A}
 .rh-legende{display:flex;flex-wrap:wrap;align-items:center;gap:7px 14px;margin:2px 2px 14px}
+/* Klappgruppen im Routinen-Reiter. Bewusst OHNE eigenen Innenabstand links/rechts –
+   die Listen darin bringen ihre eigene Breite mit; zusätzliche Polster würden sie
+   einschnüren (im Mockup liefen die Zeilen sonst rechts aus dem Bild). */
+details.rgrp{border-top:.5px solid var(--linie);padding:12px 0 4px}
+details.rgrp:first-of-type{border-top:none;padding-top:2px}
+details.rgrp>summary{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:700;
+  color:var(--nacht);cursor:pointer;list-style:none;padding:2px 0}
+details.rgrp>summary::-webkit-details-marker{display:none}
+details.rgrp>summary::after{content:"⌄";margin-left:auto;color:var(--grau);font-weight:400;
+  transition:transform var(--weich)}
+details.rgrp[open]>summary::after{transform:rotate(180deg)}
+.rgrp-anz{font-size:12.5px;font-weight:600;color:var(--grau)}
+.rgrp-inhalt{padding-top:10px}
+.rgrp-hinweis{font-size:11.5px;color:var(--grau);line-height:1.45;margin-bottom:10px}
+.rgrp-hinweis b{color:var(--tinte);font-weight:600}
+details.rgrp-info{margin-bottom:10px}
+details.rgrp-info>summary{font-size:11.5px;color:var(--grau);cursor:pointer;list-style:none}
+details.rgrp-info>summary::-webkit-details-marker{display:none}
+.rgrp-info-tx{font-size:11.5px;color:var(--grau);line-height:1.45;padding:8px 0 2px}
+/* Erkannte Rhythmen sind Vermutungen – gestrichelter Rand statt durchgezogener. */
+#rhythmus-liste .rh-block{border:1px dashed var(--linie);border-radius:12px;padding:10px 12px;margin-bottom:9px}
 .rh-legende-top{margin:0 0 4px;padding-bottom:13px;border-bottom:.5px solid var(--linie)}
 .rh-leg-lbl{font-size:11.5px;font-weight:700;color:var(--tinte)}
 .rh-legende span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--grau)}
@@ -646,6 +675,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dash-aus .wa-tag{padding:5px 3px;gap:3px}
 .dash-aus .wa-ic{font-size:15px}
 .dash-aus .wa-bar-wrap{height:34px}
+.dash-aus-info{font-size:10.5px;color:var(--grau);line-height:1.4;margin-top:9px;padding-top:8px;
+  border-top:1px dashed var(--linie)}
+.dash-aus-info b{color:var(--tinte);font-weight:600}
 .dh-big{flex:1;min-width:0}
 .dh-lbl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
 .dh-num{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums;color:var(--tinte)}
@@ -1005,18 +1037,32 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
   </div>
 </details>
 
+<!-- Reiter „Routinen" (intern weiter „woche"): beschränkt sich auf das, was sich
+     wiederholt. Der Sonnen-Ausblick wohnt seit v82 nur noch auf der Startseite. -->
 <section class="karte" id="karte-woche" hidden>
-  <div class="wa-block" id="woche-ausblick" hidden></div>
-  <div class="rh-legende rh-legende-top"><span class="rh-leg-lbl">So liest du die Punkte:</span><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster fälliger Lauf</span></div>
+  <details class="rgrp" id="grp-routinen" open>
+    <summary>🔁 Feste Routinen<span class="rgrp-anz" id="anz-routinen"></span></summary>
+    <div class="rgrp-inhalt">
+      <details class="rgrp-info">
+        <summary>ⓘ Was zeigt diese Liste?</summary>
+        <div class="rgrp-info-tx">Was du selbst festgelegt hast – läuft im Wochenrhythmus und wird
+          automatisch in den Tagesplan gelegt.
+          <div class="rh-legende" style="margin-top:9px"><span class="rh-leg-lbl">So liest du die Punkte:</span><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster fälliger Lauf</span></div>
+        </div>
+      </details>
+      <div id="routine-liste"></div>
+      <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
+    </div>
+  </details>
 
-  <div class="karten-kopf" style="margin-top:2px"><h2 style="font-size:15px">🔁 Feste Routinen</h2></div>
-  <div class="untertitel">Was du selbst festgelegt hast – läuft im Wochenrhythmus und wird automatisch in den Tagesplan gelegt.</div>
-  <div id="routine-liste"></div>
-  <button class="routine-add" id="btn-routine-add">＋ Routine hinzufügen</button>
-
-  <div class="karten-kopf" style="margin-top:22px"><h2 style="font-size:15px">🤖 Erkannte Rhythmen</h2></div>
-  <div class="untertitel">Muster, die die App selbst aus deinen Läufen gelernt hat – heute steht in der Mitte der Zeitachse.</div>
-  <div id="rhythmus-liste"></div>
+  <details class="rgrp" id="grp-rhythmen">
+    <summary>🤖 Erkannte Rhythmen<span class="rgrp-anz" id="anz-rhythmen"></span></summary>
+    <div class="rgrp-inhalt">
+      <div class="rgrp-hinweis">Muster, die die App selbst aus deinen Läufen <b>geraten</b> hat –
+        heute steht in der Mitte der Zeitachse. <b>Fällige Läufe liegen als Vorschlag auf der Startseite.</b></div>
+      <div id="rhythmus-liste"></div>
+    </div>
+  </details>
 </section>
 
 <section class="karte" id="karte-verlauf" hidden>
@@ -1028,7 +1074,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <nav class="tabbar" role="tablist" aria-label="Ansicht">
   <button class="tab" data-tag="heute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/></svg><span>Heute</span></button>
   <button class="tab" data-tag="morgen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a5 5 0 0 0-10 0"/><path d="M12 9V4M12 4l-2 2M12 4l2 2M3 18h18M5.5 14l1.4-1.4M18.5 14l-1.4-1.4"/></svg><span>Morgen</span></button>
-  <button class="tab" data-tag="woche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="16" rx="3"/><path d="M3.5 9h17M8 3v3M16 3v3"/></svg><span>Woche</span></button>
+  <button class="tab" data-tag="woche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2.5l3.5 3.5-3.5 3.5"/><path d="M3.5 11.5v-1a4 4 0 0 1 4-4h13"/><path d="M7 21.5L3.5 18 7 14.5"/><path d="M20.5 12.5v1a4 4 0 0 1-4 4h-13"/></svg><span>Routinen</span></button>
   <button class="tab" data-tag="verlauf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3.5 4v4h4"/><path d="M12 8v4l3 2"/></svg><span>Bilanz</span></button>
 </nav>
 
@@ -1120,7 +1166,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="hilfe-feature">
       <div class="hf-ic sonne">🗓️</div>
       <div class="hf-body"><div class="hf-titel">Den besten Tag der Woche finden</div>
-        <div class="hf-sub">Der <b>Woche</b>-Reiter zeigt oben einen 7-Tage-Sonnen-Ausblick – so legst du Wäsche & Co. auf den <b>sonnigsten Tag</b>. In der <b>Bilanz</b> siehst du, was du schon gespart hast.</div></div>
+        <div class="hf-sub">Auf der <b>Startseite</b> steht unter dem Ertrag eine Zeile mit dem Sonnen-Ausblick – antippen zeigt alle <b>7 Tage</b>, so legst du Wäsche &amp; Co. auf den <b>sonnigsten Tag</b>. In der <b>Bilanz</b> siehst du, was du schon gespart hast.</div></div>
     </div>
     <div class="hilfe-feature">
       <div class="hf-ic grau">🧭</div>
@@ -1137,7 +1183,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div>✅ <b>Gelaufen?</b> Häkchen tippen und Laufzeit einstellen. <b>Gestrichelte Blöcke</b> sind schon gelaufen und halten die Maschine belegt – so gibt es keinen doppelten Waschgang.</div>
     <div>🎨 <b>Anpassen:</b> Gerätesymbol antippen zum Ändern · eigene Programme benennen · Laufzeiten später per ✎ korrigieren.</div>
     <div>💶 <b>Dynamischer Tarif:</b> Wie Börsenpreise im Sommer/Winter typisch verlaufen, zeigt „Einrichten → 📈 Preis-Wissen".</div>
-    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Woche</b> (Sonnen-Ausblick, Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
+    <div>🗂️ <b>Reiter:</b> Heute · Morgen · <b>Routinen</b> (feste Routinen &amp; erkannte Rhythmen) · <b>Bilanz</b> (deine Wirkung).</div>
   </div>
   </details>
 
@@ -1764,9 +1810,10 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=81;
+const APP_VERSION=82;
 const NEUES=[
-  {v:81,t:["🔭 <b>Der Sonnen-Ausblick ist jetzt auf der Startseite</b> – als eine Zeile, die dir sagt, was zu tun ist: „Morgen wird es nass – heute vorziehen.“ Ein Tipp darauf klappt die gewohnte 7-Tage-Grafik mit Wettersymbolen und Temperaturen auf. <b>Die App merkt sich, wie du es zuletzt hattest</b>","🌤️ Sind alle Tage ähnlich, gibt es nichts abzuwägen – dann steht dort schlicht, dass es keinen Grund zu warten gibt. Ausführlich bleibt der Ausblick weiterhin im <b>Woche</b>-Reiter"]},
+  {v:82,t:["🔁 <b>Aus „Woche“ wird „Routinen“</b> – der Reiter macht jetzt nur noch eine Sache: deine festen Routinen und die Rhythmen, die die App gelernt hat. Der Sonnen-Ausblick wohnt seit dem letzten Update ohnehin vorn auf der Startseite und ist dort nur einen Tipp entfernt","📐 <b>Gründlich entrümpelt</b>: beide Listen sind jetzt Klappgruppen mit Anzahl im Kopf (Routinen offen, geratene Rhythmen zugeklappt), Gerätenamen bekommen den Platz statt der Etiketten, und der Hinweis „liegt als Vorschlag auf der Startseite“ steht einmal über der Liste statt bei jedem Eintrag. Aus dem breiten Knopf „Als feste Routine übernehmen“ wurde ein 📌 in der Kopfzeile","📏 Unterm Strich: Der Reiter ist von rund <b>1850 auf 764 Pixel</b> geschrumpft – er passt damit erstmals auf einen Bildschirm"]},
+  {v:81,t:["🔭 <b>Der Sonnen-Ausblick ist jetzt auf der Startseite</b> – als eine Zeile, die dir sagt, was zu tun ist: „Morgen wird es nass – heute vorziehen.“ Ein Tipp darauf klappt die gewohnte 7-Tage-Grafik mit Wettersymbolen und Temperaturen auf. <b>Die App merkt sich, wie du es zuletzt hattest</b>","🌤️ Sind alle Tage ähnlich, gibt es nichts abzuwägen – dann steht dort schlicht, dass es keinen Grund zu warten gibt"]},
   {v:80,t:["🎯 <b>Neu im „?“: Wofür ist das eigentlich?</b> Ganz oben steht jetzt, worum es geht – und worin sich die App von einem Energiemanager unterscheidet: Ein EMS regelt, was <b>fest angeschlossen</b> ist. Diese App plant alles <b>andere</b> – Waschmaschine, Trockner, Spülmaschine und Co., die du selbst startest","📖 <b>Das Hilfe-Blatt ist dadurch kürzer geworden, nicht länger</b>: Die Schritt-für-Schritt-Erklärung und die Bedienungs-Tipps stecken jetzt in Aufklappern, die Demo-Tour steht weiter oben"]},
   {v:79,t:["👆 <b>Scrollen klappt jetzt zuverlässig</b>: In der Geräteliste wurde ein leicht schräger Wisch nach unten oft als „zur Seite wischen“ gewertet – die Liste blieb stehen. Jetzt gewinnt im Zweifel immer das Scrollen; nur eine klar waagerechte Bewegung entfernt oder verankert ein Gerät","📋 <b>Die Geräteliste auf der Startseite scrollt nicht mehr in sich selbst.</b> Statt eines winzigen Fensterchens (das mit Vorschlags-Hinweis nur noch anderthalb Zeilen hoch war) stehen die ersten vier Geräte offen da, der Rest steckt in „weitere Geräte anzeigen“ – wie das Archiv in der Bilanz"]},
   {v:78,t:["🔧 <b>Mehrere Läufe pro Gerät und Tag werden jetzt vollständig gezählt</b>: Lief z. B. die Waschmaschine zweimal am selben Tag (etwa direkt nacheinander), stand in der Bilanz bisher nur <b>einer</b> der Durchgänge – der frühere wurde vom späteren überschrieben. Jetzt zählt jeder Durchgang einzeln, in „Letzte Läufe“ wie auch in Sonne, Ersparnis und CO₂","♻️ Für <b>heute</b> holt die App verlorene Durchgänge automatisch zurück (aus der Liste „Heute schon gelaufen“). Ältere Tage lassen sich leider nicht mehr rekonstruieren"]},
@@ -2484,7 +2531,12 @@ function renderDashAusblick(){
       '<span class="dash-aus-ic">'+s.ic+'</span>'+
       '<span class="dash-aus-tx">'+s.tx+'</span>'+
       '<span class="dash-aus-pfeil">⌄</span></button>'+
-    (offen?'<div class="wa-strip">'+zellen+'</div>':'');
+    // Aufgeklappt zusätzlich die Erklärung, die früher im Woche-Reiter stand –
+    // sonst ginge sie mit dem Umzug verloren.
+    (offen?'<div class="wa-strip">'+zellen+'</div>'+
+      '<div class="dash-aus-info">Balken = erwartete Sonnenstärke (Globalstrahlung, DWD-Modell). '+
+      '<b>Börsen-Strompreise</b> gibt es nur für heute &amp; morgen – weiter voraus zeigt der Ausblick '+
+      '<b>nur Sonne &amp; Wetter</b>.</div>':'');
   $("dash-aus-btn").onclick=()=>{ cfg.ausblickOffen=!cfg.ausblickOffen; speichern(); renderDashAusblick(); };
 }
 function renderWochenAusblick(){
@@ -3673,7 +3725,7 @@ function aktualisieren(){
     const rbW=$("rueckblick-banner"); if(rbW)rbW.hidden=true;
     if($("vorschlag-box"))$("vorschlag-box").hidden=true;
     const eb=$("kopf-eyebrow"); if(eb)eb.textContent="Energie-Optimierer";
-    if(tag==="woche"){ $("titel").textContent="Woche"; renderWoche(); }
+    if(tag==="woche"){ $("titel").textContent="Routinen"; renderWoche(); }
     else { $("titel").textContent="Bilanz"; renderVerlauf(); }
     return;
   }
@@ -3732,7 +3784,7 @@ function routineBanner(tagStr){
   el.innerHTML="🔁 Heute geplant: "+teile.join(" · ");
 }
 function renderWoche(){
-  renderWochenAusblick();
+  // Der Sonnen-Ausblick lebt seit v82 nur noch auf der Startseite (aufklappbare Zeile).
   renderRoutineListe();
   renderRhythmen();
 }
@@ -3777,6 +3829,7 @@ function relTag(offset,key){
 }
 function renderRoutineListe(){
   const box=$("routine-liste");
+  const anzR=$("anz-routinen"); if(anzR)anzR.textContent=routinen.length?"("+routinen.length+")":"";
   if(!routinen.length){box.innerHTML='<div class="rh-leer">Noch keine feste Routine. Lege z. B. „Handtücher jeden Samstag" an – sie läuft dann automatisch im Wochenrhythmus.</div>';return;}
   const heuteK=heuteStr();
   box.innerHTML=routinen.map((r,i)=>{
@@ -3819,6 +3872,7 @@ function renderRhythmen(){
     .sort((a,b)=>b.m.konfidenz-a.m.konfidenz);
   if(!liste.length){
     box.innerHTML='<div class="rh-leer">Noch kein Muster erkannt. Sobald ein Gerät ein paar Mal gelaufen ist, zeigt die App hier seinen Rhythmus – und schlägt fällige Läufe auf der Startseite vor.</div>';
+    const a0=$("anz-rhythmen"); if(a0)a0.textContent="";
     return;
   }
   const runDates=name=>{const s=new Set(((cfg.verlauf&&cfg.verlauf[name])||[]).map(vDatum).filter(Boolean));return key=>s.has(key);};
@@ -3834,17 +3888,23 @@ function renderRhythmen(){
     const rhythmusTag = m.typ==="intervall"
       ? key=>Math.round(Math.abs(Date.parse(key+"T12:00:00Z")-letzterT)/86400000)%m.intervall===0
       : key=>m.wochentage.includes(wochentagVonKey(key));
+    // Der Zusatz „liegt schon als Vorschlag auf der Startseite" stand früher bei JEDEM
+    // Eintrag – er steht jetzt einmal über der Liste (siehe .rgrp-hinweis).
     let note;
-    if(faelligHeute){note='<b>Nächster fälliger Lauf: heute</b> – liegt schon als Vorschlag auf der Startseite.';}
+    if(faelligHeute){note='<b>Fällig: heute</b>';}
     else if(nx){note='Nächster fälliger Lauf: <b>'+relTag(nx.offset,nx.key)+'</b>.';}
     else {note='Zuletzt '+kurzDatum(m.letzter)+'.';}
+    // „Als feste Routine übernehmen" war ein Knopf über die volle Breite – für eine
+    // Aktion, die man je Gerät einmal ausführt. Jetzt als Symbol in der Kopfzeile.
     return '<div class="rh-block"><div class="rh-head">'+
       '<span class="rh-ic">'+icon+'</span><span class="rh-nm">'+kurzName(name)+'</span>'+
-      '<span class="rh-badge">'+badge+'</span></div>'+
+      '<span class="rh-badge">'+badge+'</span>'+
+      '<button class="rh-mini" data-uebernehmen="'+encodeURIComponent(name)+'" '+
+        'title="Als feste Routine übernehmen" aria-label="'+name+' als feste Routine übernehmen">📌</button></div>'+
       rhythmusZeile(runDates(name),rhythmusTag,nx&&nx.key)+
-      '<div class="rh-note">'+note+'</div>'+
-      '<button class="rh-uebernehmen" data-uebernehmen="'+encodeURIComponent(name)+'">＋ Als feste Routine übernehmen</button></div>';
+      '<div class="rh-note">'+note+'</div></div>';
   }).join("");
+  const anz=$("anz-rhythmen"); if(anz)anz.textContent="("+liste.length+")";
   box.querySelectorAll("[data-uebernehmen]").forEach(b=>b.onclick=()=>alsRoutineUebernehmen(decodeURIComponent(b.dataset.uebernehmen)));
 }
 // Gelernten Rhythmus in eine feste Routine überführen: Routine-Sheet vorbelegt öffnen,
@@ -5477,10 +5537,13 @@ const DEMO_STEPS=[
       platzSig=""; aktualisieren(); demoSpot("#dash-ev"); }, wait:8000 },
   { cap:"🔁 <b>Die App lernt:</b> Aus deinen bestätigten Läufen erkennt sie deinen Rhythmus und <b>schlägt Fälliges von selbst vor</b> – ein Tipp genügt.",
     run:()=>{ demoClose(); setzeTag("heute"); aktualisieren(); demoSpot("#dash-vorschlag"); }, wait:7500 },
-  { cap:"☀️ <b>Wochen-Ausblick:</b> Der <b>Woche</b>-Reiter zeigt oben die nächsten 7 Tage – welcher Tag am meisten Sonne bringt. So legst du Wäsche & Co. gezielt auf den <b>besten Sonnentag</b>.",
-    run:()=>{ demoClose(); setzeTag("woche"); const b=$("woche-ausblick"); if(b)b.scrollIntoView({block:"start"}); demoSpot("#woche-ausblick"); }, wait:8000 },
+  { cap:"☀️ <b>Sonnen-Ausblick:</b> Direkt auf der Startseite sagt dir eine Zeile, was ansteht – „morgen wird es nass, heute vorziehen“. Ein Tipp zeigt alle <b>7 Tage</b>, so legst du Wäsche & Co. auf den <b>besten Sonnentag</b>.",
+    run:()=>{ demoClose(); setzeTag("heute"); cfg.ausblickOffen=true; aktualisieren();
+              const b=$("dash-aus"); if(b)b.scrollIntoView({block:"center"}); demoSpot("#dash-aus"); }, wait:8000 },
   { cap:"🔁 <b>Routinen & Rhythmen:</b> Feste Abläufe (z. B. Bettwäsche freitags) trägst du einmal ein – darunter erkennt die App auch <b>selbst gelernte Muster</b> aus deinen Läufen.",
-    run:()=>{ demoClose(); setzeTag("woche"); const r=$("routine-liste"); if(r)r.scrollIntoView({block:"center"}); demoSpot("#routine-liste"); }, wait:7500 },
+    run:()=>{ demoClose(); setzeTag("woche");
+              const g=$("grp-rhythmen"); if(g)g.open=true;      // beide Gruppen zeigen
+              const r=$("routine-liste"); if(r)r.scrollIntoView({block:"center"}); demoSpot("#routine-liste"); }, wait:7500 },
   { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – gespartes Geld, Sonne, CO₂, Serie. <b>Wichtig:</b> gezählt wird nur, was <b>du selbst einplanst</b> – Wärmepumpe & Speicher steuert dein EMS und sind hier bewusst nicht dabei.",
     run:()=>{ demoClose(); setzeTag("verlauf"); const d=document.querySelector(".wk-scope-det"); if(d)d.open=true; const w=document.querySelector(".wirkung"); if(w)w.scrollIntoView({block:"start"}); demoSpot(".wk-scope"); }, wait:9500 },
   { cap:"✅ <b>Das war's!</b> Du steuerst, die App berät – alles bleibt <b>lokal auf deinem Gerät</b>. Tippe „Beenden“, dann bist du wieder in deiner echten Ansicht.",
