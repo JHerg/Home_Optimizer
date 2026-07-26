@@ -220,7 +220,43 @@ Nebenbei: Der Aufschlag wird additiv auf den Börsenpreis gerechnet; echte
 Tarife legen die MwSt. auch auf den Spot-Anteil. Der Hilfetext sagt „Die Summe
 ist dein tatsächlicher Preis" – Sache der Nutzer-Eingabe, kein Rechenfehler.
 
-**Empfohlene Reihenfolge:** 1 + 2 zusammen · dann 3 · dann 5 · 4 zurückstellen.
+### Neu gewichtet nach der Robustheits-Messung (`tests/probe_robust.js`)
+
+⚠️ Die erste Empfehlung („1 + 2 zusammen") ist **überholt**. Gemessen wurde,
+wie stark der *Rat* davon abhängt, dass man jeden Hintergrundverbraucher
+einträgt – 9 Kombinationen aus Sommer/trüb/Winter × nichts/3 kW/8 kW
+verborgener Last:
+
+| | nichts eingetragen | 3 kW verborgen | 8 kW verborgen |
+|---|---|---|---|
+| Sommertag | 8–10 Uhr | 10–12 Uhr | 13–15 Uhr |
+| trüber Tag | 10–12 Uhr | 14–16 Uhr | 14–16 Uhr |
+| Wintertag | 13–15 Uhr | 14–16 Uhr | 14–16 Uhr |
+
+Der Rat **verschiebt sich**, bleibt aber ausnahmslos zwischen 8 und 16 Uhr –
+nie im Abend. Die Reihenfolge der Stunden ist also stabil, auch wenn die
+Mengen wackeln. Gegen die Alternative, die die App ersetzt („anstellen, wenn
+ich heimkomme"), stehen im geprüften Preisverlauf rund **17 ct/kWh** allein
+über den Preis, ganz ohne Sonne – auch bei völlig falsch geschätztem
+Hintergrund.
+
+**Folgerung:** Die größte Unsicherheit steckt im **Hintergrundprofil**, nicht
+im Preis je kWh. 30 % Preisgenauigkeit zu bauen, während der Rat um zwei
+Stunden wandern kann, wäre Präzision an der falschen Stelle. Die App ist kein
+Messgerät, sondern ein Terminvorschlag – die Bilanz ist Beiwerk, nicht Zweck.
+
+**Neue Reihenfolge:**
+1. **Die Zahl ehrlich beschriften** (war Punkt 5, jetzt zuerst). „≈ 1,75 €"
+   statt „1,75 € gespart", plus ⓘ mit Grundlage und Grenzen. Nur Text.
+2. **Preis-Ersparnis mitzählen** (war Punkt 2). Stützt die Positionierung als
+   Planungssystem: misst genau das, was die App tut, auch im Winter ohne Sonne.
+3. **Doppelzählung reparieren** (war Punkt 3). Echter Rechenfehler.
+4. **Einspeisevergütung optional**, standardmäßig aus (war Punkt 1). Nach der
+   Messung nicht mehr vordringlich – bleibt aber sachlich richtig für alle,
+   die den strengeren Wert wollen.
+5. **Speicher bleibt draußen** (war Punkt 4). Zieht am ehesten Richtung EMS.
+
+Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 
 ---
 
