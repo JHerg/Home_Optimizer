@@ -1810,8 +1810,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=82;
+const APP_VERSION=83;
 const NEUES=[
+  {v:83,t:["🕔 <b>Uhrzeiten im Tagesplan immer vollständig</b>: die Warmwasser- und Heiz-Marken im Hintergrund zeigten zur vollen Stunde nur die nackte Zahl (also „5“ statt „5:00“). Jetzt steht dort immer eine richtige Uhrzeit – im CSV-Export der Bilanz ebenso","📊 <b>Der Hinweis unter dem Sonnen-Ausblick erklärt jetzt zuerst die Grafik</b>: „Balken = erwartete Sonnenstärke“. Dass es weiter als morgen keine Börsenpreise gibt, steht nur noch als kurze Begründung dahinter – vorher las es sich, als ginge es in der Grafik um den Strompreis"]},
   {v:82,t:["🔁 <b>Aus „Woche“ wird „Routinen“</b> – der Reiter macht jetzt nur noch eine Sache: deine festen Routinen und die Rhythmen, die die App gelernt hat. Der Sonnen-Ausblick wohnt seit dem letzten Update ohnehin vorn auf der Startseite und ist dort nur einen Tipp entfernt","📐 <b>Gründlich entrümpelt</b>: beide Listen sind jetzt Klappgruppen mit Anzahl im Kopf (Routinen offen, geratene Rhythmen zugeklappt), Gerätenamen bekommen den Platz statt der Etiketten, und der Hinweis „liegt als Vorschlag auf der Startseite“ steht einmal über der Liste statt bei jedem Eintrag. Aus dem breiten Knopf „Als feste Routine übernehmen“ wurde ein 📌 in der Kopfzeile","📏 Unterm Strich: Der Reiter ist von rund <b>1850 auf 764 Pixel</b> geschrumpft – er passt damit erstmals auf einen Bildschirm"]},
   {v:81,t:["🔭 <b>Der Sonnen-Ausblick ist jetzt auf der Startseite</b> – als eine Zeile, die dir sagt, was zu tun ist: „Morgen wird es nass – heute vorziehen.“ Ein Tipp darauf klappt die gewohnte 7-Tage-Grafik mit Wettersymbolen und Temperaturen auf. <b>Die App merkt sich, wie du es zuletzt hattest</b>","🌤️ Sind alle Tage ähnlich, gibt es nichts abzuwägen – dann steht dort schlicht, dass es keinen Grund zu warten gibt"]},
   {v:80,t:["🎯 <b>Neu im „?“: Wofür ist das eigentlich?</b> Ganz oben steht jetzt, worum es geht – und worin sich die App von einem Energiemanager unterscheidet: Ein EMS regelt, was <b>fest angeschlossen</b> ist. Diese App plant alles <b>andere</b> – Waschmaschine, Trockner, Spülmaschine und Co., die du selbst startest","📖 <b>Das Hilfe-Blatt ist dadurch kürzer geworden, nicht länger</b>: Die Schritt-für-Schritt-Erklärung und die Bedienungs-Tipps stecken jetzt in Aufklappern, die Demo-Tour steht weiter oben"]},
@@ -1853,6 +1854,10 @@ function euro(v){return v.toFixed(2).replace(".",",")+" €";}
 function dz(v){return String(v).replace(".",",");}
 // Uhrzeit/Dauer aus Bruchteil-Stunde: 8 -> "8", 8.75 -> "8:45" (Viertelstunden-Genauigkeit).
 function uhrStr(x){ let h=Math.floor(x), m=Math.round((x-h)*60); if(m>=60){h++;m-=60;} return m?(h+":"+String(m).padStart(2,"0")):(""+h); }
+/* Wie uhrStr, aber IMMER mit Minuten – für alleinstehende Zeitangaben (z. B. die
+   Hintergrund-Pins). „5" liest sich dort mehrdeutig, „5:00" nicht. In Zeitspannen
+   („8–9 Uhr") bleibt uhrStr richtig, dort wären die :00 nur Ballast. */
+function uhrVoll(x){ let h=Math.floor(x), m=Math.round((x-h)*60); if(m>=60){h++;m-=60;} return h+":"+String(m).padStart(2,"0"); }
 
 /* ---------- Routinen (wiederkehrende Geraete) ---------- */
 const WOCHENTAGE=[["Mo",1],["Di",2],["Mi",3],["Do",4],["Fr",5],["Sa",6],["So",0]]; // Wert = getUTCDay
@@ -2534,8 +2539,11 @@ function renderDashAusblick(){
     // Aufgeklappt zusätzlich die Erklärung, die früher im Woche-Reiter stand –
     // sonst ginge sie mit dem Umzug verloren.
     (offen?'<div class="wa-strip">'+zellen+'</div>'+
+      // Erst erklären, was die Grafik zeigt – der Preis-Hinweis ist die Begründung
+      // dafür, nicht das Thema. (Vorher stand „Börsen-Strompreise" am Anfang, was
+      // unter einer reinen Sonnengrafik ein Thema aufwarf statt eines zu schließen.)
       '<div class="dash-aus-info">Balken = erwartete Sonnenstärke (Globalstrahlung, DWD-Modell). '+
-      '<b>Börsen-Strompreise</b> gibt es nur für heute &amp; morgen – weiter voraus zeigt der Ausblick '+
+      'Weiter als morgen gibt es keine Börsenpreise – der Ausblick zeigt darum '+
       '<b>nur Sonne &amp; Wetter</b>.</div>':'');
   $("dash-aus-btn").onclick=()=>{ cfg.ausblickOffen=!cfg.ausblickOffen; speichern(); renderDashAusblick(); };
 }
@@ -3493,7 +3501,8 @@ function renderPlaner(arr){
       if(hzAvg>5)inner+='<div class="hg-hzband">🔥 Heizung durchgehend · Ø ~'+hzAvg+' W</div>';
       runs.forEach(r=>{
         const mitte=Math.max(6,Math.min(94,(r.start+r.dauer/2)/24*100));
-        inner+='<div class="hg-ww" style="left:'+mitte.toFixed(1)+'%">🚿 '+(r.auto?"☀️ "+uhrStr(r.start):uhrStr(r.start))+'</div>';
+        // uhrVoll statt uhrStr: ein Pin steht für sich, „5" wäre mehrdeutig.
+        inner+='<div class="hg-ww" style="left:'+mitte.toFixed(1)+'%">🚿 '+(r.auto?"☀️ "+uhrVoll(r.start):uhrVoll(r.start))+'</div>';
       });
       hgLaneHtml='<div class="hg-titel">⚙️ HINTERGRUND · läuft automatisch – nur zur Info</div>'+
         '<div class="hg-lane" id="hg-lane" aria-hidden="true">'+inner+'</div>';
@@ -4524,8 +4533,10 @@ function exportiereCSV(alle){
   const nm=v=>String(v||"").replace(/;/g,",");
   let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne;Ersparnis ct;geschätzt\n";
   alle.slice().sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:((a.s||0)-(b.s||0)))).forEach(x=>{
-    const ende=(x.s!=null&&x.dauer!=null)?uhrStr(x.s+x.dauer):"";
-    s+=[x.d,nm(x.name),(x.s!=null?uhrStr(x.s):""),ende,z(x.k),z(x.son),z(x.spar),(x.est?"ja":"nein")].join(";")+"\n";
+    // uhrVoll: in einer Tabellenspalte steht die Zeit für sich – „5" würde dort als
+    // Zahl gelesen, „5:00" als Uhrzeit. Gleicher Grund wie bei den Hintergrund-Pins.
+    const ende=(x.s!=null&&x.dauer!=null)?uhrVoll(x.s+x.dauer):"";
+    s+=[x.d,nm(x.name),(x.s!=null?uhrVoll(x.s):""),ende,z(x.k),z(x.son),z(x.spar),(x.est?"ja":"nein")].join(";")+"\n";
   });
   ladeDatei("energie-optimierer-laeufe.csv",s,"text/csv;charset=utf-8");
   zeigeToast("📊 CSV erstellt – im Dialog sichern oder teilen",null);

@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v82)
+Zuletzt aktualisiert: Juli 2026 (Stand v83)
 
 ---
 
@@ -191,6 +191,16 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v83** – Zwei Beobachtungen des Betreibers aus dem laufenden Betrieb:
+  (1) Die Hintergrund-Marken im Tagesplan zeigten zur vollen Stunde nur „5"
+  statt „5:00". Ursache: `uhrStr()` lässt die Minuten bewusst weg – richtig für
+  Zeitspannen („9–11 Uhr"), falsch für eine alleinstehende Zeit. Neuer Helfer
+  `uhrVoll()` daneben; beim Prüfen aller Aufrufstellen fiel derselbe Fehler im
+  CSV-Export auf (Spalten Start/Ende) und wurde mitgefixt.
+  (2) Der Hinweis unter dem Sonnen-Ausblick führte mit dem Börsenpreis, obwohl
+  die Grafik nur die Sonne zeigt. Jetzt erklärt er zuerst die Balken; der
+  Börsenpreis steht als kurze Begründung dahinter (3 Zeilen → 154 Zeichen).
+  Test: `test_uhrzeit.js` 11/11.
 - **v82** – Reiter „Woche" → „Routinen"; Ausblick dort entfernt, sechs
   Aufräum-Punkte umgesetzt. 1849 → 764 px.
 - **v81** – Sonnen-Ausblick als aufklappbare Zeile auf die Startseite geholt
