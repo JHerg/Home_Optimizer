@@ -173,6 +173,57 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ---
 
+## Rang 1 – Die Ersparnis-Rechnung (Prüfung v85, noch nichts geändert)
+
+Vom Betreiber angestoßen: „Auf was berechnest du das und sind wirklich alle
+Punkte berücksichtigt?"
+
+### Was heute gerechnet wird
+
+`spar = Σ (sonnengedeckte kWh der Stunde) × (Netzpreis der Stunde)`
+in `laufBilanz()`; Netzpreis kommt aus `stunden()`:
+**dynamisch** = Börsenpreis (€/MWh ÷ 10) + `cfg.aufschlag` · **fest** =
+`cfg.festpreis × 100`, konstant. Sonnengedeckt = `min(Geräte-kW, pv − hg)`.
+
+✅ **Der Tarif ist berücksichtigt.** ✅ Der Hintergrundverbrauch wird korrekt
+vorab abgezogen. ✅ Alt-Läufe sind als Schätzung gekennzeichnet (30 ct pauschal).
+
+### Fünf Lücken
+
+1. **Einspeisevergütung fehlt vollständig** (kein Treffer im ganzen Code).
+   Jede Sonnen-kWh wird mit dem vollen Netzpreis bewertet, obwohl sie sonst
+   eingespeist worden wäre. Richtig wäre `voll − einspeisung`. Bei 35 ct Netz
+   und ~8 ct Vergütung: **rund ein Drittel zu hoch.** Größter Posten.
+   Braucht ein Feld in den Einstellungen (Wert hängt am Inbetriebnahmedatum,
+   kann die App nicht raten) und eine Aus-Option für Nulleinspeisung.
+2. **Dynamischer Tarif: die Netzpreis-Ersparnis fehlt** – und zwar in die
+   *andere* Richtung. Gezählt wird nur der Sonnenanteil. Ein Lauf, den die App
+   von einer 45-ct- in eine 20-ct-Stunde schiebt, spart real 25 ct/kWh und
+   erscheint mit **null**. Im Winter zeigt die App darum fast keine Wirkung.
+   ⚠️ 1 und 2 heben sich NICHT auf – getrennt gebaut verschiebt man den Fehler nur.
+3. **Doppelzählung bei gleichzeitigen Läufen.** `laufBilanz()` sieht jeden Lauf
+   für sich und kennt die anderen nicht. Nachgestellt (`probe_doppelt.js`):
+   2,4 kWh Überschuss um 11 Uhr, zwei Maschinen à 2 kW → **4,0 kWh
+   gutgeschrieben, 120 statt 72 ct**. Der Planer verteilt normalerweise so,
+   dass es nicht vorkommt (`restKW` in `bestesFensterSonne`), aber Schieben von
+   Hand und nachträgliches Abhaken umgehen diesen Schutz.
+4. **Der Speicher fehlt in der Bilanz.** `simuliere()` existiert, wird von
+   `laufBilanz()` aber nicht genutzt: Sonne, die in den Akku gegangen wäre,
+   zählt jetzt als frei *und* später beim Entladen nochmal; ein Abendlauf aus
+   dem Akku zählt als reiner Netzbezug (0 ct). Aufwendigster Punkt, betrifft
+   nur Akku-Haushalte → zurückstellen.
+5. **Prognose, keine Messung.** `son` kommt aus der Vorhersage × Kalibrierfaktor.
+   Der Bilanz-Text sagt aber „eigener Sonnenstrom statt Netz", als wäre es
+   gemessen. Reine Textfrage, aber eine der Ehrlichkeit.
+
+Nebenbei: Der Aufschlag wird additiv auf den Börsenpreis gerechnet; echte
+Tarife legen die MwSt. auch auf den Spot-Anteil. Der Hilfetext sagt „Die Summe
+ist dein tatsächlicher Preis" – Sache der Nutzer-Eingabe, kein Rechenfehler.
+
+**Empfohlene Reihenfolge:** 1 + 2 zusammen · dann 3 · dann 5 · 4 zurückstellen.
+
+---
+
 ## Offene Punkte (kein Rang – Erinnerung)
 
 - **Impressum**: enthält noch Platzhalter statt ladungsfähiger Anschrift.
