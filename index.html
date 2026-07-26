@@ -538,6 +538,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .erledigt-zeile .erl-zeit{display:inline-block;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:600;color:var(--tinte);opacity:1;margin-left:8px}
 .erledigt-zeile .erl-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .erledigt-zeile button{border:none;background:none;font-size:12px;font-weight:600;color:var(--netz);cursor:pointer;flex-shrink:0;padding:2px 4px}
+/* Der Aufklapper trägt hier NICHT den grauen Kasten von details.experte: seine
+   Zeilen sind dieselbe Liste wie die offenen darunter und sollen bündig mit
+   ihnen stehen – mit Kasten-Innenabstand wurden die Gerätenamen zusätzlich
+   umgebrochen. */
+details.erl-mehr{margin-top:0;background:none;padding:0}
+details.erl-mehr>summary{padding:5px 2px;font-size:12px}
 .erledigt-zeile .erl-edit{font-size:14px;text-decoration:none}
 /* „Aus echten Läufen gelernt"-Hinweis im Bearbeiten-Sheet */
 .b-gelernt{display:flex;align-items:center;gap:10px;background:var(--sonne-hell);border:1px solid var(--sonne);border-radius:13px;padding:10px 12px;margin:2px 0 14px}
@@ -1810,8 +1816,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=83;
+const APP_VERSION=84;
 const NEUES=[
+  {v:84,t:["✓ <b>„Heute schon gelaufen“ bläht den Tagesplan nicht mehr auf</b>: ab dem fünften Durchgang stehen nur noch die <b>drei jüngsten</b> offen, die früheren stecken darüber in „📜 frühere Läufe anzeigen“ – wie das Archiv in der Bilanz. Verloren geht nichts, „zurück“ und ✎ funktionieren aus dem Aufklapper heraus genauso","💶 <b>Die große Spar-Summe in der Bilanz rundet nicht mehr anders als der Text darunter</b>: oben stand „1,8 €“, zwei Zeilen tiefer dieselbe Zahl als „1,75 €“. Schuld war nur die Hochzähl-Animation, die stur auf eine Nachkommastelle kürzte – gerechnet wurde immer richtig"]},
   {v:83,t:["🕔 <b>Uhrzeiten im Tagesplan immer vollständig</b>: die Warmwasser- und Heiz-Marken im Hintergrund zeigten zur vollen Stunde nur die nackte Zahl (also „5“ statt „5:00“). Jetzt steht dort immer eine richtige Uhrzeit – im CSV-Export der Bilanz ebenso","📊 <b>Der Hinweis unter dem Sonnen-Ausblick erklärt jetzt zuerst die Grafik</b>: „Balken = erwartete Sonnenstärke“. Dass es weiter als morgen keine Börsenpreise gibt, steht nur noch als kurze Begründung dahinter – vorher las es sich, als ginge es in der Grafik um den Strompreis"]},
   {v:82,t:["🔁 <b>Aus „Woche“ wird „Routinen“</b> – der Reiter macht jetzt nur noch eine Sache: deine festen Routinen und die Rhythmen, die die App gelernt hat. Der Sonnen-Ausblick wohnt seit dem letzten Update ohnehin vorn auf der Startseite und ist dort nur einen Tipp entfernt","📐 <b>Gründlich entrümpelt</b>: beide Listen sind jetzt Klappgruppen mit Anzahl im Kopf (Routinen offen, geratene Rhythmen zugeklappt), Gerätenamen bekommen den Platz statt der Etiketten, und der Hinweis „liegt als Vorschlag auf der Startseite“ steht einmal über der Liste statt bei jedem Eintrag. Aus dem breiten Knopf „Als feste Routine übernehmen“ wurde ein 📌 in der Kopfzeile","📏 Unterm Strich: Der Reiter ist von rund <b>1850 auf 764 Pixel</b> geschrumpft – er passt damit erstmals auf einen Bildschirm"]},
   {v:81,t:["🔭 <b>Der Sonnen-Ausblick ist jetzt auf der Startseite</b> – als eine Zeile, die dir sagt, was zu tun ist: „Morgen wird es nass – heute vorziehen.“ Ein Tipp darauf klappt die gewohnte 7-Tage-Grafik mit Wettersymbolen und Temperaturen auf. <b>Die App merkt sich, wie du es zuletzt hattest</b>","🌤️ Sind alle Tage ähnlich, gibt es nichts abzuwägen – dann steht dort schlicht, dass es keinen Grund zu warten gibt"]},
@@ -3017,18 +3024,32 @@ function wireUngeplant(tagKey){
   });
 }
 // "Heute schon gelaufen"-Liste – jeder Durchgang einzeln, mit Laufzeit-Änderung (✎) und Zurück.
+const ERL_OFFEN=3;   // so viele der jüngsten Durchgänge bleiben offen stehen
 function erledigtHtml(tagKey){
   const list=erledigtListe(tagKey);
   if(!list.length)return "";
-  return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen</div>'+
-    list.map((e,i)=>{
-      const teile=[];
-      if(e.s!=null&&e.e!=null)teile.push(uhrStr(e.s)+"–"+uhrStr(e.e)+" Uhr");
-      if(e.k!=null)teile.push(dz(e.k)+" kWh");
-      const zeit = teile.length?'<span class="erl-zeit">'+teile.join(" · ")+'</span>':'';
-      const editBtn = (e.s!=null&&e.e!=null)?'<button class="erl-edit" data-erl-edit="'+i+'" aria-label="Laufzeit ändern" title="Laufzeit ändern">✎</button>':'';
-      return '<div class="erledigt-zeile"><span class="erl-nm">'+e.icon+' '+kurzName(e.name)+zeit+'</span>'+editBtn+'<button class="erl-undo" data-erl-undo="'+i+'">zurück</button></div>';
-    }).join("")+
+  const zeile=(e,i)=>{
+    const teile=[];
+    if(e.s!=null&&e.e!=null)teile.push(uhrStr(e.s)+"–"+uhrStr(e.e)+" Uhr");
+    if(e.k!=null)teile.push(dz(e.k)+" kWh");
+    const zeit = teile.length?'<span class="erl-zeit">'+teile.join(" · ")+'</span>':'';
+    const editBtn = (e.s!=null&&e.e!=null)?'<button class="erl-edit" data-erl-edit="'+i+'" aria-label="Laufzeit ändern" title="Laufzeit ändern">✎</button>':'';
+    return '<div class="erledigt-zeile"><span class="erl-nm">'+e.icon+' '+kurzName(e.name)+zeit+'</span>'+editBtn+'<button class="erl-undo" data-erl-undo="'+i+'">zurück</button></div>';
+  };
+  /* Die Liste wächst im Lauf des Tages unbegrenzt und schiebt alles darunter weg.
+     Ab dem 5. Durchgang wandern die frühen in einen Aufklapper, die drei jüngsten
+     bleiben offen – gleiches Muster wie das Archiv in der Bilanz.
+     Erst ab 5, nicht schon ab 4: bei genau vier Einträgen würde der Aufklapper
+     einen einzigen verstecken und dabei selbst so hoch bauen wie dieser.
+     Der Aufklapper steht OBEN, damit die Reihenfolge des Tages erhalten bleibt.
+     Die Index-Angaben (data-erl-…) zählen weiter über die ganze Liste – sonst
+     würden „zurück" und ✎ den falschen Durchgang treffen. */
+  const frueh = list.length>4 ? list.length-ERL_OFFEN : 0;
+  let alt="",neu="";
+  list.forEach((e,i)=>{ const r=zeile(e,i); if(i<frueh)alt+=r; else neu+=r; });
+  return '<div class="erledigt-box"><div class="erledigt-titel">✓ Heute schon gelaufen'+(frueh?' ('+list.length+')':'')+'</div>'+
+    (alt?'<details class="experte erl-mehr"><summary>📜 '+frueh+' frühere '+(frueh===1?'Lauf':'Läufe')+' anzeigen</summary>'+alt+'</details>':'')+
+    neu+
     '</div>';
 }
 function wireErledigt(tagKey){
@@ -5376,10 +5397,15 @@ function zaehlElement(el,key){
   const txt=(el.textContent||"").trim();
   if(txt.indexOf("–")>=0) return;
   const m=txt.match(/^([\d.,]+)(.*)$/); if(!m) return;
-  const dez=(m[1].indexOf(",")>=0||m[1].indexOf(".")>=0)?1:0;
+  /* Nachkommastellen aus dem bereits gerenderten Text übernehmen, statt pauschal
+     EINE zu erzwingen: Sonst zählte die Bilanz die Ersparnis „1,75 €" auf
+     „1,8 €" hoch, während dieselbe Zahl zwei Zeilen darunter (nicht animiert)
+     weiterhin 1,75 € lautete – sah nach Rechenfehler aus, war nur die Animation. */
+  const trenn=Math.max(m[1].lastIndexOf(","),m[1].lastIndexOf("."));
+  const dez=trenn>=0?(m[1].length-trenn-1):0;
   const ziel=parseFloat(m[1].replace(",",".")); if(isNaN(ziel)) return;
   const suffix=m[2];
-  zaehlHoch(el,ziel,v=>(dez?dz(v.toFixed(1)):String(Math.round(v)))+suffix,key+"|"+suffix);
+  zaehlHoch(el,ziel,v=>(dez?dz(v.toFixed(dez)):String(Math.round(v)))+suffix,key+"|"+suffix);
 }
 
 /* Einmalige Voreinstellungen als "Meine Geräte". Jeder Block läuft nur einmal

@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v83)
+Zuletzt aktualisiert: Juli 2026 (Stand v84)
 
 ---
 
@@ -142,8 +142,14 @@ angepasst (zeigte auf ein Element, das es dort nicht mehr gibt).
 
 </details>
 
-**Noch offen – Nebenfund:** Bilanz zeigt oben **1,8 €** und darunter **1,75 €** –
-dieselbe Zahl, zwei Rundungen. Sieht nach Fehler aus, ist keiner. Zwei Zeilen Fix.
+~~**Noch offen – Nebenfund:** Bilanz zeigt oben **1,8 €** und darunter **1,75 €**~~
+✅ **erledigt in v84.** Ursache war nicht die Rechnung, sondern die
+Hochzähl-Animation: `zaehlElement()` erkannte nur *ob* eine Nachkommastelle da
+war und formatierte dann pauschal mit `toFixed(1)`. Aus dem korrekt
+gerenderten `1,75 €` wurde beim Hochzählen `1,8 €` – der nicht animierte Text
+zwei Zeilen tiefer blieb bei 1,75 €. Jetzt übernimmt die Animation die
+Stellenzahl aus dem gerenderten Text. Die kWh-/kg-Kacheln (eine Stelle) und
+die Serie (ganzzahlig) bleiben unverändert.
 
 ### Weitere Stellen, die mit Daten wachsen
 
@@ -158,7 +164,7 @@ die Geräteliste auf der Startseite.
 |---|---|---|
 | 🔁 Feste Routinen (Woche) | jeder Routine | Klappgruppe mit Anzahl im Kopf |
 | 🤖 Erkannte Rhythmen (Woche) | jedem gelernten Gerät | ebenso, zugeklappt starten |
-| „Heute schon gelaufen" | im Lauf des Tages | ab 4 Einträgen einklappen |
+| ~~„Heute schon gelaufen"~~ | — | ✅ in v84 erledigt (ab 5 Einträgen) |
 | ~~Geräte auf der Startseite~~ | — | ✅ in v79 erledigt |
 | ~~Meine Geräte (Einrichten)~~ | — | ✅ steckt schon in Klappgruppe |
 
@@ -191,6 +197,15 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v84** – Die beiden Restposten aus der Aufräum-Runde.
+  „Heute schon gelaufen" wächst nicht mehr unbegrenzt: ab dem **fünften**
+  Durchgang bleiben die drei jüngsten offen, die früheren stehen darüber im
+  Aufklapper. **Schwelle bewusst 5 statt 4** – bei genau vier Einträgen würde
+  der Aufklapper einen einzigen verstecken und dabei selbst so hoch bauen wie
+  dieser. Gemessen bei 6 Läufen: **217 → 154 px**, und die Höhe bleibt dort,
+  egal wie viele noch folgen. Die `data-erl-…`-Indizes zählen weiter über die
+  ganze Liste, sonst träfen „zurück" und ✎ den falschen Durchgang.
+  Dazu die Bilanz-Rundung (siehe oben). Test: `test_aufraeumen.js` 18/18.
 - **v83** – Zwei Beobachtungen des Betreibers aus dem laufenden Betrieb:
   (1) Die Hintergrund-Marken im Tagesplan zeigten zur vollen Stunde nur „5"
   statt „5:00". Ursache: `uhrStr()` lässt die Minuten bewusst weg – richtig für
