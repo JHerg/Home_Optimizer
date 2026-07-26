@@ -19,7 +19,17 @@ weiter oben, direkt nach dem Zweck-Text.
 Vertrauens-Abschnitt, Bilanz unter „Deine Wirkung"). Solange in
 `SPENDEN_URL` kein Ziel steht, wird er **überall ausgeblendet** – lieber
 nichts zeigen als ein Knopf ins Leere.
-⚠️ **Offen: PayPal.me-Link vom Betreiber**, dann in `SPENDEN_URL` eintragen.
+⚠️ **Offen – und bewusst vertagt.** PayPal.me wurde beim Einrichten verworfen:
+PayPal weist darauf hin, dass bei einem Privatkonto **Name, Foto, E-Mail,
+Handynummer und Standort** anderen Nutzern gezeigt werden.
+Recherche ergab: **Ko-fi allein schützt nicht** – entscheidend ist der
+Auszahlungsweg (PayPal privat ❌ · PayPal Geschäftskonto ✅ · Stripe ✅).
+Zusätzlich: Ein Spendenknopf kann die App vom „rein privaten" in den
+geschäftsmäßigen Bereich rücken und damit **Impressumspflicht** auslösen –
+der Play Store allein tut das nicht (dort ist bei Privatkonten ohne
+In-App-Käufe nur die E-Mail öffentlich).
+**Empfehlung: erst ohne Spendenknopf veröffentlichen.** Details und Quellen
+in PLAYSTORE.md.
 
 Test: `test_zweck.js` 13/13 (beide Zustände – mit und ohne hinterlegtes Ziel).
 
@@ -61,9 +71,9 @@ von einer EMS-App unterscheidet. Genau diese Abgrenzung ist ihr Daseinsgrund.
 - **Spenden-Knopf** (siehe unten) – hier ist sein natürlicher Platz
 - Im gewohnten Look der App
 
-### Spenden-Knopf – Entscheidung gefallen
+### Spenden-Knopf – ~~Entscheidung gefallen~~ (überholt, siehe oben)
 
-- **Dienst: PayPal** (vom Betreiber favorisiert – kennt in Deutschland fast jeder)
+- ~~**Dienst: PayPal**~~ – beim Einrichten verworfen, siehe Hinweis oben
 - **Platz: auf dieser Zweck-Seite.** Wer liest, warum es die App gibt, ist im
   richtigen Moment. Optionaler Zweitplatz: unten in der Bilanz unter „Deine
   Wirkung" – beim Bauen entscheiden, ob beides oder nur einer.
@@ -113,8 +123,12 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 ## Offene Punkte (kein Rang – Erinnerung)
 
 - **Impressum**: enthält noch Platzhalter statt ladungsfähiger Anschrift.
-  Nötig, bevor die Seite öffentlich auffindbar wird (aktuell per `noindex` +
-  robots.txt bewusst versteckt).
+  Aktuell per `noindex` + robots.txt bewusst versteckt.
+  Ob überhaupt Pflicht, hängt am Spendenknopf – siehe Abwägung in PLAYSTORE.md.
+  Ohne Spenden gute Chance auf „rein privat" (§ 5 DDG greift dann nicht).
+  Falls doch: Postfach genügt nicht, ladungsfähige Anschrift nötig –
+  Impressumsservices sind üblich. ⚠️ Keine Rechtsberatung, vor der
+  Veröffentlichung fachlich prüfen lassen.
 - **Play Store Phase 3**: Konto (25 $), 12 Tester über 14 Tage, Store-Texte
   (→ Grundlage ist der Zweck-Text aus v80, Aufmacher aber neu fassen –
   siehe Einschränkung dort), Feature-Grafik 1024×500.
@@ -132,7 +146,8 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 - **v80** – Zweck-Seite „Wofür ist das?" oben im „?"-Blatt; bestehende
   Erklärungen in Aufklapper verschoben (Blatt wurde dadurch kürzer);
-  Spendenblock gebaut, erscheint erst mit hinterlegtem PayPal-Link.
+  Spendenblock gebaut, bleibt ohne hinterlegtes Ziel unsichtbar (Auszahlungsweg
+  noch offen – siehe oben).
 - **v79** – Hakeliges Scrollen (früher Rang 1). Drei Ursachen überlagerten sich:
   die Wischerkennung war zu großzügig (`|dx|>8 && |dx|>|dy|+2` wertete schon
   einen leicht schrägen Scrollversuch als Wischen), `.dash-row` fehlte
