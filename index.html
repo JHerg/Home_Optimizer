@@ -770,7 +770,12 @@ details.rgrp-info>summary::-webkit-details-marker{display:none}
 .wk-seg-b{flex:1;border:none;background:transparent;border-radius:9px;padding:8px 6px;font-size:12.5px;font-weight:600;color:var(--grau);cursor:pointer;transition:background var(--schnell),color var(--schnell)}
 .wk-seg-b.an{background:var(--karte);color:var(--nacht);box-shadow:0 1px 3px rgba(20,31,44,.16),0 0 0 .5px rgba(20,31,44,.05)}
 .wk-hero{text-align:center;background:var(--gruen-hell);border-radius:16px;padding:16px 12px;margin-bottom:12px}
-.wk-euro{display:block;font-size:34px;font-weight:800;color:var(--gruen);line-height:1.05;letter-spacing:-.02em}
+/* Das „≈" steht bewusst NEBEN dem hochzählenden Element, nicht darin:
+   zaehlElement() liest den Text per /^([\d.,]+)/ – mit einem Zeichen davor
+   greift die Erkennung nicht mehr und die Animation fiele stillschweigend aus. */
+.wk-euro-zeile{display:flex;align-items:baseline;justify-content:center;gap:5px}
+.wk-approx{font-size:24px;font-weight:700;color:var(--gruen);opacity:.65;line-height:1}
+.wk-euro{display:inline-block;font-size:34px;font-weight:800;color:var(--gruen);line-height:1.05;letter-spacing:-.02em}
 .wk-hero-lbl{display:block;font-size:12px;color:var(--grau);font-weight:600;margin-top:3px}
 .wk-kacheln{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .wk-kachel{background:var(--papier);border-radius:13px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
@@ -1073,7 +1078,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 </section>
 
 <section class="karte" id="karte-verlauf" hidden>
-  <div class="untertitel" style="margin-top:2px">Deine Wirkung: gespartes Geld, genutzte Sonne, vermiedenes CO₂ – plus alle Läufe, aus denen die App lernt. Alles bleibt lokal auf deinem Gerät.</div>
+  <div class="untertitel" style="margin-top:2px">Deine Wirkung: geschätzte Ersparnis, genutzte Sonne, vermiedenes CO₂ – plus alle Läufe, aus denen die App lernt. Alles bleibt lokal auf deinem Gerät.</div>
   <div id="verlauf-inhalt"></div>
 </section>
 
@@ -1173,7 +1178,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="hilfe-feature">
       <div class="hf-ic sonne">🗓️</div>
       <div class="hf-body"><div class="hf-titel">Den besten Tag der Woche finden</div>
-        <div class="hf-sub">Auf der <b>Startseite</b> steht unter dem Ertrag eine Zeile mit dem Sonnen-Ausblick – antippen zeigt alle <b>7 Tage</b>, so legst du Wäsche &amp; Co. auf den <b>sonnigsten Tag</b>. In der <b>Bilanz</b> siehst du, was du schon gespart hast.</div></div>
+        <div class="hf-sub">Auf der <b>Startseite</b> steht unter dem Ertrag eine Zeile mit dem Sonnen-Ausblick – antippen zeigt alle <b>7 Tage</b>, so legst du Wäsche &amp; Co. auf den <b>sonnigsten Tag</b>. In der <b>Bilanz</b> siehst du, was dabei ungefähr zusammengekommen ist.</div></div>
     </div>
     <div class="hilfe-feature">
       <div class="hf-ic grau">🧭</div>
@@ -1827,8 +1832,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=85;
+const APP_VERSION=86;
 const NEUES=[
+  {v:86,t:["≈ <b>Die Bilanz sagt jetzt, was sie ist: eine Schätzung.</b> Vor der großen Zahl steht ein „≈“, darunter „geschätzt gespart“. <b>Gerechnet wird genau wie vorher</b> – keine einzige Zahl ändert sich, es steht nur nicht mehr da, als wäre sie gemessen","🔍 <b>Der Erklärsatz nennt jetzt die Grenzen</b>: Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler · Verbraucher, die du nicht eingetragen hast, kennt die App nicht · die <b>Einspeisevergütung ist nicht abgezogen</b>. Auch im CSV-Export sind die geschätzten Spalten so benannt","🧭 Warum? Diese App ist ein <b>Terminvorschlag, kein Messgerät</b>. Ihr Nutzen steckt darin, dir die richtige <b>Stunde</b> zu nennen – und der bleibt, auch wenn der Eurobetrag nur die Größenordnung trifft"]},
   {v:85,t:["🔁 <b>Routinen können jetzt auch in einem festen Abstand laufen</b> – „alle 4 Tage“ statt nur „jeden Samstag“. Bisher musste jede feste Routine auf einem Wochentag liegen; Rhythmen, die nicht in die Woche passen (alle 3, 4, 5 … Tage), ließen sich gar nicht anlegen","🔧 <b>Damit ist auch ein Fehler weg</b>: Hat die App „alle ~4 Tage“ erkannt und du hast den Rhythmus mit 📌 als feste Routine übernommen, wurde daraus stillschweigend <b>„jede Woche, an dem Tag, an dem du getippt hast“</b> – aus 4 Tagen wurden 7. Jetzt wird der erkannte Abstand einfach übernommen","📅 Der Abstand zählt <b>ab dem letzten Lauf</b>: Läuft das Gerät einmal einen Tag später, verschiebt sich der nächste Termin mit. Ein starres Kalenderraster würde sonst mit jeder Verschiebung weiter danebenliegen. Bestehende Wochentag-Routinen bleiben unverändert"]},
   {v:84,t:["✓ <b>„Heute schon gelaufen“ bläht den Tagesplan nicht mehr auf</b>: ab dem fünften Durchgang stehen nur noch die <b>drei jüngsten</b> offen, die früheren stecken darüber in „📜 frühere Läufe anzeigen“ – wie das Archiv in der Bilanz. Verloren geht nichts, „zurück“ und ✎ funktionieren aus dem Aufklapper heraus genauso","💶 <b>Die große Spar-Summe in der Bilanz rundet nicht mehr anders als der Text darunter</b>: oben stand „1,8 €“, zwei Zeilen tiefer dieselbe Zahl als „1,75 €“. Schuld war nur die Hochzähl-Animation, die stur auf eine Nachkommastelle kürzte – gerechnet wurde immer richtig"]},
   {v:83,t:["🕔 <b>Uhrzeiten im Tagesplan immer vollständig</b>: die Warmwasser- und Heiz-Marken im Hintergrund zeigten zur vollen Stunde nur die nackte Zahl (also „5“ statt „5:00“). Jetzt steht dort immer eine richtige Uhrzeit – im CSV-Export der Bilanz ebenso","📊 <b>Der Hinweis unter dem Sonnen-Ausblick erklärt jetzt zuerst die Grafik</b>: „Balken = erwartete Sonnenstärke“. Dass es weiter als morgen keine Börsenpreise gibt, steht nur noch als kurze Begründung dahinter – vorher las es sich, als ginge es in der Grafik um den Strompreis"]},
@@ -3830,7 +3836,7 @@ function renderRueckblick(){
   if(!n){ el.hidden=true; return; }
   const q=k>0?Math.round(son/k*100):0;
   el.hidden=false;
-  el.innerHTML='🌅 <b>Dein Gestern:</b> '+n+' '+(n===1?'Lauf':'Läufe')+' · <b>'+dz(son.toFixed(1))+' kWh</b> aus eigener Sonne'+(k>0?' ('+q+' %)':'')+' · <b>'+euro(spar/100)+'</b> gespart <button class="rb-zu" aria-label="Rückblick ausblenden">✕</button>';
+  el.innerHTML='🌅 <b>Dein Gestern:</b> '+n+' '+(n===1?'Lauf':'Läufe')+' · <b>'+dz(son.toFixed(1))+' kWh</b> aus eigener Sonne'+(k>0?' ('+q+' %)':'')+' · <b>≈ '+euro(spar/100)+'</b> gespart <button class="rb-zu" aria-label="Rückblick ausblenden">✕</button>';
   el.onclick=e=>{
     if(e.target.classList.contains("rb-zu")){ cfg.rueckblickWeg=hk; speichern(); el.hidden=true; e.stopPropagation(); return; }
     setzeTag("verlauf");
@@ -4039,7 +4045,7 @@ function renderVerlauf(){
     });
   });
   if(!alle.length){
-    box.innerHTML='<div class="vl-leer">Noch keine Daten.<br>Sobald du Läufe als „✓ gelaufen" bestätigst, füllt sich hier deine <b>Wirkung</b> – gespartes Geld, genutzte Sonne, vermiedenes CO₂ – und die App lernt deinen Rhythmus.</div>';
+    box.innerHTML='<div class="vl-leer">Noch keine Daten.<br>Sobald du Läufe als „✓ gelaufen" bestätigst, füllt sich hier deine <b>Wirkung</b> – geschätzte Ersparnis, genutzte Sonne, vermiedenes CO₂ – und die App lernt deinen Rhythmus.</div>';
     return;
   }
   alle.sort((a,b)=> a.d<b.d?1:(a.d>b.d?-1:((b.s||0)-(a.s||0))));
@@ -4103,7 +4109,9 @@ function renderVerlauf(){
   box.innerHTML=
     '<div class="wirkung">'+
       '<div class="wk-seg">'+seg("woche","Woche")+seg("monat","Monat")+seg("jahr","Jahr")+'</div>'+
-      '<div class="wk-hero"><span class="wk-euro" data-eur="'+(sparCt/100)+'">'+euro(sparCt/100)+'</span><span class="wk-hero-lbl">gespart · '+zLbl+'</span></div>'+
+      '<div class="wk-hero"><span class="wk-euro-zeile"><span class="wk-approx" aria-hidden="true">≈</span>'+
+        '<span class="wk-euro" data-eur="'+(sparCt/100)+'">'+euro(sparCt/100)+'</span></span>'+
+        '<span class="wk-hero-lbl">geschätzt gespart · '+zLbl+'</span></div>'+
       '<div class="wk-scope">🎯 <span>Zählt nur deine <b>eingeplanten Geräte &amp; Routinen</b> – nicht die vom EMS gesteuerten Hintergrundverbraucher.</span></div>'+
       '<div class="wk-kacheln">'+
         kachel("☀️",dz(son.toFixed(1))+" kWh",'aus eigener Sonne'+(son+netz>0?" · "+quote+"%":""))+
@@ -4112,12 +4120,12 @@ function renderVerlauf(){
       '</div>'+
       '<div class="wk-balken-titel">'+balkenTitel+'</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
-      (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
+      (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': ≈ '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
       // Spenden direkt nach dem Spar-Ergebnis – hier sieht man gerade, was die App
       // gebracht hat. (Vorher stand der Block ganz unten hinter dem CSV-Export und
       // der kompletten Lauf-Liste; dorthin scrollt praktisch niemand.)
       '<div class="spenden" id="spenden-bilanz" hidden></div>'+
-      '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<div class="wk-hinweis"><b>Eine Schätzung, keine Messung.</b> „Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler; Verbraucher, die du nicht eingetragen hast, kennt die App nicht; die <b>Einspeisevergütung ist nicht abgezogen</b>. Der Wert zeigt die Größenordnung – nicht den Kontostand. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
@@ -4603,7 +4611,7 @@ function ladeDatei(name,inhalt,mime){
 function exportiereCSV(alle){
   const z=v=>v==null?"":String(v).replace(".",",");
   const nm=v=>String(v||"").replace(/;/g,",");
-  let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne;Ersparnis ct;geschätzt\n";
+  let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne (geschätzt);Ersparnis ct (geschätzt);Sonne grob geschätzt\n";
   alle.slice().sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:((a.s||0)-(b.s||0)))).forEach(x=>{
     // uhrVoll: in einer Tabellenspalte steht die Zeit für sich – „5" würde dort als
     // Zahl gelesen, „5:00" als Uhrzeit. Gleicher Grund wie bei den Hintergrund-Pins.
@@ -5668,7 +5676,7 @@ const DEMO_STEPS=[
     run:()=>{ demoClose(); setzeTag("woche");
               const g=$("grp-rhythmen"); if(g)g.open=true;      // beide Gruppen zeigen
               const r=$("routine-liste"); if(r)r.scrollIntoView({block:"center"}); demoSpot("#routine-liste"); }, wait:7500 },
-  { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – gespartes Geld, Sonne, CO₂, Serie. <b>Wichtig:</b> gezählt wird nur, was <b>du selbst einplanst</b> – Wärmepumpe & Speicher steuert dein EMS und sind hier bewusst nicht dabei.",
+  { cap:"📊 <b>Deine Wirkung:</b> Der <b>Bilanz</b>-Reiter zeigt, was du erreicht hast – <b>geschätzte</b> Ersparnis, Sonne, CO₂, Serie. <b>Wichtig:</b> gezählt wird nur, was <b>du selbst einplanst</b> – Wärmepumpe & Speicher steuert dein EMS und sind hier bewusst nicht dabei.",
     run:()=>{ demoClose(); setzeTag("verlauf"); const d=document.querySelector(".wk-scope-det"); if(d)d.open=true; const w=document.querySelector(".wirkung"); if(w)w.scrollIntoView({block:"start"}); demoSpot(".wk-scope"); }, wait:9500 },
   { cap:"✅ <b>Das war's!</b> Du steuerst, die App berät – alles bleibt <b>lokal auf deinem Gerät</b>. Tippe „Beenden“, dann bist du wieder in deiner echten Ansicht.",
     run:()=>{ demoClose(); setzeTag("heute"); }, wait:9000 }

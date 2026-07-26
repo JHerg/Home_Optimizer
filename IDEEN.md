@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v85)
+Zuletzt aktualisiert: Juli 2026 (Stand v86)
 
 ---
 
@@ -246,8 +246,16 @@ Stunden wandern kann, wäre Präzision an der falschen Stelle. Die App ist kein
 Messgerät, sondern ein Terminvorschlag – die Bilanz ist Beiwerk, nicht Zweck.
 
 **Neue Reihenfolge:**
-1. **Die Zahl ehrlich beschriften** (war Punkt 5, jetzt zuerst). „≈ 1,75 €"
-   statt „1,75 € gespart", plus ⓘ mit Grundlage und Grenzen. Nur Text.
+1. ~~**Die Zahl ehrlich beschriften**~~ ✅ **gebaut in v86.** „≈ 2,28 €" +
+   „geschätzt gespart"; der Erklärsatz führt mit „Eine Schätzung, keine
+   Messung." und benennt die drei Grenzen (Prognose statt Zähler · nicht
+   eingetragene Verbraucher · Einspeisevergütung nicht abgezogen). Dazu
+   Rückblick, Teilen-Text, CSV-Kopf, Hilfe und Demo-Tour. **Keine Zahl hat
+   sich geändert.** Das „≈" steht neben dem hochzählenden Element, nicht darin
+   – sonst greift `zaehlElement()` nicht mehr und die Animation fällt aus.
+   Test: `test_ehrlich.js` 14/14 (prüft auch, dass die Animation noch läuft).
+   App-Beschreibung und Manifest blieben unverändert: dort war nie von
+   gemessener Ersparnis die Rede, sondern von Startzeiten.
 2. **Preis-Ersparnis mitzählen** (war Punkt 2). Stützt die Positionierung als
    Planungssystem: misst genau das, was die App tut, auch im Winter ohne Sonne.
 3. **Doppelzählung reparieren** (war Punkt 3). Echter Rechenfehler.
