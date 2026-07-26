@@ -43,23 +43,38 @@ const errs=[];
 
   // --- 2) Bilanz: die große Zahl ---
   await p.$eval('.tabbar .tab[data-tag="verlauf"]',e=>e.click()); await p.waitForTimeout(1600);
-  chk('Vor der großen Zahl steht ein ≈', (await p.$eval('.wk-approx',e=>e.textContent.trim()))==='≈');
+  chk('Vor der großen Zahl steht ein ≈', (await p.$eval('.wk-hero .wk-approx',e=>e.textContent.trim()))==='≈');
+
+  // --- 2b) v87: vorn stehen die Sonnen-kWh, der Euro sitzt in einer Kachel ---
+  const gross=await p.$eval('.wk-hero .wk-gross',e=>e.textContent.trim());
+  chk('Die große Zahl ist jetzt eine kWh-Angabe', /^\d+(,\d+)? kWh$/.test(gross), gross);
   const lbl=await p.$eval('.wk-hero-lbl',e=>e.textContent.trim());
-  chk('Beschriftung sagt „geschätzt gespart"', /^geschätzt gespart/.test(lbl), lbl);
+  chk('Beschriftung sagt „aus eigener Sonne gedeckt"', /^aus eigener Sonne gedeckt/.test(lbl), lbl);
+  chk('Kein Euro-Betrag mehr im Kopf',
+      !/€/.test(await p.$eval('.wk-hero',e=>e.textContent)), await p.$eval('.wk-hero',e=>e.textContent.trim()));
+  const quote=await p.$eval('.wk-hero-quote',e=>e.textContent.trim()).catch(()=>'');
+  chk('Der Deckungsanteil steht als Nebenzeile', /^\d+ % dessen/.test(quote), quote);
+  const euroK=await p.$eval('.wk-kachel .wk-euro',e=>e.textContent.trim());
+  chk('Der Euro-Betrag sitzt jetzt in einer Kachel', /^\d+,\d{2} €$/.test(euroK), euroK);
+  chk('Auch dort steht ein ≈ davor', (await p.$eval('.wk-k-ca .wk-approx',e=>e.textContent.trim()))==='≈');
+  chk('Die Kachel ist als geschätzt beschriftet',
+      /geschätzt gespart/.test(await p.$eval('.wk-kachel .wk-k-tx',e=>e.textContent)));
 
   // --- 3) Die Animation läuft weiter (das ≈ darf sie nicht zerstören) ---
-  const zahl=await p.$eval('.wk-euro',e=>e.textContent.trim());
-  chk('Die Zahl selbst bleibt sauber (ohne ≈ im Element)', /^\d+,\d{2} €$/.test(zahl), zahl);
-  chk('Zwei Nachkommastellen wie vorher', /,\d{2} €$/.test(zahl), zahl);
+  chk('Die Euro-Zahl bleibt sauber (ohne ≈ im Element)', /^\d+,\d{2} €$/.test(euroK), euroK);
   // Neu laden und SOFORT lesen: waehrend der Animation muss ein kleinerer Wert stehen
   await p.reload(); await p.waitForTimeout(1500);
   await p.$eval('.tabbar .tab[data-tag="verlauf"]',e=>e.click());
   await p.waitForTimeout(120);
-  const frueh=await p.$eval('.wk-euro',e=>e.textContent.trim()).catch(()=>null);
+  const frueh=await p.$eval('.wk-hero .wk-gross',e=>e.textContent.trim()).catch(()=>null);
+  const fruehE=await p.$eval('.wk-kachel .wk-euro',e=>e.textContent.trim()).catch(()=>null);
   await p.waitForTimeout(1400);
-  const spaet=await p.$eval('.wk-euro',e=>e.textContent.trim()).catch(()=>null);
-  chk('Die Zahl zählt noch hoch (Animation intakt)', frueh!==null&&spaet!==null&&frueh!==spaet,
+  const spaet=await p.$eval('.wk-hero .wk-gross',e=>e.textContent.trim()).catch(()=>null);
+  const spaetE=await p.$eval('.wk-kachel .wk-euro',e=>e.textContent.trim()).catch(()=>null);
+  chk('Die große kWh-Zahl zählt hoch (Animation intakt)', frueh!==null&&spaet!==null&&frueh!==spaet,
       'früh "'+frueh+'" → spät "'+spaet+'"');
+  chk('Der Euro in der Kachel zählt weiterhin hoch', fruehE!==null&&spaetE!==null&&fruehE!==spaetE,
+      'früh "'+fruehE+'" → spät "'+spaetE+'"');
 
   // --- 4) Der Erklärsatz benennt die Grenzen ---
   const hw=await p.$eval('.wk-hinweis',e=>e.textContent);
@@ -90,7 +105,7 @@ const errs=[];
   }catch(e){console.log('⚠️ Abbruch:',e.message.split('\n')[0]);}
   chk('Keine JS-Fehler',errs.length===0,errs.join('|').slice(0,160));
 
-  console.log('\n===== v86: DIE BILANZ GIBT SICH ALS SCHÄTZUNG ZU ERKENNEN =====');
+  console.log('\n===== v86/87: BILANZ ALS SCHÄTZUNG · SONNEN-kWh VORN =====');
   let pass=0;R.forEach(r=>{console.log((r.ok?'✅':'❌')+' '+r.n+(r.e?'  ['+r.e+']':''));if(r.ok)pass++;});
   console.log(`\n${pass}/${R.length} Checks bestanden`);
   await b.close();

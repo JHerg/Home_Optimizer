@@ -109,8 +109,11 @@ const zustand=p=>p.evaluate(()=>{
   const m=kl.match(/(\d+,\d{2}) €/);
   chk('Grosse Zahl und Teilen-Text sind identisch', m&&m[1]+' €'===gr, 'oben "'+gr+'" · unten "'+(m?m[1]+' €':kl)+'"');
   // Kacheln behalten ihre eine Nachkommastelle
+  // Anordnung seit v87: Sonnen-kWh im Kopf, Euro/CO2/Serie als Kacheln.
+  // Geprueft wird weiter dasselbe: die Animation behaelt je Element die Stellenzahl.
+  const gross=await p.$eval('.wk-hero .wk-gross',e=>e.textContent.trim());
+  chk('Sonnen-kWh im Kopf bleibt einstellig hinterm Komma', /^\d+(,\d)? kWh$/.test(gross), gross);
   const kach=await p.$$eval('.wk-kachel b',e=>e.map(x=>x.textContent.trim()));
-  chk('kWh-Kachel bleibt einstellig hinterm Komma', /^\d+(,\d)? kWh$/.test(kach[0]||''), JSON.stringify(kach));
   chk('Serie-Kachel bleibt ganzzahlig', /^\d+ Tage?$/.test(kach[2]||''), JSON.stringify(kach));
   await p.close();
   }catch(e){console.log('⚠️ Abbruch:',e.message.split('\n')[0]);}

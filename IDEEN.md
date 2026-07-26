@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v86)
+Zuletzt aktualisiert: Juli 2026 (Stand v87)
 
 ---
 
@@ -256,6 +256,15 @@ Messgerät, sondern ein Terminvorschlag – die Bilanz ist Beiwerk, nicht Zweck.
    Test: `test_ehrlich.js` 14/14 (prüft auch, dass die Animation noch läuft).
    App-Beschreibung und Manifest blieben unverändert: dort war nie von
    gemessener Ersparnis die Rede, sondern von Startzeiten.
+   ✅ **Nachgezogen in v87:** Die Rangfolge in der Bilanz ist getauscht. Vorn
+   stehen jetzt die **kWh aus eigener Sonne** – die einzige Kennzahl, die weder
+   am Einspeisetarif noch am Aufschlag noch am Preismodell hängt. Der Euro
+   rückt in die Kachelreihe zu CO₂ und Serie. Idee kam vom Betreiber.
+   ⚠️ Bewusst **nicht** „in die Sonne verlegt" genannt, obwohl das griffiger
+   klänge: `son` misst die Sonnendeckung, nicht die Verschiebung gegenüber
+   einem Zeitpunkt ohne App. Das wäre genau die Sorte Überhöhung, die v86
+   abgestellt hat. Daher „aus eigener Sonne gedeckt".
+   Test: `test_ehrlich.js` 20/20.
 2. **Preis-Ersparnis mitzählen** (war Punkt 2). Stützt die Positionierung als
    Planungssystem: misst genau das, was die App tut, auch im Winter ohne Sonne.
 3. **Doppelzählung reparieren** (war Punkt 3). Echter Rechenfehler.
