@@ -1,0 +1,11 @@
+{
+  "name": "energie-optimierer-tests",
+  "private": true,
+  "description": "Regressionstests fuer index.html – laufen headless gegen die Datei selbst, ohne Server.",
+  "scripts": {
+    "test": "node alle.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.61.1"
+  }
+}
