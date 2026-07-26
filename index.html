@@ -782,6 +782,9 @@ details.rgrp-info>summary::-webkit-details-marker{display:none}
    mit dem Naeherungszeichen daneben (nie IM hochzaehlenden Element, siehe zaehlElement). */
 .wk-k-ca{display:flex;align-items:baseline;justify-content:center;gap:3px}
 .wk-k-ca .wk-approx{font-size:12px;color:var(--nacht);opacity:.5}
+/* Aufschlüsselung der zwei Hebel (nur bei dynamischem Tarif sichtbar) */
+.wk-hebel{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin:-6px 0 14px;font-size:11px;color:var(--grau)}
+.wk-hebel b{color:var(--tinte);font-weight:700;font-family:var(--mono)}
 .wk-hero-lbl{display:block;font-size:12px;color:var(--grau);font-weight:600;margin-top:3px}
 .wk-kacheln{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .wk-kachel{background:var(--papier);border-radius:13px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
@@ -1838,8 +1841,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=87;
+const APP_VERSION=88;
 const NEUES=[
+  {v:88,t:["⏰ <b>Die günstige Netzstunde zählt jetzt mit</b> – der zweite Hebel der App. Bisher wurde nur die eigene Sonne bewertet; ein Lauf, den die App aus einer teuren in eine günstige Stunde geschoben hat, stand mit <b>null</b> in der Bilanz. Gerade im Winter, wenn kaum Sonne da ist, sah es dadurch so aus, als täte die App nichts","📊 <b>Die Bilanz zeigt beide Hebel getrennt</b>: „☀️ eigene Sonne statt Netz“ und „⏰ günstigere Netzstunde“. Verglichen wird mit einem durchschnittlichen Zeitpunkt im Zeitfenster des Geräts – lief es zur teuren Stunde, steht dort auch ein <b>Minus</b>. Bei festem Tarif entfällt die Zeile, dort kostet jede Stunde gleich viel","🔧 <b>Behoben: dieselbe Sonne wurde doppelt vergeben.</b> Liefen zwei Geräte in derselben Stunde, bekam jedes den vollen Überschuss gutgeschrieben. Gemessen: <b>2,86 kWh</b> Überschuss, aber <b>4,00 kWh</b> verbucht. Jetzt teilen sie sich, was da ist. Bereits gespeicherte Läufe behalten ihre alten Werte – rückwirkend lässt sich das nicht sauber nachrechnen"]},
   {v:87,t:["☀️ <b>Die Bilanz führt jetzt mit der Sonne statt mit dem Euro</b>: Ganz oben stehen die <b>kWh aus eigener Sonne</b> – die Zahl, die am wenigsten von Annahmen abhängt. Sie hängt weder am Einspeisetarif noch an deinem Aufschlag noch am Preismodell, sondern sagt schlicht, wie viel Strom vom Netz aufs eigene Dach gewandert ist","💰 <b>Der Eurobetrag bleibt</b> – er rückt nur eine Reihe tiefer zu CO₂ und Serie. Verständlich soll er sein, aber er ist nicht mehr die Hauptaussage. <b>Gerechnet wird unverändert</b>, keine Zahl hat sich geändert"]},
   {v:86,t:["≈ <b>Die Bilanz sagt jetzt, was sie ist: eine Schätzung.</b> Vor der großen Zahl steht ein „≈“, darunter „geschätzt gespart“. <b>Gerechnet wird genau wie vorher</b> – keine einzige Zahl ändert sich, es steht nur nicht mehr da, als wäre sie gemessen","🔍 <b>Der Erklärsatz nennt jetzt die Grenzen</b>: Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler · Verbraucher, die du nicht eingetragen hast, kennt die App nicht · die <b>Einspeisevergütung ist nicht abgezogen</b>. Auch im CSV-Export sind die geschätzten Spalten so benannt","🧭 Warum? Diese App ist ein <b>Terminvorschlag, kein Messgerät</b>. Ihr Nutzen steckt darin, dir die richtige <b>Stunde</b> zu nennen – und der bleibt, auch wenn der Eurobetrag nur die Größenordnung trifft"]},
   {v:85,t:["🔁 <b>Routinen können jetzt auch in einem festen Abstand laufen</b> – „alle 4 Tage“ statt nur „jeden Samstag“. Bisher musste jede feste Routine auf einem Wochentag liegen; Rhythmen, die nicht in die Woche passen (alle 3, 4, 5 … Tage), ließen sich gar nicht anlegen","🔧 <b>Damit ist auch ein Fehler weg</b>: Hat die App „alle ~4 Tage“ erkannt und du hast den Rhythmus mit 📌 als feste Routine übernommen, wurde daraus stillschweigend <b>„jede Woche, an dem Tag, an dem du getippt hast“</b> – aus 4 Tagen wurden 7. Jetzt wird der erkannte Abstand einfach übernommen","📅 Der Abstand zählt <b>ab dem letzten Lauf</b>: Läuft das Gerät einmal einen Tag später, verschiebt sich der nächste Termin mit. Ein starres Kalenderraster würde sonst mit jeder Verschiebung weiter danebenliegen. Bestehende Wochentag-Routinen bleiben unverändert"]},
@@ -2186,20 +2190,61 @@ function vGleicherLauf(e,tagKey,start){return vDatum(e)===tagKey && vStart(e)===
 const CO2_FAKTOR=0.38; // kg CO₂ je kWh Netzstrom (dt. Strommix, grober Richtwert)
 // Sonnen-/Netz-Bilanz EINES Laufs im Moment der Bestätigung (aus dem Tages-Datensatz arr):
 // wie viel freie Sonne den Lauf deckte (kWh) und wie viel Netzstrom-Geld das spart (ct).
-function laufBilanz(arr,start,dauer,kwh){
+/* Sonne, die andere bereits bestaetigte Laeufe DESSELBEN Tages schon beanspruchen,
+   als kWh je Stunde (was in einer Stunde verbraucht wird, entspricht dort dem
+   Stunden-Mittel in kW – dieselbe Koernung, mit der laufBilanz ohnehin rechnet).
+   Ohne diesen Abzug bekamen zwei Geraete in derselben Stunde denselben Ueberschuss
+   beide voll gutgeschrieben: gemessen 4,0 kWh gutgeschrieben bei 2,4 kWh Ueberschuss. */
+function belegteSonne(tagKey,ausser){
+  const kw=new Array(24).fill(0);
+  erledigtListe(tagKey).forEach((e,i)=>{
+    if(ausser&&ausser.indexOf(i)>=0)return;
+    if(e.s==null||e.e==null||e.k==null)return;
+    const d=e.e-e.s; if(d<=0)return;
+    const p=e.k/d;
+    for(let h=Math.floor(e.s);h<Math.ceil(e.e)&&h<24;h++){
+      if(h<0)continue;
+      kw[h]+=p*Math.max(0,Math.min(e.e,h+1)-Math.max(e.s,h));
+    }
+  });
+  return kw;
+}
+// Sonnen-/Netz-Bilanz EINES Laufs im Moment der Bestätigung (aus dem Tages-Datensatz arr).
+// opt.belegt = schon vergebene Sonne je Stunde · opt.von/opt.bis = Zeitfenster des Geräts.
+function laufBilanz(arr,start,dauer,kwh,opt){
   if(!arr||start==null||!dauer||!kwh)return null;
+  const belegt=(opt&&opt.belegt)||null;
   const devKW=kwh/dauer, be=start+dauer;
-  let son=0, sparCt=0;
+  let son=0, sparCt=0, netzKwh=0, netzCt=0;
   for(let h=Math.floor(start);h<Math.ceil(be)&&h<24;h++){
     if(h<0)continue; const s=arr[h]; if(!s)continue;
     const overlap=Math.max(0,Math.min(be,h+1)-Math.max(start,h));       // Std-Anteil dieser Stunde
-    const frei=Math.max(0,(s.pv||0)/1000-(s.hg||0)/1000);               // freie Sonne (kW) über Hintergrund
+    let frei=Math.max(0,(s.pv||0)/1000-(s.hg||0)/1000);                 // freie Sonne (kW) über Hintergrund
+    if(belegt)frei=Math.max(0,frei-(belegt[h]||0));                     // was andere Läufe schon haben, ist weg
     const sonKwhH=Math.min(devKW,frei)*overlap;
     son+=sonKwhH;
     if(s.voll!=null)sparCt+=sonKwhH*s.voll;                             // gesparter Netzeinkauf (ct)
+    const netzKwhH=Math.max(0,devKW*overlap-sonKwhH);                   // Rest kommt aus dem Netz
+    netzKwh+=netzKwhH;
+    if(s.voll!=null)netzCt+=netzKwhH*s.voll;
   }
   son=Math.min(son,kwh);
-  return { son:Math.round(son*1000)/1000, spar:Math.round(sparCt*10)/10 };
+  /* Zweiter Hebel: der Netzanteil lief zu einem bestimmten Preis – verglichen mit
+     einem durchschnittlichen Zeitpunkt im Zeitfenster des Geräts. Positiv = die
+     gewählte Stunde war günstiger als der Schnitt, negativ = teurer. Bei festem
+     Tarif ist jede Stunde gleich teuer, dann ist der Wert null.
+     Bewusst nur auf den NETZanteil: Der Sonnenanteil ist mit dem vollen Netzpreis
+     schon in `spar` verbucht, sonst zählte derselbe Vorteil zweimal. */
+  let pspar=0;
+  if(netzKwh>0){
+    const von=Math.max(0,Math.floor((opt&&opt.von!=null)?opt.von:0));
+    const bis=Math.min(24,Math.ceil((opt&&opt.bis!=null)?opt.bis:24));
+    let sum=0,n=0;
+    for(let h=von;h<bis;h++){ const s=arr[h]; if(s&&s.voll!=null){sum+=s.voll;n++;} }
+    if(n>0) pspar=netzKwh*(sum/n)-netzCt;
+  }
+  return { son:Math.round(son*1000)/1000, spar:Math.round(sparCt*10)/10,
+           pspar:Math.round(pspar*10)/10 };
 }
 // --- Rückwirkende SCHÄTZUNG für Alt-Läufe (keine echten Sonnen-/Preisdaten mehr vorhanden) ---
 const SCHAETZ_PREIS_CT=30; // pauschaler Netzpreis-Richtwert (ct/kWh) für geschätzte frühere Läufe
@@ -2231,7 +2276,8 @@ function protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bilanz,altStart){
   let l=(cfg.verlauf[name]=cfg.verlauf[name]||[]).filter(e=>!vGleicherLauf(e,tagKey,ziel)); // nur DIESEN Lauf ersetzen
   const e={d:tagKey, s:(start!=null?start:null), k:(kwh!=null?kwh:null)};
   if(icon)e.i=icon; if(dauer!=null)e.du=dauer;
-  if(bilanz){ if(bilanz.son!=null)e.son=bilanz.son; if(bilanz.spar!=null)e.spar=bilanz.spar; }
+  if(bilanz){ if(bilanz.son!=null)e.son=bilanz.son; if(bilanz.spar!=null)e.spar=bilanz.spar;
+              if(bilanz.pspar)e.pspar=bilanz.pspar; }   // 0 nicht speichern (fester Tarif)
   l.push(e);
   // Nach Tag, bei mehreren Läufen am selben Tag zusätzlich nach Startzeit sortieren.
   l.sort((a,b)=>{ const da=vDatum(a),db=vDatum(b);
@@ -3129,7 +3175,10 @@ function wireErledigt(tagKey){
     e.s=res.s; e.e=res.e;
     // Lern-Historie dieses Laufs an die geänderte Laufzeit anpassen (Startzeit + Dauer).
     // Ohne altS würde beim Verschieben ein zweiter Eintrag entstehen.
-    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s,laufBilanz(aktuelleStunden,e.s,e.e-e.s,e.k),altS);
+    // Beim Neuberechnen zählt dieser Eintrag selbst NICHT als Mitbewerber um die Sonne.
+    protokolliereLauf(e.name,tagKey,e.s,e.k,e.icon,e.e-e.s,
+      laufBilanz(aktuelleStunden,e.s,e.e-e.s,e.k,
+        {belegt:belegteSonne(tagKey,[i]),von:v?v.von:null,bis:v?v.bis:null}),altS);
     speichern();platzSig="";aktualisieren(); // echtes Fenster fließt in Belegung/Reservierung ein → Rest wird frei
   });
 }
@@ -3140,7 +3189,10 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
   if(start!=null){e.s=start; if(dauer!=null)e.e=start+dauer;} // Laufzeitfenster für Übersicht + Lernen
   if(kwh!=null)e.k=kwh;                       // benötigte Energie des Durchgangs
   cfg.erledigt[tagKey].push(e);              // ein Eintrag = ein erledigter Durchgang
-  const bil=laufBilanz(aktuelleStunden,start,dauer,kwh); // Sonnen-/Spar-Bilanz dieses Laufs mitloggen
+  const selbst=cfg.erledigt[tagKey].length-1; // gerade angehängt – zählt nicht gegen sich selbst
+  const vg=findeVorlage(name);
+  const bil=laufBilanz(aktuelleStunden,start,dauer,kwh,
+    {belegt:belegteSonne(tagKey,[selbst]),von:vg?vg.von:null,bis:vg?vg.bis:null}); // Sonnen-/Spar-Bilanz dieses Laufs mitloggen
   protokolliereLauf(name,tagKey,start,kwh,icon,dauer,bil); // dauerhaft fürs Lernen + „Deine Wirkung"
   haptik(15);
   speichern();platzSig="";aktualisieren();
@@ -3150,14 +3202,20 @@ function markiereErledigt(tagKey,name,icon,start,dauer,kwh){
 // Eintrag mit Gesamt-kWh und der Summe beider Sonnen-/Spar-Bilanzen.
 function markiereErledigtSplit(tagKey,name,icon,teile){
   cfg.erledigt=cfg.erledigt||{};(cfg.erledigt[tagKey]=cfg.erledigt[tagKey]||[]);
-  let kGes=0,duGes=0,son=0,spar=0;
-  teile.forEach(w=>{
-    cfg.erledigt[tagKey].push({name,icon,s:w.s,e:w.e,k:Math.round(w.k*100)/100});
+  const vg=findeVorlage(name);
+  let kGes=0,duGes=0,son=0,spar=0,pspar=0;
+  const idx=[];
+  teile.forEach(w=>{ idx.push(cfg.erledigt[tagKey].length);
+    cfg.erledigt[tagKey].push({name,icon,s:w.s,e:w.e,k:Math.round(w.k*100)/100}); });
+  teile.forEach((w,j)=>{
     kGes+=w.k; duGes+=(w.e-w.s);
-    const b=laufBilanz(aktuelleStunden,w.s,w.e-w.s,w.k);
-    if(b){son+=b.son;spar+=b.spar;}
+    // Die eigene Etappe zählt nicht gegen sich selbst – die andere Etappe schon
+    // nicht, weil dasselbe Gerät nicht parallel läuft; beide sind daher ausgenommen.
+    const b=laufBilanz(aktuelleStunden,w.s,w.e-w.s,w.k,
+      {belegt:belegteSonne(tagKey,idx),von:vg?vg.von:null,bis:vg?vg.bis:null});
+    if(b){son+=b.son;spar+=b.spar;pspar+=(b.pspar||0);}
   });
-  protokolliereLauf(name,tagKey,teile[0].s,Math.round(kGes*100)/100,icon,Math.round(duGes*4)/4,{son:Math.round(son*1000)/1000,spar:Math.round(spar*10)/10});
+  protokolliereLauf(name,tagKey,teile[0].s,Math.round(kGes*100)/100,icon,Math.round(duGes*4)/4,{son:Math.round(son*1000)/1000,spar:Math.round(spar*10)/10,pspar:Math.round(pspar*10)/10});
   haptik(15); speichern(); platzSig=""; aktualisieren();
   if(!demoAktiv && kGes>0 && son>=kGes*0.98) feiere("☀️ Komplett aus eigener Sonne geladen!");
 }
@@ -3838,7 +3896,8 @@ function renderRueckblick(){
   const g=new Date(Date.parse(hk+"T12:00:00Z")-86400000).toISOString().slice(0,10);
   let n=0,son=0,k=0,spar=0;
   Object.values(cfg.verlauf||{}).forEach(l=>(l||[]).forEach(e=>{
-    if(e&&typeof e==="object"&&e.d===g&&e.son!=null){ n++; son+=e.son; k+=(e.k||0); spar+=(e.spar||0); }
+    // spar + pspar: beide Hebel, damit der Rueckblick dieselbe Summe zeigt wie die Bilanz
+    if(e&&typeof e==="object"&&e.d===g&&e.son!=null){ n++; son+=e.son; k+=(e.k||0); spar+=(e.spar||0)+(e.pspar||0); }
   }));
   if(!n){ el.hidden=true; return; }
   const q=k>0?Math.round(son/k*100):0;
@@ -4048,7 +4107,8 @@ function renderVerlauf(){
     (cfg.verlauf[name]||[]).forEach(e=>{
       const d=vDatum(e); if(!d)return; const obj=(typeof e==="object");
       alle.push({ name, icon:(obj&&e.i)?e.i:(v?v.icon:"•"), dauer:(obj&&e.du!=null)?e.du:(v?v.dauer:null),
-        d, s:obj?e.s:null, k:obj?e.k:null, son:(obj&&e.son!=null)?e.son:null, spar:(obj&&e.spar!=null)?e.spar:null, est:(obj&&e.est)?1:0 });
+        d, s:obj?e.s:null, k:obj?e.k:null, son:(obj&&e.son!=null)?e.son:null, spar:(obj&&e.spar!=null)?e.spar:null,
+        pspar:(obj&&e.pspar!=null)?e.pspar:0, est:(obj&&e.est)?1:0 });
     });
   });
   if(!alle.length){
@@ -4066,8 +4126,10 @@ function renderVerlauf(){
   const startKey = bilanzZeitraum==="woche"?montagKey:(bilanzZeitraum==="monat"?monatKey:jahrKey);
   const imFenster=x=> x.d>=startKey && x.d<=hkStr;
   const F=alle.filter(imFenster);
-  let son=0,netz=0,sparCt=0,bewertet=0,hatEst=false;
-  F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son); if(x.spar!=null)sparCt+=x.spar; if(x.est)hatEst=true; } });
+  let son=0,netz=0,sparCt=0,psparCt=0,bewertet=0,hatEst=false;
+  F.forEach(x=>{ if(x.son!=null){ bewertet++; son+=x.son; netz+=Math.max(0,(x.k||0)-x.son);
+    if(x.spar!=null)sparCt+=x.spar; psparCt+=(x.pspar||0); if(x.est)hatEst=true; } });
+  const gesamtCt=sparCt+psparCt;   // beide Hebel: eigene Sonne + günstigere Netzstunde
   const quote=(son+netz)>0?Math.round(son/(son+netz)*100):0;
   const co2=son*CO2_FAKTOR, serie=serieTage(alle);
   // Neue Serien-Bestmarke feiern (einmal, wenn man die Bilanz ansieht)
@@ -4131,18 +4193,26 @@ function renderVerlauf(){
       '</div>'+
       '<div class="wk-scope">🎯 <span>Zählt nur deine <b>eingeplanten Geräte &amp; Routinen</b> – nicht die vom EMS gesteuerten Hintergrundverbraucher.</span></div>'+
       '<div class="wk-kacheln">'+
-        kachelCa("💰",euro(sparCt/100),'geschätzt gespart',"wk-euro")+
+        kachelCa("💰",euro(gesamtCt/100),'geschätzt gespart',"wk-euro")+
         kachel("🌱",dz(co2.toFixed(1))+" kg",'CO₂ vermieden')+
         kachel("🔥",serie+(serie===1?" Tag":" Tage"),'Serie')+
       '</div>'+
+      /* Die zwei Hebel getrennt ausgewiesen – genau die beiden, mit denen die App
+         arbeitet. Bei festem Tarif ist der Preis-Hebel immer 0 (jede Stunde kostet
+         gleich viel); die Zeile bleibt dann weg, statt eine Null zu zeigen. */
+      (psparCt!==0?'<div class="wk-hebel">'+
+        '<span>☀️ <b>'+euro(sparCt/100)+'</b> eigene Sonne statt Netz</span>'+
+        // Vorzeichen ausgeschrieben: der Wert ist eine Differenz, kein Bestand.
+        '<span>⏰ <b>'+(psparCt>0?'+':'−')+euro(Math.abs(psparCt)/100)+'</b> '+(psparCt>0?'günstigere':'teurere')+' Netzstunde</span>'+
+      '</div>':'')+
       '<div class="wk-balken-titel">'+balkenTitel+'</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
-      (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': ≈ '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
+      (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': ≈ '+euro(gesamtCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
       // Spenden direkt nach dem Spar-Ergebnis – hier sieht man gerade, was die App
       // gebracht hat. (Vorher stand der Block ganz unten hinter dem CSV-Export und
       // der kompletten Lauf-Liste; dorthin scrollt praktisch niemand.)
       '<div class="spenden" id="spenden-bilanz" hidden></div>'+
-      '<div class="wk-hinweis"><b>Eine Schätzung, keine Messung.</b> „Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler; Verbraucher, die du nicht eingetragen hast, kennt die App nicht; die <b>Einspeisevergütung ist nicht abgezogen</b>. Der Wert zeigt die Größenordnung – nicht den Kontostand. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<div class="wk-hinweis"><b>Eine Schätzung, keine Messung.</b> „Gespart" summiert <b>zwei Hebel</b>: eigener Sonnenstrom statt Netz (bewertet mit dem Netzpreis der Stunde) und – bei dynamischem Tarif – der Preisvorteil der gewählten Netzstunde gegenüber einem Durchschnittszeitpunkt im Zeitfenster des Geräts. Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler; Verbraucher, die du nicht eingetragen hast, kennt die App nicht; die <b>Einspeisevergütung ist nicht abgezogen</b>. Der Wert zeigt die Größenordnung – nicht den Kontostand. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
@@ -4628,12 +4698,12 @@ function ladeDatei(name,inhalt,mime){
 function exportiereCSV(alle){
   const z=v=>v==null?"":String(v).replace(".",",");
   const nm=v=>String(v||"").replace(/;/g,",");
-  let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne (geschätzt);Ersparnis ct (geschätzt);Sonne grob geschätzt\n";
+  let s="﻿Datum;Gerät;Start;Ende;kWh;kWh aus Sonne (geschätzt);Ersparnis Sonne ct (geschätzt);Ersparnis Netzstunde ct (geschätzt);Sonne grob geschätzt\n";
   alle.slice().sort((a,b)=>a.d<b.d?-1:(a.d>b.d?1:((a.s||0)-(b.s||0)))).forEach(x=>{
     // uhrVoll: in einer Tabellenspalte steht die Zeit für sich – „5" würde dort als
     // Zahl gelesen, „5:00" als Uhrzeit. Gleicher Grund wie bei den Hintergrund-Pins.
     const ende=(x.s!=null&&x.dauer!=null)?uhrVoll(x.s+x.dauer):"";
-    s+=[x.d,nm(x.name),(x.s!=null?uhrVoll(x.s):""),ende,z(x.k),z(x.son),z(x.spar),(x.est?"ja":"nein")].join(";")+"\n";
+    s+=[x.d,nm(x.name),(x.s!=null?uhrVoll(x.s):""),ende,z(x.k),z(x.son),z(x.spar),z(x.pspar),(x.est?"ja":"nein")].join(";")+"\n";
   });
   ladeDatei("energie-optimierer-laeufe.csv",s,"text/csv;charset=utf-8");
   zeigeToast("📊 CSV erstellt – im Dialog sichern oder teilen",null);

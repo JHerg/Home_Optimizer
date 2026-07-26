@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v87)
+Zuletzt aktualisiert: Juli 2026 (Stand v88)
 
 ---
 
@@ -265,9 +265,28 @@ Messgerät, sondern ein Terminvorschlag – die Bilanz ist Beiwerk, nicht Zweck.
    einem Zeitpunkt ohne App. Das wäre genau die Sorte Überhöhung, die v86
    abgestellt hat. Daher „aus eigener Sonne gedeckt".
    Test: `test_ehrlich.js` 20/20.
-2. **Preis-Ersparnis mitzählen** (war Punkt 2). Stützt die Positionierung als
-   Planungssystem: misst genau das, was die App tut, auch im Winter ohne Sonne.
-3. **Doppelzählung reparieren** (war Punkt 3). Echter Rechenfehler.
+2. ~~**Preis-Ersparnis mitzählen**~~ ✅ **gebaut in v88.** Neues Feld `pspar`
+   je Lauf. Verglichen wird der Netzanteil mit einem **Durchschnittszeitpunkt im
+   Zeitfenster des Geräts** – nicht mit dem Tagesschnitt, denn nachts hätte das
+   Gerät ohnehin nicht laufen dürfen. Bewusst **nur auf den Netzanteil**: Der
+   Sonnenanteil ist mit dem vollen Netzpreis schon in `spar` verbucht, sonst
+   zählte derselbe Vorteil zweimal. Der Wert darf **negativ** werden (Lauf zur
+   teuren Stunde) – die App beschönigt nicht. Bei festem Tarif immer 0, dann
+   entfällt die Zeile. Gemessen ohne jede Sonne: 13 Uhr **+12,6 ct**,
+   20 Uhr **−19,4 ct** auf 2 kWh. Test: `test_preishebel.js` 12/12.
+3. ~~**Doppelzählung reparieren**~~ ✅ **gebaut in v88.** Neue Funktion
+   `belegteSonne(tagKey, ausser)` zieht ab, was andere bestätigte Läufe
+   desselben Tages schon beanspruchen. Gemessener Überschuss 2,864 kWh:
+   vorher 4,000 kWh gutgeschrieben, jetzt exakt 2,864.
+   ⚠️ **Korrektur an meiner früheren Angabe:** Die „2,4 kWh Überschuss" aus dem
+   ersten Befund waren mein eigener Annahmewert im Prüfskript, kein gemessener
+   Wert der App – die App rechnet Globalstrahlung über die Anlagendaten in Watt
+   um. Die *Doppelzählung* war echt (beide Geräte bekamen identisch 2,0 kWh),
+   nur die Vergleichszahl stammte von mir. Der Test misst den Überschuss jetzt
+   selbst, statt ihn anzunehmen. Test: `test_doppelt.js` 6/6.
+   ⚠️ Bereits gespeicherte Läufe behalten ihre alten Werte: Für vergangene Tage
+   liegen die stündlichen Sonnendaten nicht mehr vor, eine Rückrechnung wäre
+   geraten statt gerechnet.
 4. **Einspeisevergütung optional**, standardmäßig aus (war Punkt 1). Nach der
    Messung nicht mehr vordringlich – bleibt aber sachlich richtig für alle,
    die den strengeren Wert wollen.

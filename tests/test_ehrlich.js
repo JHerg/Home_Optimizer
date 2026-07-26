@@ -93,8 +93,11 @@ const errs=[];
     btn.click();
     return new Promise(res=>setTimeout(()=>{ if(!inhalt){res(null);return;} inhalt.text().then(t=>res(t.split("\n")[0])); },300));
   });
-  chk('CSV-Kopfzeile kennzeichnet beide Schätzspalten',
-      kopf!==null && /kWh aus Sonne \(geschätzt\)/.test(kopf) && /Ersparnis ct \(geschätzt\)/.test(kopf), kopf);
+  // Seit v88 ist die Ersparnis-Spalte in die zwei Hebel aufgeteilt.
+  chk('CSV-Kopfzeile kennzeichnet alle Schätzspalten',
+      kopf!==null && /kWh aus Sonne \(geschätzt\)/.test(kopf)
+      && /Ersparnis Sonne ct \(geschätzt\)/.test(kopf)
+      && /Ersparnis Netzstunde ct \(geschätzt\)/.test(kopf), kopf);
 
   // --- 6) Nichts läuft rechts aus dem Bild ---
   const ueber=await p.evaluate(()=>{
