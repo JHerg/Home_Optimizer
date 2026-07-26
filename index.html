@@ -3889,6 +3889,10 @@ function renderVerlauf(){
       '<div class="wk-balken-titel">'+balkenTitel+'</div>'+
       '<div class="wk-balken">'+balken+'</div>'+
       (bewertet>0?'<div class="wk-teilen">'+zLbl.charAt(0).toUpperCase()+zLbl.slice(1)+': '+euro(sparCt/100)+' & '+dz(co2.toFixed(1))+' kg CO₂ gespart ☀️</div>':'')+
+      // Spenden direkt nach dem Spar-Ergebnis – hier sieht man gerade, was die App
+      // gebracht hat. (Vorher stand der Block ganz unten hinter dem CSV-Export und
+      // der kompletten Lauf-Liste; dorthin scrollt praktisch niemand.)
+      '<div class="spenden" id="spenden-bilanz" hidden></div>'+
       '<div class="wk-hinweis">„Gespart" = eigener Sonnenstrom statt Netz, bewertet mit dem Netzpreis der Stunde. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
@@ -3904,9 +3908,7 @@ function renderVerlauf(){
       '<div class="vl-tab-wrap" style="margin-top:8px"><table class="vl-tab"><tbody>'+rowsAlt+'</tbody></table></div></details>':'')+
     '<button class="csv-btn" id="btn-csv">⬇️ Alle Läufe als CSV exportieren (Excel)</button>'+
     ((alle.length>=20 && (!cfg.letztesBackup || (Date.now()-cfg.letztesBackup)>60*86400000))
-      ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'')+
-    // Spenden direkt unter „Deine Wirkung" – hier sieht man gerade, was die App gebracht hat.
-    '<div class="spenden" id="spenden-bilanz" hidden></div>';
+      ?'<div class="wk-hinweis" style="margin-top:10px">💾 <b>Tipp:</b> Deine Historie wächst – sichere sie unter ⚙️ Einrichten → „Deine Daten" als Backup-Datei.</div>':'');
   const cbtn=$("btn-csv"); if(cbtn)cbtn.onclick=()=>exportiereCSV(alle);
   renderSpenden();
   box.querySelectorAll(".wk-seg-b").forEach(b=>b.onclick=()=>{ bilanzZeitraum=b.dataset.z; renderVerlauf(); });
