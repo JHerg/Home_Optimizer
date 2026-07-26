@@ -629,7 +629,23 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .dc-hint{position:absolute;z-index:4;right:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--grau);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:3px}
 .dc-batt-leg{position:absolute;z-index:4;left:9px;bottom:7px;font-size:10px;font-weight:600;color:var(--netz);background:var(--glass);border:.5px solid var(--glass-rand);border-radius:100px;padding:2px 8px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);white-space:nowrap}
 :root[data-theme="dark"] .dc-now{color:#FFD489}
-.dash-hero{display:flex;align-items:center;gap:14px;padding:13px 18px}
+.dash-heroK{padding:13px 18px}                 /* Karte: trägt jetzt zwei Zeilen */
+.dash-hero{display:flex;align-items:center;gap:14px}
+/* Sonnen-Ausblick als aufklappbare Zeile IN der Ertrags-Karte – kein eigener Kasten,
+   damit die Startseite ohne Scrollen auskommt. Zugeklappt trägt der Satz die Entscheidung,
+   die Grafik kommt auf Tipp. Der Zustand wird gemerkt (cfg.ausblickOffen). */
+.dash-aus{border-top:1px dashed var(--linie);margin-top:11px;padding-top:9px}
+.dash-aus-zeile{display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none;
+  padding:0;width:100%;text-align:left;font-family:var(--sans);color:inherit}
+.dash-aus-ic{font-size:15px;line-height:1;flex-shrink:0}
+.dash-aus-tx{flex:1;min-width:0;font-size:12.5px;color:var(--tinte);line-height:1.35}
+.dash-aus-tx b{color:var(--nacht);font-weight:700}
+.dash-aus-pfeil{font-size:13px;color:var(--grau);flex-shrink:0;transition:transform var(--weich)}
+.dash-aus.offen .dash-aus-pfeil{transform:rotate(180deg)}
+.dash-aus .wa-strip{gap:4px;margin-top:9px}
+.dash-aus .wa-tag{padding:5px 3px;gap:3px}
+.dash-aus .wa-ic{font-size:15px}
+.dash-aus .wa-bar-wrap{height:34px}
 .dh-big{flex:1;min-width:0}
 .dh-lbl{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
 .dh-num{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-top:5px;font-variant-numeric:tabular-nums;color:var(--tinte)}
@@ -958,7 +974,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <!-- Kompakte Startseite: alles Wichtige auf einen Blick (wie das Mockup). Details in Sheets. -->
 <div id="dashboard" hidden>
   <div id="dash-curve-wrap"></div>
-  <div class="karte dash-hero" id="dash-hero"></div>
+  <div class="karte dash-heroK" id="dash-hero"></div>
   <div class="ur-banner" id="ur-banner" hidden></div>
   <div id="dash-vorschlag" hidden></div>
   <div class="dash-drift" id="dash-drift" hidden></div>
@@ -1748,8 +1764,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=80;
+const APP_VERSION=81;
 const NEUES=[
+  {v:81,t:["🔭 <b>Der Sonnen-Ausblick ist jetzt auf der Startseite</b> – als eine Zeile, die dir sagt, was zu tun ist: „Morgen wird es nass – heute vorziehen.“ Ein Tipp darauf klappt die gewohnte 7-Tage-Grafik mit Wettersymbolen und Temperaturen auf. <b>Die App merkt sich, wie du es zuletzt hattest</b>","🌤️ Sind alle Tage ähnlich, gibt es nichts abzuwägen – dann steht dort schlicht, dass es keinen Grund zu warten gibt. Ausführlich bleibt der Ausblick weiterhin im <b>Woche</b>-Reiter"]},
   {v:80,t:["🎯 <b>Neu im „?“: Wofür ist das eigentlich?</b> Ganz oben steht jetzt, worum es geht – und worin sich die App von einem Energiemanager unterscheidet: Ein EMS regelt, was <b>fest angeschlossen</b> ist. Diese App plant alles <b>andere</b> – Waschmaschine, Trockner, Spülmaschine und Co., die du selbst startest","📖 <b>Das Hilfe-Blatt ist dadurch kürzer geworden, nicht länger</b>: Die Schritt-für-Schritt-Erklärung und die Bedienungs-Tipps stecken jetzt in Aufklappern, die Demo-Tour steht weiter oben"]},
   {v:79,t:["👆 <b>Scrollen klappt jetzt zuverlässig</b>: In der Geräteliste wurde ein leicht schräger Wisch nach unten oft als „zur Seite wischen“ gewertet – die Liste blieb stehen. Jetzt gewinnt im Zweifel immer das Scrollen; nur eine klar waagerechte Bewegung entfernt oder verankert ein Gerät","📋 <b>Die Geräteliste auf der Startseite scrollt nicht mehr in sich selbst.</b> Statt eines winzigen Fensterchens (das mit Vorschlags-Hinweis nur noch anderthalb Zeilen hoch war) stehen die ersten vier Geräte offen da, der Rest steckt in „weitere Geräte anzeigen“ – wie das Archiv in der Bilanz"]},
   {v:78,t:["🔧 <b>Mehrere Läufe pro Gerät und Tag werden jetzt vollständig gezählt</b>: Lief z. B. die Waschmaschine zweimal am selben Tag (etwa direkt nacheinander), stand in der Bilanz bisher nur <b>einer</b> der Durchgänge – der frühere wurde vom späteren überschrieben. Jetzt zählt jeder Durchgang einzeln, in „Letzte Läufe“ wie auch in Sonne, Ersparnis und CO₂","♻️ Für <b>heute</b> holt die App verlorene Durchgänge automatisch zurück (aus der Liste „Heute schon gelaufen“). Ältere Tage lassen sich leider nicht mehr rekonstruieren"]},
@@ -2407,6 +2424,68 @@ function wdLangVonKey(key){
   if(key===heuteStr())return "heute";
   if(key===morgenStr())return "morgen";
   return new Date(key+"T12:00:00").toLocaleDateString("de-DE",{weekday:"long"});
+}
+/* Ein Satz, der sagt, was zu TUN ist – die Kernaussage des Ausblicks.
+   Vier Fälle, in dieser Reihenfolge geprüft:
+     1. Alle Tage ähnlich  -> nichts zu entscheiden, neutraler Satz
+     2. Morgen klar schwächer -> heute vorziehen
+     3. Ein deutlich besserer Tag kommt -> Sonnenhungriges kann warten
+     4. Heute ist am stärksten -> Gelegenheit nutzen                        */
+function ausblickSatz(arr){
+  if(!arr||arr.length<2)return null;
+  const rad=i=>(arr[i]&&arr[i].rad)||0;
+  const werte=arr.map(d=>d.rad||0);
+  const max=Math.max(...werte), min=Math.min(...werte);
+  let bestI=0; for(let i=1;i<arr.length;i++) if(rad(i)>rad(bestI)) bestI=i;
+  const kurz=key=>key===heuteStr()?"heute":(key===morgenStr()?"morgen":WOCHENTAG_KURZ[wochentagVonKey(key)]);
+  const gross=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  const bestKurz=kurz(arr[bestI].key);
+  // 1) Spanne über die Woche klein -> es gibt schlicht nichts abzuwägen
+  if(max<=0 || (max-min)/max < 0.28)
+    return {ic:"🌤️", tx:"Die nächsten Tage bleiben <b>ähnlich sonnig</b> – kein Grund zu warten."};
+  // 2) Morgen deutlich schwächer als heute
+  const regenMorgen = arr[1].regen!=null && arr[1].regen>=60;
+  if(rad(0)>0 && rad(1) < rad(0)*0.7)
+    return {ic: regenMorgen?"🌧️":"🌥️",
+      tx:"<b>Morgen wird es "+(regenMorgen?"nass":"schwächer")+"</b> – heute vorziehen."+
+         (bestI>1?" Bester Tag: <b>"+bestKurz+"</b>":"")};
+  // 3) Ein klar besserer Tag kommt noch
+  if(bestI>0 && rad(bestI) > rad(0)*1.25)
+    return {ic:"☀️", tx:"<b>"+gross(bestI===1?"morgen":bestKurz)+"</b> wird der beste Tag – Sonnenhungriges kann warten."};
+  // 4) Heute ist die beste Gelegenheit
+  return {ic:"☀️", tx:"<b>Heute</b> ist der stärkste Tag der Woche – gute Gelegenheit."};
+}
+/* Kompakter Ausblick auf der Startseite: Satz immer sichtbar, Grafik auf Tipp. */
+function renderDashAusblick(){
+  const box=$("dash-aus"); if(!box)return;
+  if(cfg.lat==null){ box.hidden=true; return; }
+  const arr=wochenSonne;
+  if(!arr){                                   // noch nicht geladen -> still nachladen
+    box.hidden=true;
+    if(!wochenSonneLaeuft) ladeWochenSonne().then(()=>{ if(tag==="heute"||tag==="morgen") renderDashAusblick(); }).catch(()=>{});
+    return;
+  }
+  const s=ausblickSatz(arr); if(!s){ box.hidden=true; return; }
+  box.hidden=false;
+  const offen=!!cfg.ausblickOffen;
+  box.className="dash-aus"+(offen?" offen":"");
+  const maxRad=Math.max(1,...arr.map(d=>d.rad||0));
+  let bestI=0; for(let i=1;i<arr.length;i++) if((arr[i].rad||0)>(arr[bestI].rad||0))bestI=i;
+  const zellen=arr.map((d,i)=>{
+    const ic=tagWetter(sonnenAnteilTag(d), d.regen)[0];
+    const heute=d.key===heuteStr();
+    const wd=heute?"Heute":(d.key===morgenStr()?"Morgen":WOCHENTAG_KURZ[wochentagVonKey(d.key)]);
+    return '<div class="wa-tag'+(heute?" heute":"")+(i===bestI?" best":"")+'">'+
+      '<div class="wa-wd">'+wd+'</div><div class="wa-ic">'+ic+'</div>'+
+      '<div class="wa-bar-wrap"><div class="wa-bar" style="height:'+Math.round((d.rad||0)/maxRad*100)+'%"></div></div>'+
+      '<div class="wa-tmp">'+(d.tmax!=null?Math.round(d.tmax)+"°":"")+'</div></div>';
+  }).join("");
+  box.innerHTML='<button class="dash-aus-zeile" id="dash-aus-btn" aria-expanded="'+offen+'">'+
+      '<span class="dash-aus-ic">'+s.ic+'</span>'+
+      '<span class="dash-aus-tx">'+s.tx+'</span>'+
+      '<span class="dash-aus-pfeil">⌄</span></button>'+
+    (offen?'<div class="wa-strip">'+zellen+'</div>':'');
+  $("dash-aus-btn").onclick=()=>{ cfg.ausblickOffen=!cfg.ausblickOffen; speichern(); renderDashAusblick(); };
 }
 function renderWochenAusblick(){
   const box=$("woche-ausblick"); if(!box)return;
@@ -3160,10 +3239,14 @@ function renderDashboard(arr){
   let ev=null;
   if(sm){ const last=sm.sonneKwh+sm.akkuKwh+sm.netzKwh; ev=last>0.01?Math.round((sm.sonneKwh+sm.akkuKwh)/last*100):0; }
   $("dash-hero").innerHTML=
-    '<div class="dh-big"><div class="dh-lbl">Sonnenertrag '+(tag==="morgen"?"morgen":"heute")+'</div>'+
-      '<div class="dh-num"><span class="zahl">'+Math.round(kwhTag)+'</span> <small>kWh</small>'+trustChip()+'</div></div>'+
-    '<div class="dh-ring-wrap">'+dashRing(ev)+'<div class="dh-ring-lbl">Eigenverbrauch</div></div>';
+    '<div class="dash-hero">'+
+      '<div class="dh-big"><div class="dh-lbl">Sonnenertrag '+(tag==="morgen"?"morgen":"heute")+'</div>'+
+        '<div class="dh-num"><span class="zahl">'+Math.round(kwhTag)+'</span> <small>kWh</small>'+trustChip()+'</div></div>'+
+      '<div class="dh-ring-wrap">'+dashRing(ev)+'<div class="dh-ring-lbl">Eigenverbrauch</div></div>'+
+    '</div>'+
+    '<div class="dash-aus" id="dash-aus" hidden></div>';   // 7-Tage-Ausblick, aufklappbar
   const z=$("dash-hero").querySelector(".zahl"); if(z&&kwhTag>0.1)zaehlHoch(z,Math.round(kwhTag),v=>String(Math.round(v)),"dach");
+  renderDashAusblick();
   // --- Geräte heute: schon gelaufen + geplant, mit Status; darunter Ressourcen-Sicht ---
   const akkuAn=cfg.akku_an;
   const kannPlanen = !arr.every(s=>s.eff==null);

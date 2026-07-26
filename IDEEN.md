@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v80)
+Zuletzt aktualisiert: Juli 2026 (Stand v81)
 
 ---
 
@@ -98,7 +98,39 @@ EMS-Abgrenzung als zweiter Absatz.
 
 ---
 
-## Rang 1 – Übersicht bei wachsenden Daten
+## Rang 1 – Übersicht bei wachsenden Daten (Woche-Reiter)
+
+**Gemessen** (8 Geräte, 3 Routinen, 6 Rhythmen; Bildschirm = 852 px):
+Heute 942 px · Bilanz 1285 px · **Woche 1849 px** ← der Problemfall.
+
+✅ **Teil 1 erledigt in v81:** Der Sonnen-Ausblick ist von „Woche" auf die
+Startseite gewandert – als aufklappbare Zeile in der Ertrags-Karte.
+Zugeklappt kostet er nur **55 px** (Startseite bleibt unter einem Bildschirm),
+aufgeklappt zeigt er die volle 7-Tage-Grafik. Zustand wird gemerkt
+(`cfg.ausblickOffen`). Der Satz passt sich an: Regen morgen → „heute
+vorziehen"; alle Tage ähnlich → neutraler Satz; besserer Tag kommt → „warten
+lohnt". Test `test_ausblick.js` 18/18.
+Im Woche-Reiter bleibt der ausführliche Ausblick erhalten.
+
+**Noch offen – die fünf Aufräum-Punkte im Woche-Reiter** (grob −600 px):
+
+1. **Derselbe Satz je Rhythmus** – „Nächster fälliger Lauf: heute – liegt schon
+   als Vorschlag auf der Startseite." steht bei jedem Eintrag. → einmal über die
+   Liste setzen.
+2. **Derselbe große Knopf je Rhythmus** – „+ Als feste Routine übernehmen",
+   volle Breite, ~45 px pro Eintrag, für eine einmalige Aktion.
+   → kleines Symbol in die Kopfzeile zu ✏️ und 🗑.
+3. **Namen werden abgeschnitten, Etiketten nicht** – „Spülmas…", „Poolpu…",
+   während „Mi · jede Woche" ungekürzt danebensteht. → Rangfolge umdrehen.
+4. **Dauerhafte Erklärtexte** (~250–300 px) → in ein ⓘ verlegen.
+5. **Zwei Listen, die gleich aussehen** (Routinen ↔ Rhythmen), obwohl das eine
+   Einstellungen sind und das andere Vermutungen. → Klappgruppen mit Anzahl,
+   Rhythmen optisch als „geraten" kennzeichnen (z. B. gestrichelter Rand).
+
+**Nebenfund:** Bilanz zeigt oben **1,8 €** und darunter **1,75 €** – dieselbe
+Zahl, zwei Rundungen. Sieht nach Fehler aus, ist keiner. Zwei Zeilen Fix.
+
+### Weitere Stellen, die mit Daten wachsen
 
 Ziel des Betreibers: Der Look soll nicht zerreißen, je mehr Daten sich ansammeln.
 
@@ -144,6 +176,9 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v81** – Sonnen-Ausblick als aufklappbare Zeile auf die Startseite geholt
+  (+55 px zugeklappt statt +254 px als eigener Kasten); Satz passt sich der
+  Wetterlage an, Zustand wird gemerkt.
 - **v80** – Zweck-Seite „Wofür ist das?" oben im „?"-Blatt; bestehende
   Erklärungen in Aufklapper verschoben (Blatt wurde dadurch kürzer);
   Spendenblock gebaut, bleibt ohne hinterlegtes Ziel unsichtbar (Auszahlungsweg
