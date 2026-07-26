@@ -1051,8 +1051,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="rgrp-inhalt">
       <details class="rgrp-info">
         <summary>ⓘ Was zeigt diese Liste?</summary>
-        <div class="rgrp-info-tx">Was du selbst festgelegt hast – läuft im Wochenrhythmus und wird
-          automatisch in den Tagesplan gelegt.
+        <div class="rgrp-info-tx">Was du selbst festgelegt hast – entweder an einem festen
+          Wochentag oder in einem festen Abstand („alle 4 Tage"). Wird automatisch in den
+          Tagesplan gelegt.
           <div class="rh-legende" style="margin-top:9px"><span class="rh-leg-lbl">So liest du die Punkte:</span><span><i class="run"></i>gelaufen</span><span><i class="plan"></i>Rhythmus-Tag</span><span><i class="next"></i>nächster fälliger Lauf</span></div>
         </div>
       </details>
@@ -1561,7 +1562,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 <div class="sheet" id="sheet-routine" role="dialog" aria-label="Routine">
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3 id="routine-titel">Routine</h3>
-  <div class="sub">Wiederkehrende Wäsche &amp; Co. – einmal anlegen, läuft im Wochenrhythmus.</div>
+  <div class="sub">Wiederkehrende Wäsche &amp; Co. – einmal anlegen, läuft dann von selbst mit.</div>
   <div class="abschnitt" id="routine-meine-abschnitt" hidden>
     <div class="frage">★ Aus deinen Geräten</div>
     <div class="hilfe">Ein gespeichertes Gerät antippen – Name, Verbrauch &amp; Laufzeit werden übernommen.</div>
@@ -1581,15 +1582,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
     <div class="zahl-feld" style="margin-top:10px"><input id="routine-dauer" inputmode="decimal"><span class="einheit">Stunden</span></div>
   </div>
   <div class="abschnitt">
-    <div class="frage">An welchem Tag?</div>
-    <div class="wahl" id="routine-wochentag"></div>
-  </div>
-  <div class="abschnitt">
     <div class="frage">Wie oft?</div>
-    <div class="wahl segmented" id="routine-rhythmus"></div>
-    <div id="routine-start-box" hidden style="margin-top:12px">
-      <div class="frage" style="font-size:13px">Ab wann?</div>
-      <div class="wahl" id="routine-start"></div>
+    <div class="wahl segmented" id="routine-art"></div>
+    <!-- Zweig A: fester Wochentag (das bisherige Modell) -->
+    <div id="routine-wd-box" style="margin-top:14px">
+      <div class="frage" style="font-size:13px">An welchem Tag?</div>
+      <div class="wahl" id="routine-wochentag"></div>
+      <div class="wahl segmented" id="routine-rhythmus" style="margin-top:10px"></div>
+      <div id="routine-start-box" hidden style="margin-top:12px">
+        <div class="frage" style="font-size:13px">Ab wann?</div>
+        <div class="wahl" id="routine-start"></div>
+      </div>
+    </div>
+    <!-- Zweig B: fester Abstand in Tagen (z. B. „alle 4 Tage") -->
+    <div id="routine-iv-box" hidden style="margin-top:14px">
+      <div class="frage" style="font-size:13px">In welchem Abstand?</div>
+      <div class="wahl" id="routine-intervall"></div>
+      <div class="hilfe" style="margin-top:8px">Gezählt <b>ab dem letzten Lauf</b>: Läuft das Gerät
+        einmal einen Tag später, verschiebt sich der nächste Termin mit. So bleibt der Abstand
+        zwischen zwei Läufen gleich – ein starres Kalenderraster würde mit der Zeit danebenliegen.</div>
     </div>
   </div>
   <button class="fertig" id="routine-speichern">Speichern</button>
@@ -1771,7 +1782,7 @@ let geraete=[
 ];
 
 let meineGeraete=[]; // selbst gespeicherte Geraete ("Meine Geräte")
-let routinen=[]; // wiederkehrende Routinen (Wochentag + Rhythmus)
+let routinen=[]; // wiederkehrende Routinen (fester Wochentag + Rhythmus ODER fester Tagesabstand)
 let daten={preise:{},pv:{}};
 var demoAktiv=false; // Demo-Tour aktiv? (früh deklariert, damit speichern() es beim Boot kennt)
 let tag="heute"; // "heute" | "morgen" | "woche"
@@ -1816,8 +1827,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=84;
+const APP_VERSION=85;
 const NEUES=[
+  {v:85,t:["🔁 <b>Routinen können jetzt auch in einem festen Abstand laufen</b> – „alle 4 Tage“ statt nur „jeden Samstag“. Bisher musste jede feste Routine auf einem Wochentag liegen; Rhythmen, die nicht in die Woche passen (alle 3, 4, 5 … Tage), ließen sich gar nicht anlegen","🔧 <b>Damit ist auch ein Fehler weg</b>: Hat die App „alle ~4 Tage“ erkannt und du hast den Rhythmus mit 📌 als feste Routine übernommen, wurde daraus stillschweigend <b>„jede Woche, an dem Tag, an dem du getippt hast“</b> – aus 4 Tagen wurden 7. Jetzt wird der erkannte Abstand einfach übernommen","📅 Der Abstand zählt <b>ab dem letzten Lauf</b>: Läuft das Gerät einmal einen Tag später, verschiebt sich der nächste Termin mit. Ein starres Kalenderraster würde sonst mit jeder Verschiebung weiter danebenliegen. Bestehende Wochentag-Routinen bleiben unverändert"]},
   {v:84,t:["✓ <b>„Heute schon gelaufen“ bläht den Tagesplan nicht mehr auf</b>: ab dem fünften Durchgang stehen nur noch die <b>drei jüngsten</b> offen, die früheren stecken darüber in „📜 frühere Läufe anzeigen“ – wie das Archiv in der Bilanz. Verloren geht nichts, „zurück“ und ✎ funktionieren aus dem Aufklapper heraus genauso","💶 <b>Die große Spar-Summe in der Bilanz rundet nicht mehr anders als der Text darunter</b>: oben stand „1,8 €“, zwei Zeilen tiefer dieselbe Zahl als „1,75 €“. Schuld war nur die Hochzähl-Animation, die stur auf eine Nachkommastelle kürzte – gerechnet wurde immer richtig"]},
   {v:83,t:["🕔 <b>Uhrzeiten im Tagesplan immer vollständig</b>: die Warmwasser- und Heiz-Marken im Hintergrund zeigten zur vollen Stunde nur die nackte Zahl (also „5“ statt „5:00“). Jetzt steht dort immer eine richtige Uhrzeit – im CSV-Export der Bilanz ebenso","📊 <b>Der Hinweis unter dem Sonnen-Ausblick erklärt jetzt zuerst die Grafik</b>: „Balken = erwartete Sonnenstärke“. Dass es weiter als morgen keine Börsenpreise gibt, steht nur noch als kurze Begründung dahinter – vorher las es sich, als ginge es in der Grafik um den Strompreis"]},
   {v:82,t:["🔁 <b>Aus „Woche“ wird „Routinen“</b> – der Reiter macht jetzt nur noch eine Sache: deine festen Routinen und die Rhythmen, die die App gelernt hat. Der Sonnen-Ausblick wohnt seit dem letzten Update ohnehin vorn auf der Startseite und ist dort nur einen Tipp entfernt","📐 <b>Gründlich entrümpelt</b>: beide Listen sind jetzt Klappgruppen mit Anzahl im Kopf (Routinen offen, geratene Rhythmen zugeklappt), Gerätenamen bekommen den Platz statt der Etiketten, und der Hinweis „liegt als Vorschlag auf der Startseite“ steht einmal über der Liste statt bei jedem Eintrag. Aus dem breiten Knopf „Als feste Routine übernehmen“ wurde ein 📌 in der Kopfzeile","📏 Unterm Strich: Der Reiter ist von rund <b>1850 auf 764 Pixel</b> geschrumpft – er passt damit erstmals auf einen Bildschirm"]},
@@ -1883,8 +1895,32 @@ function datumFuerWochentag(wd,wochenOffset){
   const heute=new Date(heuteStr()+"T12:00:00Z"), diff=wd-heute.getUTCDay();
   return new Date(heute.getTime()+(diff+(wochenOffset||0)*7)*86400000).toISOString().slice(0,10);
 }
-// Ist die Routine an diesem Datum faellig? (Wochentag + ggf. 14-taegige Paritaet zum Anker)
+// Datum des letzten tatsaechlichen Laufs eines Geraets (aus der Lern-Historie), sonst null.
+function letzterLaufKey(name){
+  const ds=((cfg.verlauf&&cfg.verlauf[name])||[]).map(vDatum).filter(Boolean).sort();
+  return ds.length?ds[ds.length-1]:null;
+}
+// Bezugspunkt einer Abstands-Routine: der letzte echte Lauf, sonst das Anlagedatum.
+function routineBasisKey(r){ return letzterLaufKey(r.name)||r.anker||heuteStr(); }
+function tageZwischen(a,b){ return Math.round((Date.parse(b+"T12:00:00Z")-Date.parse(a+"T12:00:00Z"))/86400000); }
+/* Ist die Routine an diesem Datum faellig?
+   Zwei Arten – Routinen ohne `art` sind die alten und gelten als "wochentag":
+   • "wochentag": fester Wochentag + ggf. 14-taegige Paritaet zum Anker (wie bisher)
+   • "intervall": fester Abstand in Tagen, gezaehlt AB DEM LETZTEN TATSAECHLICHEN LAUF.
+     Bewusst kein starres Kalenderraster: „alle 4 Tage" geht nicht glatt in die Woche auf,
+     der Termin wandert also ohnehin durch sie hindurch. Zaehlt man stur ab einem festen
+     Anker weiter, sammelt sich jede Verschiebung dauerhaft an und der Vorschlag liegt bald
+     staendig neben dem echten Rhythmus. Ab letztem Lauf gerechnet verhaelt sich die Routine
+     genauso wie der gelernte Rhythmus, aus dem sie meist entstanden ist. */
 function routineFaelligAn(r,tagStr){
+  if(r.art==="intervall"){
+    const n=Math.max(1,r.intervall||1);
+    const seit=tageZwischen(routineBasisKey(r),tagStr);
+    if(seit<n)return false;
+    // Genau am Faelligkeitstag – danach nur noch heute. Sonst stuende ein ueberfaelliger
+    // Lauf gleichzeitig im Plan von heute UND morgen und wuerde doppelt eingeplant.
+    return seit===n || tagStr===heuteStr();
+  }
   if(wochentagVonKey(tagStr)!==r.wochentag)return false;
   if(r.rhythmus===2){
     if(!r.anker)return true;
@@ -3860,16 +3896,24 @@ function relTag(offset,key){
 function renderRoutineListe(){
   const box=$("routine-liste");
   const anzR=$("anz-routinen"); if(anzR)anzR.textContent=routinen.length?"("+routinen.length+")":"";
-  if(!routinen.length){box.innerHTML='<div class="rh-leer">Noch keine feste Routine. Lege z. B. „Handtücher jeden Samstag" an – sie läuft dann automatisch im Wochenrhythmus.</div>';return;}
+  if(!routinen.length){box.innerHTML='<div class="rh-leer">Noch keine feste Routine. Lege z. B. „Handtücher jeden Samstag" an – oder, wenn sich das nicht auf einen Wochentag legen lässt, „Poolpumpe alle 4 Tage".</div>';return;}
   const heuteK=heuteStr();
   box.innerHTML=routinen.map((r,i)=>{
     const aktiv=r.aktiv!==false;
+    const istIv=r.art==="intervall";
     const rhy=r.rhythmus===2?"alle 2 Wochen":"jede Woche";
+    const badge=istIv?("alle "+r.intervall+" Tag"+(r.intervall===1?"":"e")):(WOCHENTAG_KURZ[r.wochentag]+" · "+rhy);
     const nx=aktiv?naechsterRoutineLauf(r):null;
     // gefüllt grün = vergangener geplanter Lauf; grüner Ring = Wochentag der Routine (auch „Aus"-Woche);
     // amber Ring = nächster geplanter Lauf.
-    const ran=key=>aktiv&&routineFaelligAn(r,key)&&key<heuteK;
-    const rhythmusTag=key=>aktiv&&wochentagVonKey(key)===r.wochentag;
+    // Bei Abstands-Routinen liegt das Raster nicht auf einem Wochentag, sondern im
+    // Vielfachen des Abstands um den Bezugstag herum – nach vorn wie nach hinten.
+    const basisT=istIv?Date.parse(routineBasisKey(r)+"T12:00:00Z"):0;
+    const lief=istIv?new Set(((cfg.verlauf&&cfg.verlauf[r.name])||[]).map(vDatum).filter(Boolean)):null;
+    const ran=key=>aktiv&&(istIv?lief.has(key):(routineFaelligAn(r,key)&&key<heuteK));
+    const rhythmusTag=istIv
+      ? key=>aktiv&&Math.round(Math.abs(Date.parse(key+"T12:00:00Z")-basisT)/86400000)%Math.max(1,r.intervall)===0
+      : key=>aktiv&&wochentagVonKey(key)===r.wochentag;
     let note='<span style="opacity:.7">pausiert</span>';
     if(aktiv){
       note = nx ? 'Nächster Lauf: <b>'+relTag(nx.offset,nx.key)+'</b> · '+dz(r.kwh)+' kWh · '+dz(r.dauer)+' h'
@@ -3877,7 +3921,7 @@ function renderRoutineListe(){
     }
     return '<div class="rh-block"><div class="rh-head">'+
       '<span class="rh-ic">'+r.icon+'</span><span class="rh-nm">'+kurzName(r.name)+'</span>'+
-      '<span class="rh-badge">'+WOCHENTAG_KURZ[r.wochentag]+' · '+rhy+'</span>'+
+      '<span class="rh-badge">'+badge+'</span>'+
       '<button class="rh-mini" data-redit="'+i+'" aria-label="'+r.name+' bearbeiten">✏️</button>'+
       '<button class="rh-mini" data-rdel="'+i+'" aria-label="'+r.name+' löschen">🗑</button></div>'+
       rhythmusZeile(ran,rhythmusTag,nx&&nx.key)+
@@ -3886,7 +3930,7 @@ function renderRoutineListe(){
   box.querySelectorAll("[data-redit]").forEach(b=>b.onclick=()=>oeffneRoutine(+b.dataset.redit));
   box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=async()=>{
     const r=routinen[+b.dataset.rdel]; if(!r)return;
-    if(!(await frageJaNein(r.icon+" "+r.name+" löschen?","Die Routine wird dauerhaft entfernt – auch aus künftigen Wochen.","Löschen")))return;
+    if(!(await frageJaNein(r.icon+" "+r.name+" löschen?","Die Routine wird dauerhaft entfernt – auch aus künftigen Tagesplänen.","Löschen")))return;
     routinen.splice(+b.dataset.rdel,1);speichern();platzSig="";renderWoche();
   });
 }
@@ -3945,11 +3989,18 @@ function alsRoutineUebernehmen(name){
   const avgK=ks.length?Math.round((ks.reduce((a,b)=>a+b,0)/ks.length)*100)/100:null;
   const dus=((cfg.verlauf&&cfg.verlauf[name])||[]).map(e=>typeof e==="object"?e.du:null).filter(x=>x!=null);
   const avgDu=dus.length?Math.round((dus.reduce((a,b)=>a+b,0)/dus.length)*10)/10:null;
+  /* Bis v84 ging hier die Erkenntnis verloren: War das Muster ein Intervall („alle ~4 Tage"),
+     gab es keinen Wochentag – die Routine bekam ersatzweise den HEUTIGEN Wochentag und
+     „jede Woche". Aus alle 4 Tagen wurden stillschweigend alle 7. Jetzt reicht die Uebernahme
+     das erkannte Muster durch: Intervall bleibt Intervall. */
+  const istIv=!!(m&&m.typ==="intervall");
   const wd=(m&&m.typ==="wochentag")?m.wochentage[0]:wochentagVonKey(heuteStr());
   routineEdit=null;
   routineEntwurf={typ:(v&&v.typ)||"so",icon:(v&&v.icon)||"🔁",name:name,
     von:(v&&v.von!=null)?v.von:6,bis:(v&&v.bis!=null)?v.bis:22,
-    wochentag:wd,rhythmus:1,startOffset:0,meineIdx:null};
+    art:(istIv?"intervall":"wochentag"),
+    wochentag:wd,rhythmus:1,intervall:(istIv?Math.max(1,Math.min(90,m.intervall)):4),
+    startOffset:0,meineIdx:null};
   $("routine-titel").textContent="Als feste Routine";
   $("routine-name").value=name;
   $("routine-kwh").value=(v&&v.kwh!=null)?dz(v.kwh):(avgK!=null?dz(avgK):"");
@@ -5186,22 +5237,51 @@ function routineChips(boxId,liste,aktiv,setzen){
     box.appendChild(b);
   });
 }
+/* Abstands-Chips: die gaengigen Werte plus – falls die Routine einen krummen Abstand
+   hat (etwa aus einem gelernten „alle ~9 Tage") – dieser als eigener Chip, damit er
+   beim Bearbeiten nicht stillschweigend verschwindet. „Anderer…" fragt frei nach. */
+const IV_CHIPS=[2,3,4,5,6,10,14];
+function intervallListe(aktiv){
+  const werte=IV_CHIPS.slice();
+  if(aktiv&&!werte.includes(aktiv))werte.push(aktiv);
+  werte.sort((a,b)=>a-b);
+  // Kurzes Chip-Label („4 Tage"), das „alle" steht schon in der Frage darüber –
+  // sonst braucht die Reihe vier statt zwei Zeilen.
+  return werte.map(n=>[n+" Tage",n]).concat([["Anderer…",-1]]);
+}
 function routineChipsAlle(){
+  const iv=routineEntwurf.art==="intervall";
+  routineChips("routine-art",[["Fester Wochentag","wochentag"],["Fester Abstand","intervall"]],
+    routineEntwurf.art,v=>{routineEntwurf.art=v;routineChipsAlle();});
   routineChips("routine-wochentag",WOCHENTAGE,routineEntwurf.wochentag,v=>{routineEntwurf.wochentag=v;routineChipsAlle();});
   routineChips("routine-rhythmus",[["Jede Woche",1],["Alle 2 Wochen",2]],routineEntwurf.rhythmus,v=>{routineEntwurf.rhythmus=v;$("routine-start-box").hidden=(v!==2);routineChipsAlle();});
   routineChips("routine-start",[["Diese Woche",0],["Nächste Woche",1]],routineEntwurf.startOffset,v=>{routineEntwurf.startOffset=v;routineChipsAlle();});
+  routineChips("routine-intervall",intervallListe(routineEntwurf.intervall),routineEntwurf.intervall,async v=>{
+    if(v===-1){
+      const t=await frageText("Abstand in Tagen",String(routineEntwurf.intervall||4));
+      const n=parseInt(String(t||"").replace(/\D/g,""),10);
+      if(!isNaN(n)&&n>=1&&n<=90)routineEntwurf.intervall=n;
+    } else routineEntwurf.intervall=v;
+    routineChipsAlle();
+  });
   $("routine-start-box").hidden=(routineEntwurf.rhythmus!==2);
+  $("routine-wd-box").hidden=iv;
+  $("routine-iv-box").hidden=!iv;
 }
 function oeffneRoutine(i){
   routineEdit=(i==null?null:i);
   if(i==null){
-    routineEntwurf={typ:"wm",icon:"🌀",name:"",von:6,bis:23,wochentag:6,rhythmus:1,startOffset:0,meineIdx:null};
+    routineEntwurf={typ:"wm",icon:"🌀",name:"",von:6,bis:23,art:"wochentag",wochentag:6,rhythmus:1,intervall:4,startOffset:0,meineIdx:null};
     $("routine-titel").textContent="Neue Routine";
     $("routine-name").value="";$("routine-kwh").value="";$("routine-dauer").value="";
     $("routine-loeschen").hidden=true;
   }else{
     const r=routinen[i];
-    routineEntwurf={typ:r.typ,icon:r.icon,name:r.name,von:r.von,bis:r.bis,wochentag:r.wochentag,rhythmus:r.rhythmus,startOffset:0,meineIdx:null};
+    // Routinen aus aelteren Versionen haben kein `art` – die sind wochentagbasiert.
+    routineEntwurf={typ:r.typ,icon:r.icon,name:r.name,von:r.von,bis:r.bis,
+      art:(r.art==="intervall"?"intervall":"wochentag"),
+      wochentag:(r.wochentag!=null?r.wochentag:6),rhythmus:(r.rhythmus||1),
+      intervall:(r.intervall||4),startOffset:0,meineIdx:null};
     $("routine-titel").textContent="Routine bearbeiten";
     $("routine-name").value=r.name;$("routine-kwh").value=dz(r.kwh);$("routine-dauer").value=dz(r.dauer);
     $("routine-loeschen").hidden=false;
@@ -5219,8 +5299,15 @@ $("routine-speichern").onclick=()=>{
   const r={typ:routineEntwurf.typ,icon:routineEntwurf.icon,name,
     kwh:Math.round(kwh*100)/100,dauer:Math.round(dauer*10)/10,
     von:routineEntwurf.von,bis:routineEntwurf.bis,
+    art:(routineEntwurf.art==="intervall"?"intervall":"wochentag"),
     wochentag:routineEntwurf.wochentag,rhythmus:routineEntwurf.rhythmus,aktiv:true};
-  if(r.rhythmus===2)r.anker=datumFuerWochentag(r.wochentag,routineEntwurf.startOffset);
+  if(r.art==="intervall"){
+    r.intervall=Math.max(1,Math.min(90,routineEntwurf.intervall||4));
+    // Anker nur als Rueckfalldatum, falls das Geraet noch nie gelaufen ist –
+    // sobald es einen echten Lauf gibt, zaehlt die Routine ab diesem.
+    r.anker=heuteStr();
+  }
+  else if(r.rhythmus===2)r.anker=datumFuerWochentag(r.wochentag,routineEntwurf.startOffset);
   if(routineEdit==null)routinen.push(r);else routinen[routineEdit]=r;
   speichern();sheetZu();platzSig="";aktualisieren();
 };

@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v84)
+Zuletzt aktualisiert: Juli 2026 (Stand v85)
 
 ---
 
@@ -197,6 +197,21 @@ automatisch in eine zugeklappte Gruppe. Erst bauen, wenn es nötig wird.
 
 ## Erledigt
 
+- **v85** – **Routinen mit festem Tagesabstand.** Vom Betreiber angestoßen: Die
+  Rhythmus-*Erkennung* kann längst `{typ:"intervall", intervall:4}` – die festen
+  *Routinen* konnten es nicht, ihr Modell war rein wochentagbasiert
+  (Wochentag + jede/alle 2 Wochen).
+  Dabei fiel ein echter Fehler auf: `alsRoutineUebernehmen()` hatte für ein
+  Intervall-Muster keinen Wochentag und nahm ersatzweise **den heutigen** plus
+  „jede Woche" – aus „alle 4 Tage" wurden stillschweigend 7, ohne Hinweis.
+  Routinen haben jetzt ein Feld `art`; fehlt es (Altbestand), gilt „wochentag".
+  **Zählweise: ab dem letzten tatsächlichen Lauf**, nicht ab einem festen
+  Kalenderanker – ein Raster sammelt jede Verschiebung dauerhaft an, und die
+  Rhythmus-Erkennung rechnet ohnehin schon so, Routine und Vorschlag ticken
+  damit gleich. Überfällige Läufe stehen nur auf *heute*, nicht zusätzlich auf
+  morgen (sonst würden sie doppelt eingeplant).
+  Bewusst **nicht** mitgebaut (Entscheidung des Betreibers): „alle 3/4 Wochen"
+  im Wochentag-Zweig. Test: `test_intervall.js` 24/24.
 - **v84** – Die beiden Restposten aus der Aufräum-Runde.
   „Heute schon gelaufen" wächst nicht mehr unbegrenzt: ab dem **fünften**
   Durchgang bleiben die drei jüngsten offen, die früheren stehen darüber im
