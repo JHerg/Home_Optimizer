@@ -1,0 +1,139 @@
+name: Signaturschluessel erzeugen (EINMALIG)
+
+# Erzeugt EINEN dauerhaften Signaturschluessel und legt ihn als Artefakt ab -
+# fertig zum Kopieren in die Repository-Secrets. Danach nimmt der Bau-Workflow
+# ihn automatisch, und jede neue APK laesst sich ueber die alte installieren.
+#
+# Gedacht fuer alle, die keinen Rechner mit Java zur Hand haben. Wer einen hat,
+# braucht diesen Workflow nicht - siehe PLAYSTORE.md.
+#
+# WICHTIG: Der private Schluessel liegt danach kurzzeitig als herunterladbares
+# Artefakt. Nur in einem PRIVATEN Repository ausfuehren, und das Artefakt nach
+# dem Uebertragen loeschen (Aufbewahrung ist bereits auf 1 Tag begrenzt).
+# Der Workflow gibt NICHTS Geheimes ins Protokoll - nur den Fingerabdruck,
+# und der ist oeffentlich.
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Name im Zertifikat (erscheint nirgends sichtbar)'
+        required: false
+        default: 'Energie-Optimierer'
+
+jobs:
+  schluessel:
+    runs-on: ubuntu-latest
+    steps:
+      # HARTE SPERRE: In einem oeffentlichen Repository kann JEDER die Artefakte
+      # herunterladen. Ein privater Signaturschluessel darf dort nie landen.
+      # Lieber der Abbruch als ein Schluessel, den Fremde haben.
+      - name: Sicherheitspruefung - Repository muss privat sein
+        run: |
+          if [ "${{ github.event.repository.private }}" != "true" ]; then
+            echo "=============================================================="
+            echo " ABBRUCH: Dieses Repository ist OEFFENTLICH."
+            echo ""
+            echo " Artefakte eines oeffentlichen Repositories kann jeder"
+            echo " herunterladen. Der private Signaturschluessel waere damit"
+            echo " fuer Fremde zugaenglich - und wer ihn hat, kann Pakete"
+            echo " unterschreiben, die wie deine App aussehen."
+            echo ""
+            echo " Weg stattdessen:"
+            echo "  1. Ein NEUES, PRIVATES Repository anlegen (kostenlos)"
+            echo "  2. Nur diese Workflow-Datei dort hineinlegen und starten"
+            echo "  3. Artefakt herunterladen, beide Secrets HIER anlegen"
+            echo "     (Secrets sind auch in oeffentlichen Repos sicher -"
+            echo "      sie sind verschluesselt und im Protokoll maskiert)"
+            echo "  4. Das private Repository wieder loeschen"
+            echo "=============================================================="
+            exit 1
+          fi
+          echo "Repository ist privat - weiter."
+
+      - name: JDK 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Schluessel erzeugen
+        run: |
+          set -e
+          mkdir -p ausgabe
+          # Zufaelliges Passwort - niemand muss sich eines ausdenken, und es
+          # steht nirgends im Protokoll, sondern nur in der Artefakt-Datei.
+          PASS="$(openssl rand -base64 24 | tr -d '/+=' | cut -c1-24)"
+
+          keytool -genkeypair -v \
+            -keystore ausgabe/android.keystore \
+            -alias energie \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass "$PASS" -keypass "$PASS" \
+            -dname "CN=${{ github.event.inputs.name }}, O=${{ github.event.inputs.name }}, C=DE" \
+            > /dev/null 2>&1
+
+          # Base64, damit sich der Schluessel als reiner TEXT in ein Secret
+          # kopieren laesst - vom Handy oder Tablet aus geht nichts anderes.
+          base64 -w0 ausgabe/android.keystore > ausgabe/ANDROID_KEYSTORE_B64.txt
+          printf '%s' "$PASS" > ausgabe/ANDROID_KEYSTORE_PASSWORD.txt
+
+          FP=$(keytool -list -v -keystore ausgabe/android.keystore -alias energie -storepass "$PASS" \
+               | grep 'SHA256:' | head -1 | sed 's/.*SHA256: *//')
+          printf '%s' "$FP" > ausgabe/FINGERPRINT.txt
+
+          cat > ausgabe/ANLEITUNG.txt <<ANLEITUNG
+          So geht es weiter (dauert 3 Minuten, geht auch am Tablet)
+          =========================================================
+
+          In diesem Ordner liegen drei Textdateien. Zwei davon sind GEHEIM.
+
+          1) Secret Nr. 1 anlegen
+             GitHub -> dieses Repository -> Settings -> Secrets and variables
+             -> Actions -> "New repository secret"
+             Name:  ANDROID_KEYSTORE_B64
+             Wert:  den GESAMTEN Inhalt von ANDROID_KEYSTORE_B64.txt
+                    (eine sehr lange Zeile - alles markieren, nichts abschneiden)
+
+          2) Secret Nr. 2 anlegen
+             Name:  ANDROID_KEYSTORE_PASSWORD
+             Wert:  den Inhalt von ANDROID_KEYSTORE_PASSWORD.txt
+                    (ohne Leerzeichen davor oder dahinter)
+
+          3) Fingerabdruck eintragen
+             Der Inhalt von FINGERPRINT.txt gehoert in die Datei
+             .well-known/assetlinks.json, in die Liste sha256_cert_fingerprints.
+             Er ist NICHT geheim.
+
+          4) Dieses Artefakt loeschen
+             Auf der Seite des Workflow-Laufs oben rechts. Danach existiert der
+             private Schluessel nur noch in den Secrets.
+
+          5) Die Datei android.keystore zusaetzlich sicher aufbewahren
+             (Passwortmanager oder verschluesselter Speicher). Geht sie samt
+             Secret verloren, laesst sich eine bereits installierte App nicht
+             mehr aktualisieren.
+
+          Danach: "Android-APK bauen" starten. Der Workflow erkennt die Secrets
+          von selbst und nimmt ab jetzt immer diesen Schluessel.
+          ANLEITUNG
+
+          echo "FP=$FP" >> "$GITHUB_ENV"
+
+      - name: Fingerabdruck anzeigen (nicht geheim)
+        run: |
+          echo "=============================================================="
+          echo " SHA-256 FINGERPRINT"
+          echo " gehoert spaeter in .well-known/assetlinks.json"
+          echo "=============================================================="
+          echo "$FP"
+          echo "=============================================================="
+          echo "Alles Weitere steht in ANLEITUNG.txt im Artefakt unten."
+
+      - name: Schluessel als Artefakt bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: signaturschluessel-EINMALIG-danach-loeschen
+          path: ausgabe/
+          if-no-files-found: error
+          retention-days: 1
