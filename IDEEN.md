@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v90)
+Zuletzt aktualisiert: Juli 2026 (Stand v91)
 
 ---
 
@@ -319,6 +319,39 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v91** – **„Heute bringt das nichts mehr – leg es auf morgen."**
+  Gemessen (`rechne_jetzt.js`): Steht man abends vor der Maschine, sucht die App
+  den besten Platz **nur im heutigen Rest** – und findet keinen. Sie nannte
+  19:15 statt 19:00 Uhr und sparte damit **null**. Der wertvollste Rat
+  (Abend → morgen Mittag, ~36 ct) fehlte ganz.
+  **Gerechnet wird mit `simuliere()`, nicht mit `laufBilanz()`** – nur die
+  Simulation kennt Speicher, Grundlast und Stundenpreis. Damit stimmt es ohne
+  Sonderfälle für festen wie dynamischen Tarif (`voll` ist bei festem Tarif
+  24-mal derselbe Wert) und mit wie ohne Speicher (`cap = 0`). Dafür führt
+  `simuliere()` jetzt die Netzkosten **je Block** mit (`_gridCt`).
+  Die App schweigt, wenn: heute selbst gut · morgen trüb · unter 10 ct ·
+  Speicher abends geladen · Routine · Urlaub.
+  ⚠️ **Verworfen beim Bauen:** eine eigene Regen-Abfrage über
+  `wochenSonne[].regen`. Sie lädt asynchron nach und war beim ersten Zeichnen
+  meist noch nicht da – der Test fiel prompt durch. Die Stunden-Prognose für
+  morgen stammt ohnehin aus demselben Wettermodell und hat schlechtes Wetter
+  schon eingepreist.
+  ⚠️ **Ebenfalls verworfen** (mehrere Anläufe, alle zu kompliziert): ein
+  „Planungsgewinn" in der Bilanz gegen einen Durchschnitts- oder festen
+  Vergleichszeitpunkt. Der Betreiber hat es dreimal nicht verstanden – das war
+  das Urteil über das Konzept, nicht über ihn. Zwei Zeilen mit zwei Preisen
+  sagen dasselbe ohne Erklärung.
+  ⚠️ **Nicht gebaut:** Nacht-Reserve für den Speicher. Wäre eine
+  Steueranweisung, die die App nicht durchsetzen kann – das macht das EMS.
+  Test: `test_morgen.js` 17/17.
+
+### Nebenbefund aus v91
+
+`simuliere()` kann den Speicher korrekt – `laufBilanz()` (die Bilanz) nicht.
+Lücke 4 aus der Ersparnis-Prüfung ist damit **billiger als gedacht**: Die
+Maschinerie liegt schon da, die Bilanz müsste sie nur benutzen. Noch offen,
+weil es rückwirkend gespeicherte Läufe betrifft.
 
 - **v90** – **Vollprüfung auf Wunsch des Betreibers: „Sind die Beschreibungen und
   die Berechnungen korrekt?"**

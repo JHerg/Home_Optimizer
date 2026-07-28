@@ -750,6 +750,23 @@ details.rgrp-info>summary::-webkit-details-marker{display:none}
    Rest in einen Aufklapper (.dash-mehr). Verschachteltes Scrollen war auf dem
    Handy kaum bedienbar und hat mit den Wischgesten um jede Berührung gerungen. */
 .dash-rows{overflow:visible}
+/* v91: „heute oder morgen?" – zwei Zeilen, zwei Preise, ein Knopf */
+.mgn{margin:2px 0 10px;border:1px solid rgba(245,160,12,.45);
+  background:radial-gradient(120% 100% at 0% 0%,rgba(245,160,12,.12),rgba(245,160,12,0) 65%),var(--karte);
+  border-radius:13px;padding:12px}
+.mgn-hk{font-size:11px;color:var(--grau);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.mgn-z{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13.5px;color:var(--tinte)}
+.mgn-z+.mgn-z{border-top:1px dashed var(--linie)}
+.mgn-z.gut{font-weight:700}
+.mgn-w{flex:1;min-width:0}
+.mgn-w span{display:block;font-size:11.5px;color:var(--grau);font-weight:600}
+.mgn-p{font-family:var(--mono);font-weight:800;font-size:15px;white-space:nowrap}
+.mgn-p.rot{color:var(--rot)} .mgn-p.gruen{color:var(--gruen)}
+.mgn-btn{width:100%;margin-top:11px;border:none;background:var(--sonne);color:#fff;border-radius:11px;
+  padding:11px;font-size:13.5px;font-weight:800;cursor:pointer}
+.mgn-nein{width:100%;margin-top:7px;border:none;background:rgba(120,130,145,.14);color:var(--grau);
+  border-radius:11px;padding:9px;font-size:12.5px;font-weight:600;cursor:pointer}
+.mgn-fuss{font-size:11px;color:var(--grau);margin-top:8px;text-align:center;line-height:1.4}
 .dash-mehr{margin-top:6px;padding:10px 12px}
 .dash-mehr .dash-rows{margin-top:4px}
 .dash-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:100px;margin-left:2px;vertical-align:middle;letter-spacing:.01em}
@@ -1814,6 +1831,11 @@ var demoAktiv=false; // Demo-Tour aktiv? (früh deklariert, damit speichern() es
 let tag="heute"; // "heute" | "morgen" | "woche"
 let wahlTyp=null,wahlKlasse=null,bearbIndex=null,bearbIcon=null;
 let platzierungen=[]; // aktuelle Bloecke auf der Zeitleiste
+/* „Heute lassen" blendet den Morgen-Vorschlag nur fuer DIESE Sitzung aus – beim
+   naechsten Oeffnen der App ist er wieder da (so vom Betreiber gewuenscht).
+   Bewusst NICHT in cfg: sonst waere er dauerhaft weg. Bewusst nicht ungespeichert
+   je Render: sonst blinkt er Sekunden spaeter zurueck. */
+const morgenWeg=new Set();
 let platzSig=""; // Signatur (Tag+Geraete), um Vorschlag nur bei Bedarf neu zu erzeugen
 let ungeplant=[]; // Geraete, die zeitlich nicht mehr in den (heutigen) Plan passen
 let eingabeResolve=null; // offener Promise-Resolver des Texteingabe-Sheets
@@ -1853,8 +1875,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=90;
+const APP_VERSION=91;
 const NEUES=[
+  {v:91,t:["🌙 <b>„Heute bringt das nichts mehr – leg es auf morgen.“</b> Bisher suchte die App den besten Zeitpunkt immer nur <b>innerhalb des heutigen Tages</b>. Stehst du abends vor der Maschine, ist da nichts Gutes mehr – sie nannte trotzdem eine Uhrzeit von heute und sparte damit null. Jetzt darf sie <b>morgen</b> vorschlagen","⚖️ Sie zeigt dazu schlicht <b>zwei Zeilen mit zwei Preisen</b> – heute Abend gegen morgen Mittag – und einen Knopf. Getippt, wandert das Gerät auf morgen und die App springt gleich hinüber","🔋 <b>Gerechnet wird mit der Speicher-Simulation</b>, nicht mit der einfachen Bilanz-Formel. Damit stimmt es automatisch für <b>festen wie dynamischen Tarif</b> und für Haushalte <b>mit wie ohne Speicher</b>: Ist der Speicher abends geladen, ist der Abend längst gelöst – dann sagt die App gar nichts. Ebenso, wenn morgen trüb wird, wenn heute selbst ein guter Platz frei ist oder wenn es um weniger als 10 Cent geht"]},
   {v:90,t:["🔎 <b>Alles einmal nachgerechnet und nachgelesen.</b> Die Formeln der Bilanz sind jetzt unabhängig gegengeprüft – mit einem Preisverlauf, dessen Erwartungswerte von Hand feststehen. Sonnen-Anteil, Preisvorteil, CO₂ und Deckungsquote stimmen auf die Nachkommastelle","✍️ <b>Ein Widerspruch im Bilanz-Text ist raus</b>: Dort stand oben „Eine Schätzung, keine Messung“ und wenige Zeilen später „ab jetzt exakt“. Beides zugleich konnte nicht stimmen – jetzt heißt es, dass neuere Läufe mit den echten Stundendaten rechnen","🇩🇪 <b>Kommas statt Punkte</b>: Elf Zahlen im Tagesplan standen als „5.5 kWh“ statt „5,5 kWh“ – etwa in der Legende unter der Kurve und in der Aufstellung Sonne/Speicher/Netz"]},
   {v:89,t:["✈️ <b>Der Urlaubs-Modus steht jetzt ganz oben im Einrichten-Blatt</b> – sichtbar, sobald du es öffnest. Vorher lag er <b>2110 Pixel tief</b> in der Gruppe „Haushalt“, hinter Speicher, E-Auto und Hintergrund-Verbrauch, und die Gruppe erwähnte ihn nicht einmal in ihrer Beschriftung. Jetzt sind es <b>92 Pixel</b>, ohne Aufklappen","🧭 Warum der Umzug? Alles in „Haushalt“ richtet man <b>einmal</b> ein. Der Urlaubs-Modus ist der einzige Eintrag, den man <b>immer wieder</b> anfasst – der gehört nicht ans Ende einer Einrichtungsliste","🔤 <b>Nebenbei repariert</b>: Bei vier Schaltern klebte der erklärende Zusatz ohne Abstand am Titel und war genauso fett – „Urlaubs-Modusniemand zu Hause“. Jetzt steht er wie vorgesehen klein und grau in einer eigenen Zeile"]},
   {v:88,t:["⏰ <b>Die günstige Netzstunde zählt jetzt mit</b> – der zweite Hebel der App. Bisher wurde nur die eigene Sonne bewertet; ein Lauf, den die App aus einer teuren in eine günstige Stunde geschoben hat, stand mit <b>null</b> in der Bilanz. Gerade im Winter, wenn kaum Sonne da ist, sah es dadurch so aus, als täte die App nichts","📊 <b>Die Bilanz zeigt beide Hebel getrennt</b>: „☀️ eigene Sonne statt Netz“ und „⏰ günstigere Netzstunde“. Verglichen wird mit einem durchschnittlichen Zeitpunkt im Zeitfenster des Geräts – lief es zur teuren Stunde, steht dort auch ein <b>Minus</b>. Bei festem Tarif entfällt die Zeile, dort kostet jede Stunde gleich viel","🔧 <b>Behoben: dieselbe Sonne wurde doppelt vergeben.</b> Liefen zwei Geräte in derselben Stunde, bekam jedes den vollen Überschuss gutgeschrieben. Gemessen: <b>2,86 kWh</b> Überschuss, aber <b>4,00 kWh</b> verbucht. Jetzt teilen sie sich, was da ist. Bereits gespeicherte Läufe behalten ihre alten Werte – rückwirkend lässt sich das nicht sauber nachrechnen"]},
@@ -2914,7 +2937,7 @@ function simuliere(arr,bloecke){
   const start=Math.max(0,Math.min(cap,cfg.akku_stand||0));
   let akku=start;
   const gesamtKwh=bloecke.reduce((a,b)=>a+b.kwh,0);
-  bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;});
+  bloecke.forEach(b=>{b._sun=0;b._batt=0;b._grid=0;b._gridCt=0;});
   // Blöcke stundenweise einordnen – auch bei Viertelstunden-Start/Ende (Bruchteil-Fenster).
   const aktiv = Array.from({length: 24}, () => []);
   bloecke.forEach(b => {
@@ -2944,8 +2967,11 @@ function simuliere(arr,bloecke){
     const battBase=Math.min(akku,baseDef); akku-=battBase; const netzBase=baseDef-battBase;
     const battDev=Math.min(akku,devDef); akku-=battDev; const netzDev=devDef-battDev;
     // Geraete-Fluesse anteilig auf die aktiven Bloecke verteilen
-    if(dev>0)aktiv[h].forEach(b=>{const sh=devAnteil.get(b)/dev;b._sun+=pvDev*sh;b._batt+=battDev*sh;b._grid+=netzDev*sh;});
     const preis=(s.voll!=null?s.voll:(s.eff!=null?s.eff:null));
+    // Netz-Anteil UND dessen Kosten je Block – fuer den Zwei-Tage-Vergleich (v91)
+    if(dev>0)aktiv[h].forEach(b=>{const sh=devAnteil.get(b)/dev;
+      b._sun+=pvDev*sh; b._batt+=battDev*sh; b._grid+=netzDev*sh;
+      if(preis!=null)b._gridCt+=netzDev*sh*preis;});
     sonneKwh+=pvDev; akkuKwh+=battDev; netzKwh+=netzDev; netzCt+=(preis!=null?netzDev*preis:0);
     hausNetzKwh+=netzBase+netzDev;
     per.push({h,sun:pvDev,batt:battDev,netz:netzDev,load:dev,akku,base,netzBase,frei,preis,gesamtKwh});
@@ -3491,9 +3517,36 @@ function renderDashboard(arr){
         '<span class="dash-info"><span class="dash-nm">'+nm+'</span>'+
           '<span class="dash-sub">'+zeit+kwhStr+badge+'</span></span>'+
         right+'</div>';
+      // v91: Wenn heute nichts Gutes mehr uebrig ist, morgen aber schon –
+      // zwei Zeilen, zwei Preise, ein Knopf. Kein Vergleichskonstrukt.
+      let mv=null;
+      if(!it.done && !it.routine && !morgenWeg.has(it.name)){
+        const blk=platzierungen[it.pidx];
+        try{ mv=blk?morgenBesser(blk):null; }catch(_){ mv=null; }
+      }
+      let mvHtml="";
+      if(mv){
+        const anteil=mv.sonMorgen/Math.max(0.001,it.kwh||1);
+        const wieViel = anteil>=0.95?"läuft ganz aus eigener Sonne"
+                      : anteil>=0.6 ?"läuft fast vollständig aus eigener Sonne"
+                      : "läuft zum größten Teil aus eigener Sonne";
+        mvHtml='<div class="mgn" data-mgn="'+encodeURIComponent(it.name)+'">'+
+          '<div class="mgn-hk">Wann soll das laufen?</div>'+
+          '<div class="mgn-z"><span class="mgn-w">heute '+uhrVoll(it.start)+' Uhr<span>'+
+            (mv.sonHeute<0.05?"kommt ganz aus dem Netz":"kaum Sonne mehr übrig")+'</span></span>'+
+            (mv.preiseDa?'<span class="mgn-p rot">'+Math.round(mv.ctHeute)+' ct</span>':'')+'</div>'+
+          '<div class="mgn-z gut"><span class="mgn-w">☀️ morgen '+uhrVoll(mv.start)+' Uhr<span>'+wieViel+'</span></span>'+
+            (mv.preiseDa?'<span class="mgn-p gruen">'+Math.round(mv.ctMorgen)+' ct</span>':'')+'</div>'+
+          '<button class="mgn-btn" data-mgn-ja="'+encodeURIComponent(it.name)+'">Auf morgen legen'+
+            (mv.preiseDa?' – spart '+Math.round(mv.spar)+' ct':'')+'</button>'+
+          '<button class="mgn-nein" data-mgn-nein="'+encodeURIComponent(it.name)+'">Heute lassen</button>'+
+          '<div class="mgn-fuss">Morgen ist sonnig <b>vorhergesagt</b> – sicher ist das nicht.'+
+            (mv.preiseDa?'':' Der Betrag steht hier, sobald die Börsenpreise für morgen da sind (ab ca. 14 Uhr).')+'</div>'+
+        '</div>';
+      }
       const block='<div class="dash-swipe">'+
         (it.done?"":'<div class="dash-del-bg"><span>🗑</span></div><div class="dash-pin-bg"><span>📌</span></div>')+
-        zeileHtml+'</div>';
+        zeileHtml+'</div>'+mvHtml;
       if(idx<DASH_OFFEN) rows+=block; else { rowsRest+=block; restAnz++; }
     });
     rows='<div class="dash-rows">'+rows+'</div>'+
@@ -3531,6 +3584,13 @@ function renderDashboard(arr){
   // Jede Zeile (auch bereits gelaufene) führt in den Tagesplan; Wischen nur bei planbaren Zeilen.
   dash.querySelectorAll(".dash-row").forEach(r=>{ r.onclick=oeffnePlan; });
   dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ swipeDash(r,tagKey); });
+  // v91: „auf morgen legen" / „heute lassen"
+  dash.querySelectorAll("[data-mgn-ja]").forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation(); haptik(12); aufMorgenLegen(decodeURIComponent(btn.dataset.mgnJa));
+  });
+  dash.querySelectorAll("[data-mgn-nein]").forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation(); morgenWeg.add(decodeURIComponent(btn.dataset.mgnNein)); aktualisieren();
+  });
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
   const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
   // Hinweis: Die Verdrahtung oben erfasst über querySelectorAll auch die Zeilen
@@ -3958,6 +4018,87 @@ function rhythmusZeile(ran,rhythmusTag,nextKey){
     cells+='<div class="rh-cell'+cellCls+'"><div class="rh-dot'+dotCls+'"></div><span>'+wd+'</span></div>';
   }
   return '<div class="rh-line">'+cells+'</div>';
+}
+/* ===== v91: „Heute bringt das nichts mehr – leg es auf morgen" =====
+   Bisher suchte die App den besten Zeitpunkt immer NUR innerhalb des angezeigten
+   Tages. Steht man abends davor, ist da nichts Gutes mehr – sie nannte trotzdem
+   eine Uhrzeit von heute und sparte damit null. Neu darf sie sagen: morgen.
+
+   Gerechnet wird mit simuliere(), NICHT mit laufBilanz(): Nur die Simulation kennt
+   den Speicher, die Grundlast und den Stundenpreis. Damit stimmt der Vergleich
+   automatisch für beide Tarife (bei festem Tarif ist `voll` 24-mal derselbe Wert)
+   und für Haushalte mit wie ohne Speicher (ohne Speicher ist cap = 0).
+
+   Bewusste Vereinfachung: Der Lauf wird je Tag ALLEIN gegen den Hintergrund
+   gerechnet, ohne die übrigen Geräte. Das unterschätzt den Vorteil eher, als ihn
+   aufzublasen – die richtige Richtung für eine App, die nichts verspricht. */
+const MORGEN_SCHWELLE_CT=10;   // darunter schweigt die App
+
+// Was kostet EIN Lauf an einem Tag, an einer bestimmten Startzeit? (ct aus dem Netz)
+function laufKosten(arr,start,dauer,kwh,von,bis){
+  const b={start,dauer,kwh,devKW:kwh/Math.max(0.25,dauer),echteDauer:dauer,
+           von,bis,icon:"",name:"_probe",_key:"_probe",run:0};
+  simuliere(arr,[b]);
+  return {ct:b._gridCt||0, son:b._sun||0, batt:b._batt||0, netz:b._grid||0};
+}
+// Bester (guenstigster) Startzeitpunkt fuer einen Lauf an einem Tag, im 15-Min-Raster.
+function guenstigsterStart(arr,dauer,kwh,von,bis,abStunde){
+  const d=Math.max(0.25,Math.round(dauer*4)/4);
+  let vonQ=Math.round(Math.max(von,abStunde!=null?abStunde:von)*4);
+  const bisQ=Math.round(Math.min(bis,24)*4);
+  let best=null;
+  for(let q=vonQ;q+d*4<=bisQ;q++){
+    const st=q/4, k=laufKosten(arr,st,d,kwh,von,bis);
+    if(!best||k.ct<best.ct-0.001)best={start:st,ct:k.ct,son:k.son,batt:k.batt};
+  }
+  return best;
+}
+// Liegen fuer einen Tag ueberhaupt Boersenpreise vor? (fuer morgen erst ab ca. 14 Uhr)
+function preiseDaFuer(tagStr){
+  if(cfg.tarif==="fest")return true;              // fester Tarif kennt jede Stunde
+  for(let h=0;h<24;h++) if(daten.preise[tagStr+"-"+h]!=null) return true;
+  return false;
+}
+/* Lohnt es sich, diesen heute geplanten Block auf morgen zu legen?
+   Gibt null zurueck, wenn nicht – dann zeigt die App nichts. */
+function morgenBesser(block){
+  if(!block||block.routine||block._teil)return null;        // Routinen haben ihren Rhythmus
+  if(tag!=="heute"||demoAktiv)return null;
+  const mk=morgenStr();
+  if(urlaubAn(mk))return null;
+  /* Keine eigene Regen-Abfrage: Die Stunden-Prognose fuer morgen (Globalstrahlung)
+     kommt aus demselben Wettermodell und hat schlechtes Wetter bereits eingepreist –
+     ist Regen vorhergesagt, ist die Einstrahlung niedrig und der Vorteil faellt
+     unter die Schwelle. Ein zweites Tor waere doppelt gemoppelt und obendrein
+     unzuverlaessig: Der Wochenausblick laedt asynchron nach und ist beim ersten
+     Zeichnen oft noch gar nicht da. */
+  const arrM=stunden(mk); if(!arrM)return null;
+  const dauer=block.echteDauer!=null?block.echteDauer:block.dauer;
+  const heute=laufKosten(aktuelleStunden,block.start,dauer,block.kwh,block.von,block.bis);
+  const morgen=guenstigsterStart(arrM,dauer,block.kwh,block.von,block.bis,null);
+  if(!morgen)return null;
+  const spar=heute.ct-morgen.ct;
+  const preiseDa=preiseDaFuer(mk);
+  // Ohne Preise fuer morgen entscheidet die Sonnenmenge, nicht der Betrag
+  if(preiseDa){ if(spar<MORGEN_SCHWELLE_CT)return null; }
+  else { if((morgen.son+morgen.batt)-(heute.son+heute.batt)<0.3)return null; }
+  return {spar,preiseDa,start:morgen.start,dauer,
+          sonHeute:heute.son+heute.batt, sonMorgen:morgen.son+morgen.batt,
+          ctHeute:heute.ct, ctMorgen:morgen.ct, name:block.name, icon:block.icon,
+          key:block._key, run:block.run};
+}
+// Ein heute geplantes Geraet auf morgen umhaengen.
+function aufMorgenLegen(name){
+  const hk=heuteStr(), mk=morgenStr();
+  const erlH=erledigtListe(hk).filter(e=>e.name===name).length;
+  setzeTagAnzahl(hk,name,Math.max(erlH,tagAnzahl(hk,name)-1));   // heute einen weniger
+  const erlM=erledigtListe(mk).filter(e=>e.name===name).length;
+  setzeTagAnzahl(mk,name,Math.max(tagAnzahl(mk,name),erlM)+1);   // morgen einen mehr
+  // Der gespeicherte Platz von heute gilt nicht mehr
+  if(cfg.plaene&&cfg.plaene[hk])cfg.plaene[hk]=cfg.plaene[hk].filter(p=>!(p.key||"").endsWith("|"+name));
+  speichern(); platzSig="";
+  setzeTag("morgen");                    // wie gewuenscht: direkt hinueberspringen
+  zeigeToast("🌙 "+kurzName(name)+" auf morgen gelegt",null);
 }
 // Nächster geplanter Lauf einer Routine ab heute (0..14), sonst null.
 function naechsterRoutineLauf(r){
