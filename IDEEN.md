@@ -344,7 +344,14 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
   sagen dasselbe ohne Erklärung.
   ⚠️ **Nicht gebaut:** Nacht-Reserve für den Speicher. Wäre eine
   Steueranweisung, die die App nicht durchsetzen kann – das macht das EMS.
-  Test: `test_morgen.js` 17/17.
+  ⚠️ **Beim Nachprüfen gefunden und behoben:** Der Vorschlag stand je Gerät –
+  bei 8 abends geplanten Geräten also **achtmal untereinander**, Karte 1485 px.
+  Genau die Tapete, die v82 aus dem Routinen-Reiter entfernt hat. Jetzt steht
+  immer nur **einer** da, der mit dem größten Gewinn; nach dem Wegtippen
+  erscheint der nächste. **1485 → 408 px**, und minimal schneller.
+  Geschwindigkeit gemessen: **5,6 ms je Neuzeichnen** bei 8 Geräten (die Suche
+  rechnet je Gerät rund 65 Simulationen) – unkritisch.
+  Test: `test_morgen.js` 19/19.
 
 ### Nebenbefund aus v91
 

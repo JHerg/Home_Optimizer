@@ -115,7 +115,33 @@ const kasten=p=>p.evaluate(()=>{const e=document.querySelector('.mgn');
   chk('Ist morgen trüb, schweigt die App', !(await kasten(p)).da, JSON.stringify(await kasten(p)).slice(0,140));
   await p.close();
 
-  // ===== 9) Routinen bleiben aussen vor =====
+  // ===== 9) Mehrere schlecht geplante Geraete: nur EIN Vorschlag, der lohnendste =====
+  p=await b.newPage({viewport:{width:393,height:852,hasTouch:true}});
+  p.on('pageerror',e=>errs.push(e.message));
+  await p.clock.install({time:new Date(today+'T17:05:00Z')});
+  stub(p,{});
+  {
+    const namen=["Klein","Mittel","Gross"], kwh=[0.6,1.2,2.4];
+    const anz={}; namen.forEach(n=>anz[n]=1);
+    await p.addInitScript(v=>localStorage.setItem('energie-optimierer-v1',v),JSON.stringify({
+      cfg:{lat:50.98,lon:6.93,adresse:"Köln",kwp:9.6,neigung:25,azimut:0,aufschlag:18,schwelle:350,
+        faktor:1.0,kalib:[],pvQuelle:"om",tarif:"dynamisch",festpreis:0.32,akku_an:false,
+        onboardingGesehen:true,hilfeGesehen:true,newsGesehen:99,setupFertig:true,rueckblickWeg:today,
+        wischHintWeg:true,gl_profil_an:true,tagAnzahl:{[today]:anz},plaene:{},erledigt:{},verlauf:{}},
+      geraete:namen.map((n,i)=>({typ:"so",name:n,icon:"🌀",kwh:kwh[i],dauer:2,von:6,bis:22})),
+      meineGeraete:[],routinen:[]}));
+    await p.goto(APP); await p.waitForTimeout(2300);
+    const n=await p.evaluate(()=>document.querySelectorAll('.mgn').length);
+    chk('Bei drei Geräten steht nur EIN Vorschlag', n===1, 'gezeigt: '+n);
+    const bei=await p.evaluate(()=>{
+      const k=document.querySelector('.mgn');
+      let e=k&&k.previousElementSibling;
+      return e?e.textContent.replace(/\s+/g,' ').trim().slice(0,30):null;});
+    chk('… und zwar beim Gerät mit dem größten Gewinn', /Gross/.test(bei||''), bei);
+  }
+  await p.close();
+
+  // ===== 10) Routinen bleiben aussen vor =====
   p=await seite(b,{routine:true});
   chk('Routinen bekommen keinen Vorschlag', !(await kasten(p)).da, JSON.stringify(await kasten(p)).slice(0,140));
   await p.close();
