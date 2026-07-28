@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v91)
+Zuletzt aktualisiert: Juli 2026 (Stand v92)
 
 ---
 
@@ -319,6 +319,18 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v92** – **Der Vorschlag stand am falschen Ort.** Vom Betreiber im echten
+  Betrieb gemeldet (Screenshot, 19:44 Uhr): Er sah den Kasten nicht. Grund: Er
+  war im **Tagesplan**, die Karte saß nur auf der Startseite.
+  Und genau dort, wo er hinsah, wirbt die Budget-Zeile seit jeher mit
+  „… kWh über → **Netz oder anderer Tag**" – ein Hinweis, der die Idee benennt
+  und nichts anbietet. Die Karte steht jetzt auch dort, direkt darunter.
+  Dafür: Kartentext in `morgenKarteHtml()` ausgelagert (ein Text, zwei Orte),
+  Kandidatensuche in `bestesMorgenAngebot()`, und die Knöpfe laufen jetzt über
+  **Delegation am Dokument** statt über Handler je Element – der Tagesplan wird
+  an anderer Stelle gezeichnet als das Dashboard, sonst hätten seine Knöpfe
+  nicht funktioniert. Test: `test_morgen.js` 22/22.
 
 - **v91** – **„Heute bringt das nichts mehr – leg es auf morgen."**
   Gemessen (`rechne_jetzt.js`): Steht man abends vor der Maschine, sucht die App

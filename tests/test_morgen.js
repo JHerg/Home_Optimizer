@@ -48,7 +48,7 @@ async function seite(b,o){
   await p.goto(APP); await p.waitForTimeout(2300);
   return p;
 }
-const kasten=p=>p.evaluate(()=>{const e=document.querySelector('.mgn');
+const kasten=p=>p.evaluate(()=>{const e=document.querySelector('#dash-plan-card .mgn');
   return e?{da:true,txt:e.textContent.replace(/\s+/g,' ').trim(),
             btn:(e.querySelector('.mgn-btn')||{}).textContent}:{da:false};});
 (async()=>{
@@ -65,7 +65,7 @@ const kasten=p=>p.evaluate(()=>{const e=document.querySelector('.mgn');
 
   // ===== 2) Der Knopf haengt das Geraet auf morgen um und springt hinueber =====
   p=await seite(b,{});
-  await p.$eval('.mgn-btn',e=>e.click()); await p.waitForTimeout(1400);
+  await p.$eval('#planer .mgn-btn',e=>e.click()); await p.waitForTimeout(1400);
   const nachher=await p.evaluate(()=>{
     const st=JSON.parse(localStorage.getItem('energie-optimierer-v1'));
     const an=document.querySelector('.tabbar .tab.on');
@@ -131,17 +131,39 @@ const kasten=p=>p.evaluate(()=>{const e=document.querySelector('.mgn');
       geraete:namen.map((n,i)=>({typ:"so",name:n,icon:"🌀",kwh:kwh[i],dauer:2,von:6,bis:22})),
       meineGeraete:[],routinen:[]}));
     await p.goto(APP); await p.waitForTimeout(2300);
-    const n=await p.evaluate(()=>document.querySelectorAll('.mgn').length);
+    // Die Karte steckt bewusst an ZWEI Orten im DOM (Startseite + Tagesplan);
+    // sichtbar ist immer nur einer. Gezaehlt wird darum je Bereich.
+    const n=await p.evaluate(()=>document.querySelectorAll('#dash-plan-card .mgn').length);
     chk('Bei drei Geräten steht nur EIN Vorschlag', n===1, 'gezeigt: '+n);
     const bei=await p.evaluate(()=>{
-      const k=document.querySelector('.mgn');
+      const k=document.querySelector('#dash-plan-card .mgn');
       let e=k&&k.previousElementSibling;
       return e?e.textContent.replace(/\s+/g,' ').trim().slice(0,30):null;});
     chk('… und zwar beim Gerät mit dem größten Gewinn', /Gross/.test(bei||''), bei);
   }
   await p.close();
 
-  // ===== 10) Routinen bleiben aussen vor =====
+  // ===== 10) Der Kasten steht auch im TAGESPLAN – dort sucht man ihn =====
+  // (Die Budget-Zeile dort wirbt schon mit „→ Netz oder anderer Tag".)
+  p=await seite(b,{});
+  await p.$eval('#dash-curve',e=>e.click()).catch(()=>{});
+  await p.waitForTimeout(1300);
+  const imPlan=await p.evaluate(()=>{
+    const m=document.querySelector('#planer .mgn');
+    return {da:!!m, hoch:m?Math.round(m.getBoundingClientRect().height):0,
+            nachBudget:!!(m&&m.previousElementSibling&&m.previousElementSibling.classList.contains('budget'))};});
+  chk('Im Tagesplan erscheint der Kasten', imPlan.da&&imPlan.hoch>50, JSON.stringify(imPlan));
+  chk('… direkt unter der Budget-Zeile', imPlan.nachBudget, JSON.stringify(imPlan));
+  // und der Knopf funktioniert auch dort (Delegation statt Handler je Element)
+  await p.$eval('#planer .mgn-btn',e=>e.click()); await p.waitForTimeout(1400);
+  const nachPlan=await p.evaluate(()=>{
+    const st=JSON.parse(localStorage.getItem('energie-optimierer-v1'));
+    const an=document.querySelector('.tabbar .tab.on');
+    return {tab:an?an.dataset.tag:null, tage:st.cfg.tagAnzahl};});
+  chk('Knopf wirkt auch im Tagesplan', (nachPlan.tage[tom]||{})["Waschmaschine"]===1, JSON.stringify(nachPlan.tage));
+  await p.close();
+
+  // ===== 11) Routinen bleiben aussen vor =====
   p=await seite(b,{routine:true});
   chk('Routinen bekommen keinen Vorschlag', !(await kasten(p)).da, JSON.stringify(await kasten(p)).slice(0,140));
   await p.close();

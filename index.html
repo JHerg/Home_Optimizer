@@ -1875,8 +1875,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=91;
+const APP_VERSION=92;
 const NEUES=[
+  {v:92,t:["🧭 <b>Der Vorschlag „auf morgen legen“ steht jetzt auch im Tagesplan</b> – dort, wo die Budget-Zeile ohnehin schon sagt „… über → Netz oder <b>anderer Tag</b>“. Bisher gab es dort nur diesen Hinweis, das Angebot dazu aber nur auf der Startseite. Wer im Tagesplan nachsah, fand nichts","🔁 Beide Orte zeigen dieselbe Karte und denselben Knopf – getippt wirkt er überall gleich"]},
   {v:91,t:["🌙 <b>„Heute bringt das nichts mehr – leg es auf morgen.“</b> Bisher suchte die App den besten Zeitpunkt immer nur <b>innerhalb des heutigen Tages</b>. Stehst du abends vor der Maschine, ist da nichts Gutes mehr – sie nannte trotzdem eine Uhrzeit von heute und sparte damit null. Jetzt darf sie <b>morgen</b> vorschlagen","⚖️ Sie zeigt dazu schlicht <b>zwei Zeilen mit zwei Preisen</b> – heute Abend gegen morgen Mittag – und einen Knopf. Getippt, wandert das Gerät auf morgen und die App springt gleich hinüber","🔋 <b>Gerechnet wird mit der Speicher-Simulation</b>, nicht mit der einfachen Bilanz-Formel. Damit stimmt es automatisch für <b>festen wie dynamischen Tarif</b> und für Haushalte <b>mit wie ohne Speicher</b>: Ist der Speicher abends geladen, ist der Abend längst gelöst – dann sagt die App gar nichts. Ebenso, wenn morgen trüb wird, wenn heute selbst ein guter Platz frei ist oder wenn es um weniger als 10 Cent geht","1️⃣ Und es steht immer nur <b>ein</b> Vorschlag da – der mit dem größten Gewinn. Sind mehrere Geräte betroffen, kommt der nächste, sobald du den ersten erledigt hast. Eine Entscheidung nach der anderen statt einer Wand aus gleich aussehenden Kästen"]},
   {v:90,t:["🔎 <b>Alles einmal nachgerechnet und nachgelesen.</b> Die Formeln der Bilanz sind jetzt unabhängig gegengeprüft – mit einem Preisverlauf, dessen Erwartungswerte von Hand feststehen. Sonnen-Anteil, Preisvorteil, CO₂ und Deckungsquote stimmen auf die Nachkommastelle","✍️ <b>Ein Widerspruch im Bilanz-Text ist raus</b>: Dort stand oben „Eine Schätzung, keine Messung“ und wenige Zeilen später „ab jetzt exakt“. Beides zugleich konnte nicht stimmen – jetzt heißt es, dass neuere Läufe mit den echten Stundendaten rechnen","🇩🇪 <b>Kommas statt Punkte</b>: Elf Zahlen im Tagesplan standen als „5.5 kWh“ statt „5,5 kWh“ – etwa in der Legende unter der Kurve und in der Aufstellung Sonne/Speicher/Netz"]},
   {v:89,t:["✈️ <b>Der Urlaubs-Modus steht jetzt ganz oben im Einrichten-Blatt</b> – sichtbar, sobald du es öffnest. Vorher lag er <b>2110 Pixel tief</b> in der Gruppe „Haushalt“, hinter Speicher, E-Auto und Hintergrund-Verbrauch, und die Gruppe erwähnte ihn nicht einmal in ihrer Beschriftung. Jetzt sind es <b>92 Pixel</b>, ohne Aufklappen","🧭 Warum der Umzug? Alles in „Haushalt“ richtet man <b>einmal</b> ein. Der Urlaubs-Modus ist der einzige Eintrag, den man <b>immer wieder</b> anfasst – der gehört nicht ans Ende einer Einrichtungsliste","🔤 <b>Nebenbei repariert</b>: Bei vier Schaltern klebte der erklärende Zusatz ohne Abstand am Titel und war genauso fett – „Urlaubs-Modusniemand zu Hause“. Jetzt steht er wie vorgesehen klein und grau in einer eigenen Zeile"]},
@@ -3532,26 +3533,7 @@ function renderDashboard(arr){
       // v91: Wenn heute nichts Gutes mehr uebrig ist, morgen aber schon –
       // zwei Zeilen, zwei Preise, ein Knopf. Kein Vergleichskonstrukt.
       const mv=(it.name===mvBestName)?mvBest:null;
-      let mvHtml="";
-      if(mv){
-        const anteil=mv.sonMorgen/Math.max(0.001,it.kwh||1);
-        const wieViel = anteil>=0.95?"läuft ganz aus eigener Sonne"
-                      : anteil>=0.6 ?"läuft fast vollständig aus eigener Sonne"
-                      : "läuft zum größten Teil aus eigener Sonne";
-        mvHtml='<div class="mgn" data-mgn="'+encodeURIComponent(it.name)+'">'+
-          '<div class="mgn-hk">Wann soll das laufen?</div>'+
-          '<div class="mgn-z"><span class="mgn-w">heute '+uhrVoll(it.start)+' Uhr<span>'+
-            (mv.sonHeute<0.05?"kommt ganz aus dem Netz":"kaum Sonne mehr übrig")+'</span></span>'+
-            (mv.preiseDa?'<span class="mgn-p rot">'+Math.round(mv.ctHeute)+' ct</span>':'')+'</div>'+
-          '<div class="mgn-z gut"><span class="mgn-w">☀️ morgen '+uhrVoll(mv.start)+' Uhr<span>'+wieViel+'</span></span>'+
-            (mv.preiseDa?'<span class="mgn-p gruen">'+Math.round(mv.ctMorgen)+' ct</span>':'')+'</div>'+
-          '<button class="mgn-btn" data-mgn-ja="'+encodeURIComponent(it.name)+'">Auf morgen legen'+
-            (mv.preiseDa?' – spart '+Math.round(mv.spar)+' ct':'')+'</button>'+
-          '<button class="mgn-nein" data-mgn-nein="'+encodeURIComponent(it.name)+'">Heute lassen</button>'+
-          '<div class="mgn-fuss">Morgen ist sonnig <b>vorhergesagt</b> – sicher ist das nicht.'+
-            (mv.preiseDa?'':' Der Betrag steht hier, sobald die Börsenpreise für morgen da sind (ab ca. 14 Uhr).')+'</div>'+
-        '</div>';
-      }
+      const mvHtml=mv?morgenKarteHtml(mv,it.start,it.kwh,it.name):"";
       const block='<div class="dash-swipe">'+
         (it.done?"":'<div class="dash-del-bg"><span>🗑</span></div><div class="dash-pin-bg"><span>📌</span></div>')+
         zeileHtml+'</div>'+mvHtml;
@@ -3592,13 +3574,7 @@ function renderDashboard(arr){
   // Jede Zeile (auch bereits gelaufene) führt in den Tagesplan; Wischen nur bei planbaren Zeilen.
   dash.querySelectorAll(".dash-row").forEach(r=>{ r.onclick=oeffnePlan; });
   dash.querySelectorAll(".dash-row[data-plan]").forEach(r=>{ swipeDash(r,tagKey); });
-  // v91: „auf morgen legen" / „heute lassen"
-  dash.querySelectorAll("[data-mgn-ja]").forEach(btn=>btn.onclick=e=>{
-    e.stopPropagation(); haptik(12); aufMorgenLegen(decodeURIComponent(btn.dataset.mgnJa));
-  });
-  dash.querySelectorAll("[data-mgn-nein]").forEach(btn=>btn.onclick=e=>{
-    e.stopPropagation(); morgenWeg.add(decodeURIComponent(btn.dataset.mgnNein)); aktualisieren();
-  });
+
   const gb=$("dash-geraete-btn"); if(gb)gb.onclick=oeffneGeraete;
   const ab=$("dash-add"); if(ab)ab.onclick=oeffneGeraete;
   // Hinweis: Die Verdrahtung oben erfasst über querySelectorAll auch die Zeilen
@@ -3701,7 +3677,12 @@ function renderPlaner(arr){
     '<div class="budget-tx">☀️ <b>'+dz(bedarfKwh.toFixed(1))+' kWh</b> Bedarf · '+restWort+'~<b>'+dz(freieSonneKwh.toFixed(1))+' kWh</b> freie Sonne · '+
       (ueber>0.05?'<span class="budget-warn">'+dz(ueber.toFixed(1))+' kWh über → Netz oder anderer Tag</span>'
                  :'<span class="budget-ok">'+dz(Math.max(0,freieSonneKwh-bedarfKwh).toFixed(1))+' kWh frei</span>')+
-    '</div></div>';
+    '</div></div>'+
+    /* Die Budget-Zeile darueber nennt „→ Netz oder anderer Tag" – hier steht jetzt
+       auch das Angebot dazu, statt nur der Hinweis. */
+    (function(){ if(tag!=="heute"||demoAktiv)return "";
+      const a=bestesMorgenAngebot();
+      return a?morgenKarteHtml(a.mv,a.blk.start,a.blk.kwh,a.blk.name):""; })();
   // ---- Hintergrund-Spur: automatische WP-Läufe (Warmwasser) + Heiz-Band – nur Info, nicht antippbar ----
   let hgLaneHtml="", hgLeg="";
   { const runs=wwLaeufe(arr.map(s=>s.pv));
@@ -4066,6 +4047,40 @@ function preiseDaFuer(tagStr){
   if(cfg.tarif==="fest")return true;              // fester Tarif kennt jede Stunde
   for(let h=0;h<24;h++) if(daten.preise[tagStr+"-"+h]!=null) return true;
   return false;
+}
+/* Die Karte „heute oder morgen?" – EIN Text, zwei Orte: Startseite und Tagesplan.
+   Frueher stand sie nur auf der Startseite; im Tagesplan warb die Budget-Zeile aber
+   schon mit „→ Netz oder anderer Tag", ohne etwas anzubieten. Genau dort hat der
+   Betreiber sie gesucht und nicht gefunden. */
+function morgenKarteHtml(mv,startHeute,kwh,name){
+  const anteil=mv.sonMorgen/Math.max(0.001,kwh||1);
+  const wieViel = anteil>=0.95?"läuft ganz aus eigener Sonne"
+                : anteil>=0.6 ?"läuft fast vollständig aus eigener Sonne"
+                : "läuft zum größten Teil aus eigener Sonne";
+  return '<div class="mgn" data-mgn="'+encodeURIComponent(name)+'">'+
+    '<div class="mgn-hk">Wann soll das laufen?</div>'+
+    '<div class="mgn-z"><span class="mgn-w">heute '+uhrVoll(startHeute)+' Uhr<span>'+
+      (mv.sonHeute<0.05?"kommt ganz aus dem Netz":"kaum Sonne mehr übrig")+'</span></span>'+
+      (mv.preiseDa?'<span class="mgn-p rot">'+Math.round(mv.ctHeute)+' ct</span>':'')+'</div>'+
+    '<div class="mgn-z gut"><span class="mgn-w">☀️ morgen '+uhrVoll(mv.start)+' Uhr<span>'+wieViel+'</span></span>'+
+      (mv.preiseDa?'<span class="mgn-p gruen">'+Math.round(mv.ctMorgen)+' ct</span>':'')+'</div>'+
+    '<button class="mgn-btn" data-mgn-ja="'+encodeURIComponent(name)+'">Auf morgen legen'+
+      (mv.preiseDa?' – spart '+Math.round(mv.spar)+' ct':'')+'</button>'+
+    '<button class="mgn-nein" data-mgn-nein="'+encodeURIComponent(name)+'">Heute lassen</button>'+
+    '<div class="mgn-fuss">Morgen ist sonnig <b>vorhergesagt</b> – sicher ist das nicht.'+
+      (mv.preiseDa?'':' Der Betrag steht hier, sobald die Börsenpreise für morgen da sind (ab ca. 14 Uhr).')+'</div>'+
+  '</div>';
+}
+/* Der lohnendste Verschiebe-Kandidat unter den heute geplanten Bloecken – oder null. */
+function bestesMorgenAngebot(){
+  let best=null;
+  (platzierungen||[]).forEach(blk=>{
+    if(!blk||blk.routine||blk._teil)return;
+    if(morgenWeg.has(blk.name))return;
+    let m=null; try{ m=morgenBesser(blk); }catch(_){ m=null; }
+    if(m && (!best || m.spar>best.mv.spar)) best={mv:m,blk};
+  });
+  return best;
 }
 /* Lohnt es sich, diesen heute geplanten Block auf morgen zu legen?
    Gibt null zurueck, wenn nicht – dann zeigt die App nichts. */
@@ -5584,6 +5599,19 @@ function starteAktualisierung(force){
 }
 // Manuelles ↻ erzwingt einen frischen Abruf (fällt bei Fehlern auf den gespeicherten Stand zurück).
 $("btn-aktualisieren").onclick=()=>starteAktualisierung(true);
+
+/* v91: „auf morgen legen" / „heute lassen" – EIN Zuhoerer am Dokument statt
+   Handler je Element. Die Karte erscheint an zwei Orten (Startseite und
+   Tagesplan), und der Tagesplan wird an anderer Stelle gezeichnet als das
+   Dashboard – mit Delegation greift beides ohne doppelte Verdrahtung. */
+document.addEventListener("click",e=>{
+  const ja=e.target.closest&&e.target.closest("[data-mgn-ja]");
+  if(ja){ e.preventDefault(); e.stopPropagation(); haptik(12);
+    aufMorgenLegen(decodeURIComponent(ja.dataset.mgnJa)); return; }
+  const nein=e.target.closest&&e.target.closest("[data-mgn-nein]");
+  if(nein){ e.preventDefault(); e.stopPropagation();
+    morgenWeg.add(decodeURIComponent(nein.dataset.mgnNein)); aktualisieren(); }
+},true);
 // Installierte Web-App bleibt im Hintergrund "eingefroren" – beim Zurueckkehren automatisch
 // aktualisieren (nicht erzwungen: nutzt den gespeicherten Stand, wenn er frisch genug ist).
 document.addEventListener("visibilitychange",()=>{
