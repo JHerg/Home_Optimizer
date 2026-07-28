@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v88)
+Zuletzt aktualisiert: Juli 2026 (Stand v89)
 
 ---
 
@@ -319,6 +319,25 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v89** – **Urlaubs-Modus war vergraben.** Vom Betreiber gemeldet, nachgemessen:
+  Startseite → ⚙️ → Blatt „Einrichten" → 🏡 Haushalt aufklappen → **2110 px
+  scrollen** (Bildschirm = 852 px). Verschärfend: Die Gruppen starten bei jedem
+  Öffnen wieder zugeklappt, und die Gruppen-Unterschrift („Speicher · E-Auto ·
+  Hintergrund-Verbrauch") erwähnte den Urlaub nicht einmal.
+  **Die eigentliche Fehleinordnung war aber nicht die Tiefe:** Alles in
+  „Haushalt" richtet man *einmal* ein – der Urlaubs-Modus ist der einzige
+  Eintrag, den man *immer wieder* anfasst, und stand ausgerechnet hinter dem
+  technischsten Teil. Jetzt eigene Karte ganz oben: **2110 → 92 px**, ohne
+  Aufklappen. Der ✈️-Hinweis im Haushalt-Status ist entfallen, weil er dort
+  nichts mehr zu suchen hat.
+- **v89 (nebenbei)** – **Vier Schalterzeilen hatten kaputte Beschriftung.**
+  `.fk-opt` war nur als `.fk-titel .fk-opt` gestylt; in einer `.switch-zeile`
+  erbte der Zusatz das fette Dunkelblau des Titels und klebte ohne Abstand
+  daran: „Urlaubs-Modusniemand zu Hause", „Heizung (Wärmepumpe)passt sich dem
+  Wetter an", dazu Tagesprofil und Warmwasser. Eine CSS-Regel für alle vier.
+  Tests: `test_urlaub_platz.js` 15/15, `test_urlaub.js` auf den neuen Ort
+  umgestellt (Absicht der Prüfung unverändert).
 
 - **v85** – **Routinen mit festem Tagesabstand.** Vom Betreiber angestoßen: Die
   Rhythmus-*Erkennung* kann längst `{typ:"intervall", intervall:4}` – die festen

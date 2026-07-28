@@ -27,15 +27,20 @@ const R=[];function chk(n,c,e){R.push({n,ok:!!c,e:e||''});}
   await p.$eval('#btn-fertig',e=>e.click());await p.waitForTimeout(1100);
   chk('Start: kein Urlaubs-Banner',await p.$eval('#ur-banner',e=>e.hidden));
 
-  // Urlaubs-Modus in Einrichten → Haushalt aktivieren
+  // Urlaubs-Modus aktivieren – seit v89 direkt oben im Einrichten-Blatt,
+  // ohne vorher eine Gruppe aufzuklappen.
   await p.$eval('#btn-einrichten',e=>e.click());await p.waitForTimeout(400);
-  await p.$eval('#grp-haushalt summary',e=>e.click());await p.waitForTimeout(250);
   await p.$eval('#rg-ur-an',e=>e.click());await p.waitForTimeout(500);
   chk('Details erscheinen',!(await p.$eval('#ur-details',e=>e.hidden)));
   const btns=await p.$$eval('#w-urlaub button',e=>e.map(x=>x.textContent));
   chk('Dauer-Chips (WE/1Wo/2Wo)',btns.length===3&&/Woche/.test(btns[1]),JSON.stringify(btns));
   chk('Datumsfeld vorhanden',!!(await p.$('#f-ur-bis')));
-  chk('Status-Kopf zeigt ✈️',/✈️/.test(await p.$eval('#eg-st-haushalt',e=>e.textContent)),await p.$eval('#eg-st-haushalt',e=>e.textContent));
+  // Seit v89 steht der Urlaub nicht mehr in der Gruppe „Haushalt", sondern als eigene
+  // Karte ganz oben. Der aktive Zustand ist dort direkt am Schalter ablesbar –
+  // ohne dass man irgendetwas aufklappen muss.
+  chk('Aktiver Urlaub ist ohne Aufklappen sichtbar',
+      await p.evaluate(()=>{const k=document.getElementById('ur-karte');
+        return !!k && !k.closest('details.egrp') && document.getElementById('rg-ur-an').checked;}));
   // 2 Wochen wählen
   await p.$$eval('#w-urlaub button',e=>e[2].click());await p.waitForTimeout(400);
   const cfg1=await p.evaluate(()=>JSON.parse(localStorage.getItem('energie-optimierer-v1')).cfg);

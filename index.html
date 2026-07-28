@@ -465,6 +465,14 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .v-info{font-size:12px;color:var(--grau);background:var(--papier);border-radius:11px;padding:10px 12px;margin-bottom:11px;line-height:1.45}
 /* Umschalter (Switch) */
 .switch-zeile{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;font-weight:600;color:var(--nacht);cursor:pointer}
+.switch-zeile>span:first-child{flex:1;min-width:0}
+/* .fk-opt war NUR innerhalb von .fk-titel gestylt – in einer Schalterzeile erbte der
+   Zusatz deshalb das fette Dunkelblau des Titels und klebte ohne Abstand daran:
+   „Urlaubs-Modusniemand zu Hause". Betraf alle vier Schalter mit Zusatztext. */
+.switch-zeile .fk-opt{display:block;font-weight:600;color:var(--grau);font-size:12px;line-height:1.35;margin-top:3px}
+/* Urlaubs-Modus als eigene Karte ganz oben im Einrichten-Blatt */
+.ur-karte{border:1px solid var(--linie);border-radius:16px;background:rgba(120,130,145,.04);padding:13px;margin-bottom:14px}
+.ur-karte .ur-tx{font-size:14.5px}
 .switch{position:relative;flex-shrink:0;width:46px;height:28px}
 .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
 .switch-ui{position:absolute;inset:0;background:rgba(20,31,44,.18);border-radius:99px;transition:background var(--schnell)}
@@ -1229,6 +1237,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
   <button class="sheet-schliessen" data-zu>✕</button>
   <h3>Einrichten</h3>
   <div class="sub">Ein paar kurze Angaben – mehr braucht die App nicht.</div>
+  <!-- Urlaubs-Modus steht bewusst GANZ OBEN und ausserhalb der Klappgruppen: Er ist die
+       einzige Einstellung hier, die man immer wieder anfasst (jede Reise) - alles andere
+       richtet man einmal ein. Vorher lag er 2110 px tief in "Haushalt", hinter dem
+       Hintergrund-Verbrauch, und die Gruppen-Unterschrift erwaehnte ihn nicht einmal. -->
+  <div class="ur-karte" id="ur-karte">
+    <label class="switch-zeile">
+      <span class="ur-tx">✈️ Urlaubs-Modus<span class="fk-opt">Niemand zu Hause? Vorschläge &amp; Routinen pausieren.</span></span>
+      <span class="switch"><input type="checkbox" id="rg-ur-an"><span class="switch-ui"></span></span>
+    </label>
+    <div id="ur-details" hidden>
+      <div class="hilfe" style="margin:10px 0 6px">Bis wann seid ihr weg? (letzter Urlaubstag)</div>
+      <div class="wahl" id="w-urlaub"></div>
+      <div class="zahl-feld" style="margin-top:8px"><input type="date" id="f-ur-bis" aria-label="Letzter Urlaubstag"><span class="einheit">eigenes Datum</span></div>
+      <div class="hilfe" style="margin-top:8px">Solange ihr weg seid: 🔕 keine Vorschläge &amp; Fällig-Hinweise · 🔁 Routinen pausieren (zählen nicht als verpasst) · 🔥 deine Bilanz-Serie bleibt eingefroren · ⚙️ der Hintergrund (Kühlschrank, WP) läuft normal weiter. Endet am Datum von selbst – die App begrüßt euch normal zurück.</div>
+    </div>
+  </div>
   <details class="egrp" id="grp-adresse">
     <summary><span class="fk-ic blau">📍</span><span class="eg-tx"><b>Adresse</b><small>bestimmt deine Sonne</small></span><span class="eg-st" id="eg-st-adresse"></span><span class="eg-pfeil">›</span></summary>
     <div class="eg-body">
@@ -1388,18 +1412,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
       <div class="regler-kopf"><span>Ø-Leistung bei 0 °C draußen</span><b id="rg-hzp0-val">1,2 kW</b></div>
       <input type="range" id="rg-hzp0" min="0.4" max="3" step="0.1" value="1.2" aria-label="Heizleistung bei 0 Grad in kW">
       <div class="hilfe" id="hz-info" style="margin-top:8px"></div>
-    </div>
-  </div>
-  <div class="abschnitt">
-    <label class="switch-zeile">
-      <span>✈️ Urlaubs-Modus<span class="fk-opt">niemand zu Hause</span></span>
-      <span class="switch"><input type="checkbox" id="rg-ur-an"><span class="switch-ui"></span></span>
-    </label>
-    <div id="ur-details" hidden>
-      <div class="hilfe" style="margin:8px 0 6px">Bis wann seid ihr weg? (letzter Urlaubstag)</div>
-      <div class="wahl" id="w-urlaub"></div>
-      <div class="zahl-feld" style="margin-top:8px"><input type="date" id="f-ur-bis" aria-label="Letzter Urlaubstag"><span class="einheit">eigenes Datum</span></div>
-      <div class="hilfe" style="margin-top:8px">Solange ihr weg seid: 🔕 keine Vorschläge &amp; Fällig-Hinweise · 🔁 Routinen pausieren (zählen nicht als verpasst) · 🔥 deine Bilanz-Serie bleibt eingefroren · ⚙️ der Hintergrund (Kühlschrank, WP) läuft normal weiter. Endet am Datum von selbst – die App begrüßt euch normal zurück.</div>
     </div>
   </div>
     </div>
@@ -1841,8 +1853,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=88;
+const APP_VERSION=89;
 const NEUES=[
+  {v:89,t:["✈️ <b>Der Urlaubs-Modus steht jetzt ganz oben im Einrichten-Blatt</b> – sichtbar, sobald du es öffnest. Vorher lag er <b>2110 Pixel tief</b> in der Gruppe „Haushalt“, hinter Speicher, E-Auto und Hintergrund-Verbrauch, und die Gruppe erwähnte ihn nicht einmal in ihrer Beschriftung. Jetzt sind es <b>92 Pixel</b>, ohne Aufklappen","🧭 Warum der Umzug? Alles in „Haushalt“ richtet man <b>einmal</b> ein. Der Urlaubs-Modus ist der einzige Eintrag, den man <b>immer wieder</b> anfasst – der gehört nicht ans Ende einer Einrichtungsliste","🔤 <b>Nebenbei repariert</b>: Bei vier Schaltern klebte der erklärende Zusatz ohne Abstand am Titel und war genauso fett – „Urlaubs-Modusniemand zu Hause“. Jetzt steht er wie vorgesehen klein und grau in einer eigenen Zeile"]},
   {v:88,t:["⏰ <b>Die günstige Netzstunde zählt jetzt mit</b> – der zweite Hebel der App. Bisher wurde nur die eigene Sonne bewertet; ein Lauf, den die App aus einer teuren in eine günstige Stunde geschoben hat, stand mit <b>null</b> in der Bilanz. Gerade im Winter, wenn kaum Sonne da ist, sah es dadurch so aus, als täte die App nichts","📊 <b>Die Bilanz zeigt beide Hebel getrennt</b>: „☀️ eigene Sonne statt Netz“ und „⏰ günstigere Netzstunde“. Verglichen wird mit einem durchschnittlichen Zeitpunkt im Zeitfenster des Geräts – lief es zur teuren Stunde, steht dort auch ein <b>Minus</b>. Bei festem Tarif entfällt die Zeile, dort kostet jede Stunde gleich viel","🔧 <b>Behoben: dieselbe Sonne wurde doppelt vergeben.</b> Liefen zwei Geräte in derselben Stunde, bekam jedes den vollen Überschuss gutgeschrieben. Gemessen: <b>2,86 kWh</b> Überschuss, aber <b>4,00 kWh</b> verbucht. Jetzt teilen sie sich, was da ist. Bereits gespeicherte Läufe behalten ihre alten Werte – rückwirkend lässt sich das nicht sauber nachrechnen"]},
   {v:87,t:["☀️ <b>Die Bilanz führt jetzt mit der Sonne statt mit dem Euro</b>: Ganz oben stehen die <b>kWh aus eigener Sonne</b> – die Zahl, die am wenigsten von Annahmen abhängt. Sie hängt weder am Einspeisetarif noch an deinem Aufschlag noch am Preismodell, sondern sagt schlicht, wie viel Strom vom Netz aufs eigene Dach gewandert ist","💰 <b>Der Eurobetrag bleibt</b> – er rückt nur eine Reihe tiefer zu CO₂ und Serie. Verständlich soll er sein, aber er ist nicht mehr die Hauptaussage. <b>Gerechnet wird unverändert</b>, keine Zahl hat sich geändert"]},
   {v:86,t:["≈ <b>Die Bilanz sagt jetzt, was sie ist: eine Schätzung.</b> Vor der großen Zahl steht ein „≈“, darunter „geschätzt gespart“. <b>Gerechnet wird genau wie vorher</b> – keine einzige Zahl ändert sich, es steht nur nicht mehr da, als wäre sie gemessen","🔍 <b>Der Erklärsatz nennt jetzt die Grenzen</b>: Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler · Verbraucher, die du nicht eingetragen hast, kennt die App nicht · die <b>Einspeisevergütung ist nicht abgezogen</b>. Auch im CSV-Export sind die geschätzten Spalten so benannt","🧭 Warum? Diese App ist ein <b>Terminvorschlag, kein Messgerät</b>. Ihr Nutzen steckt darin, dir die richtige <b>Stunde</b> zu nennen – und der bleibt, auch wenn der Eurobetrag nur die Größenordnung trifft"]},
@@ -4867,7 +4880,8 @@ function renderEgrpStatus(){
   const tf=$("eg-st-tarif");
   if(tf)tf.textContent=cfg.tarif==="fest"?("fest · "+dz(Math.round((cfg.festpreis||0)*100))+" ct"):("dynamisch · +"+dz(cfg.aufschlag)+" ct");
   const h=$("eg-st-haushalt");
-  if(h)h.textContent=(urlaubAktiv()?"✈️ bis "+cfg.urlaub.bis.slice(8,10)+"."+cfg.urlaub.bis.slice(5,7)+". · ":"")+"🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
+  // Urlaub steht seit v89 nicht mehr in dieser Gruppe - der Hinweis gehoert nicht mehr hierher.
+  if(h)h.textContent="🔋 "+anAus(cfg.akku_an)+" · 🚗 "+anAus(cfg.ev_an)+" · 🚿 "+anAus(cfg.ww_an)+" · 🔥 "+anAus(cfg.hz_an);
   const g=$("eg-st-genau");
   if(g)g.textContent=(cfg.pvQuelle==="om"?"Open-Meteo":"Forecast.Solar")+" · "+((cfg.kalib||[]).length?"kalibriert ("+cfg.kalib.length+(cfg.kalib.length===1?" Tag":" Tage")+")":"unkalibriert");
   const d=$("eg-st-daten");
