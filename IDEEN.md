@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v92)
+Zuletzt aktualisiert: Juli 2026 (Stand v93)
 
 ---
 
@@ -319,6 +319,20 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v93** – **Der Urlaubs-Modus verschluckte den „auf morgen"-Rat.** Zweite
+  Meldung des Betreibers aus dem Betrieb (Screenshot, 20:15 Uhr): Kasten fehlte
+  weiterhin, auch im Tagesplan. Nachgestellt: Ursache war meine Zeile
+  `if(urlaubAn(mk)) return null;`.
+  Die widerspricht der App selbst – `geraeteFuerTag()` lässt seit v70
+  ausdrücklich zu, dass **manuell eingeplante Geräte im Urlaub weiterlaufen**;
+  nur Routinen und gelernte Vorschläge pausieren. Und Routinen sind vom
+  Verschiebe-Rat ohnehin ausgenommen. Wer im Urlaubs-Modus den Trockner
+  einplant, ist offensichtlich zu Hause. Sperre entfernt.
+  **Merkposten:** Beide Meldungen dieser Runde (v92 falscher Ort, v93 falsche
+  Sperre) kamen aus dem echten Gebrauch, nicht aus meinen Prüfungen. Bei einer
+  neuen Funktion lohnt es, die **Sichtbarkeitsbedingungen** einzeln zu testen –
+  nicht nur den Normalfall. Test: `test_morgen.js` 24/24.
 
 - **v92** – **Der Vorschlag stand am falschen Ort.** Vom Betreiber im echten
   Betrieb gemeldet (Screenshot, 19:44 Uhr): Er sah den Kasten nicht. Grund: Er

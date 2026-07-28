@@ -40,6 +40,7 @@ async function seite(b,o){
     akku_an:!!o.akku,akku_kwh:10,akku_stand:o.akkuStand!=null?o.akkuStand:0,
     onboardingGesehen:true,hilfeGesehen:true,newsGesehen:99,setupFertig:true,rueckblickWeg:today,
     wischHintWeg:true,gl_profil_an:true,tagAnzahl:{[today]:{}},plaene:{},erledigt:{},verlauf:{}};
+  if(o.urlaub)cfg.urlaub={aktiv:true,von:today,bis:tagPlus(13)};
   const geraete=[]; const routinen=[];
   if(o.routine){ routinen.push(Object.assign({},WM,{wochentag:new Date(today+'T12:00:00Z').getUTCDay(),rhythmus:1,aktiv:true})); }
   else { geraete.push(WM); cfg.tagAnzahl[today]["Waschmaschine"]=1; }
@@ -163,7 +164,19 @@ const kasten=p=>p.evaluate(()=>{const e=document.querySelector('#dash-plan-card 
   chk('Knopf wirkt auch im Tagesplan', (nachPlan.tage[tom]||{})["Waschmaschine"]===1, JSON.stringify(nachPlan.tage));
   await p.close();
 
-  // ===== 11) Routinen bleiben aussen vor =====
+  // ===== 11) Urlaubs-Modus darf manuelle Geraete NICHT blockieren =====
+  // Vom Betreiber im Betrieb gemeldet: Vorschlag fehlte, weil Urlaub aktiv war.
+  // Die App laesst manuelle Geraete im Urlaub ausdruecklich zu (geraeteFuerTag) –
+  // dann muss auch der Rat dazu kommen. Routinen sind ohnehin ausgenommen.
+  p=await seite(b,{urlaub:true});
+  const imUrlaub=await kasten(p);
+  chk('Im Urlaubs-Modus kommt der Rat für manuelle Geräte trotzdem',
+      imUrlaub.da, JSON.stringify(imUrlaub).slice(0,140));
+  chk('Die Urlaubs-Zeile ist dabei sichtbar (Modus wirklich an)',
+      await p.evaluate(()=>{const e=document.querySelector('.ur-banner');return !!e&&!e.hidden;}));
+  await p.close();
+
+  // ===== 12) Routinen bleiben aussen vor =====
   p=await seite(b,{routine:true});
   chk('Routinen bekommen keinen Vorschlag', !(await kasten(p)).da, JSON.stringify(await kasten(p)).slice(0,140));
   await p.close();

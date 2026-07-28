@@ -1875,8 +1875,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=92;
+const APP_VERSION=93;
 const NEUES=[
+  {v:93,t:["✈️ <b>Der Urlaubs-Modus hat den „auf morgen“-Rat zu Unrecht verschluckt.</b> Ist er an, pausieren Vorschläge und Routinen – <b>manuell eingeplante Geräte laufen aber weiter</b>, so war es schon immer gedacht. Nur mein neuer Hinweis schwieg trotzdem. Wer im Urlaubs-Modus den Trockner einplant, ist offensichtlich zu Hause und bekommt den Rat jetzt genauso"]},
   {v:92,t:["🧭 <b>Der Vorschlag „auf morgen legen“ steht jetzt auch im Tagesplan</b> – dort, wo die Budget-Zeile ohnehin schon sagt „… über → Netz oder <b>anderer Tag</b>“. Bisher gab es dort nur diesen Hinweis, das Angebot dazu aber nur auf der Startseite. Wer im Tagesplan nachsah, fand nichts","🔁 Beide Orte zeigen dieselbe Karte und denselben Knopf – getippt wirkt er überall gleich"]},
   {v:91,t:["🌙 <b>„Heute bringt das nichts mehr – leg es auf morgen.“</b> Bisher suchte die App den besten Zeitpunkt immer nur <b>innerhalb des heutigen Tages</b>. Stehst du abends vor der Maschine, ist da nichts Gutes mehr – sie nannte trotzdem eine Uhrzeit von heute und sparte damit null. Jetzt darf sie <b>morgen</b> vorschlagen","⚖️ Sie zeigt dazu schlicht <b>zwei Zeilen mit zwei Preisen</b> – heute Abend gegen morgen Mittag – und einen Knopf. Getippt, wandert das Gerät auf morgen und die App springt gleich hinüber","🔋 <b>Gerechnet wird mit der Speicher-Simulation</b>, nicht mit der einfachen Bilanz-Formel. Damit stimmt es automatisch für <b>festen wie dynamischen Tarif</b> und für Haushalte <b>mit wie ohne Speicher</b>: Ist der Speicher abends geladen, ist der Abend längst gelöst – dann sagt die App gar nichts. Ebenso, wenn morgen trüb wird, wenn heute selbst ein guter Platz frei ist oder wenn es um weniger als 10 Cent geht","1️⃣ Und es steht immer nur <b>ein</b> Vorschlag da – der mit dem größten Gewinn. Sind mehrere Geräte betroffen, kommt der nächste, sobald du den ersten erledigt hast. Eine Entscheidung nach der anderen statt einer Wand aus gleich aussehenden Kästen"]},
   {v:90,t:["🔎 <b>Alles einmal nachgerechnet und nachgelesen.</b> Die Formeln der Bilanz sind jetzt unabhängig gegengeprüft – mit einem Preisverlauf, dessen Erwartungswerte von Hand feststehen. Sonnen-Anteil, Preisvorteil, CO₂ und Deckungsquote stimmen auf die Nachkommastelle","✍️ <b>Ein Widerspruch im Bilanz-Text ist raus</b>: Dort stand oben „Eine Schätzung, keine Messung“ und wenige Zeilen später „ab jetzt exakt“. Beides zugleich konnte nicht stimmen – jetzt heißt es, dass neuere Läufe mit den echten Stundendaten rechnen","🇩🇪 <b>Kommas statt Punkte</b>: Elf Zahlen im Tagesplan standen als „5.5 kWh“ statt „5,5 kWh“ – etwa in der Legende unter der Kurve und in der Aufstellung Sonne/Speicher/Netz"]},
@@ -4088,7 +4089,11 @@ function morgenBesser(block){
   if(!block||block.routine||block._teil)return null;        // Routinen haben ihren Rhythmus
   if(tag!=="heute"||demoAktiv)return null;
   const mk=morgenStr();
-  if(urlaubAn(mk))return null;
+  /* KEINE Urlaubs-Sperre. Die App laesst manuell eingeplante Geraete im Urlaub
+     ausdruecklich zu (siehe geraeteFuerTag: „manuell gewaehlte Geraete bleiben
+     moeglich") – nur Routinen und gelernte Vorschlaege pausieren. Genau die sind
+     hier ohnehin ausgenommen. Wer im Urlaubs-Modus den Trockner einplant, ist
+     offensichtlich da und soll denselben Rat bekommen wie sonst. */
   /* Keine eigene Regen-Abfrage: Die Stunden-Prognose fuer morgen (Globalstrahlung)
      kommt aus demselben Wettermodell und hat schlechtes Wetter bereits eingepreist –
      ist Regen vorhergesagt, ist die Einstrahlung niedrig und der Vorteil faellt
