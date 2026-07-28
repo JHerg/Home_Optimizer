@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v89)
+Zuletzt aktualisiert: Juli 2026 (Stand v90)
 
 ---
 
@@ -319,6 +319,36 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v90** – **Vollprüfung auf Wunsch des Betreibers: „Sind die Beschreibungen und
+  die Berechnungen korrekt?"**
+  **Rechnung unabhängig nachgerechnet** (`tests/test_rechnung.js`, 17 Checks):
+  Der Preis-Stub hängt dort an *echten Berliner Stunden*, damit der Test die
+  Erwartung selbst ausrechnet statt sie der App abzuschauen. Ergebnis: Der
+  Preisvorteil stimmt auf die Nachkommastelle (erwartet 20,6 ct → App 20,6 ct;
+  teure Stunde erwartet −11,4 → App −11,4). Ebenso geprüft: `son ≤ Bedarf`,
+  `spar = son × Netzpreis der Stunde`, Preisvorteil nur auf den Netzrest,
+  `CO₂ = son × 0,38`, Deckungsquote, Kachel = Summe beider Hebel, fester Tarif
+  ohne Preisvorteil. Ebenfalls verifiziert: Woche ab Montag (ISO-korrekt),
+  Monat ab dem 1., Jahr ab dem 1. Januar.
+  **Zwei Textfehler gefunden und behoben:**
+  1. Der Bilanz-Hinweis behauptete „– ab jetzt exakt", direkt unter der Zeile
+     „Eine Schätzung, keine Messung." Ein Überbleibsel von vor v86; beides
+     konnte nicht zugleich stimmen.
+  2. Elf sichtbare Zahlen im Tagesplan standen mit Dezimal**punkt** („5.5 kWh")
+     statt Komma – Chart-Legende, Aufstellung Sonne/Speicher/Netz, Netz-Warnung
+     und Speicherstand. Überall fehlte `dz()`. Ein Test hält das jetzt fest.
+  **Geprüft und für richtig befunden:** alle News-Einträge v83–v89 gegen den
+  tatsächlichen Code, die Zweck- und Hilfetexte, die generierten Warmwasser-
+  und Heizungs-Hinweise, `wk-scope`, die Schätz-Fußnote für Alt-Läufe.
+
+### Nebenbefund, nicht geändert
+
+Die Kachel **🔥 Serie** rechnet über *alle* Läufe (`serieTage(alle)`), während
+Euro und CO₂ dem gewählten Zeitraum folgen. Beim Umschalten Woche→Monat→Jahr
+ändern sich zwei Kacheln, die dritte nicht. Sachlich richtig – eine Serie ist
+nicht zeitraumgebunden –, aber die Beschriftung sagt es nicht. Erst ändern,
+wenn es jemandem auffällt.
 
 - **v89** – **Urlaubs-Modus war vergraben.** Vom Betreiber gemeldet, nachgemessen:
   Startseite → ⚙️ → Blatt „Einrichten" → 🏡 Haushalt aufklappen → **2110 px

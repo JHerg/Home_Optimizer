@@ -1853,8 +1853,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=89;
+const APP_VERSION=90;
 const NEUES=[
+  {v:90,t:["🔎 <b>Alles einmal nachgerechnet und nachgelesen.</b> Die Formeln der Bilanz sind jetzt unabhängig gegengeprüft – mit einem Preisverlauf, dessen Erwartungswerte von Hand feststehen. Sonnen-Anteil, Preisvorteil, CO₂ und Deckungsquote stimmen auf die Nachkommastelle","✍️ <b>Ein Widerspruch im Bilanz-Text ist raus</b>: Dort stand oben „Eine Schätzung, keine Messung“ und wenige Zeilen später „ab jetzt exakt“. Beides zugleich konnte nicht stimmen – jetzt heißt es, dass neuere Läufe mit den echten Stundendaten rechnen","🇩🇪 <b>Kommas statt Punkte</b>: Elf Zahlen im Tagesplan standen als „5.5 kWh“ statt „5,5 kWh“ – etwa in der Legende unter der Kurve und in der Aufstellung Sonne/Speicher/Netz"]},
   {v:89,t:["✈️ <b>Der Urlaubs-Modus steht jetzt ganz oben im Einrichten-Blatt</b> – sichtbar, sobald du es öffnest. Vorher lag er <b>2110 Pixel tief</b> in der Gruppe „Haushalt“, hinter Speicher, E-Auto und Hintergrund-Verbrauch, und die Gruppe erwähnte ihn nicht einmal in ihrer Beschriftung. Jetzt sind es <b>92 Pixel</b>, ohne Aufklappen","🧭 Warum der Umzug? Alles in „Haushalt“ richtet man <b>einmal</b> ein. Der Urlaubs-Modus ist der einzige Eintrag, den man <b>immer wieder</b> anfasst – der gehört nicht ans Ende einer Einrichtungsliste","🔤 <b>Nebenbei repariert</b>: Bei vier Schaltern klebte der erklärende Zusatz ohne Abstand am Titel und war genauso fett – „Urlaubs-Modusniemand zu Hause“. Jetzt steht er wie vorgesehen klein und grau in einer eigenen Zeile"]},
   {v:88,t:["⏰ <b>Die günstige Netzstunde zählt jetzt mit</b> – der zweite Hebel der App. Bisher wurde nur die eigene Sonne bewertet; ein Lauf, den die App aus einer teuren in eine günstige Stunde geschoben hat, stand mit <b>null</b> in der Bilanz. Gerade im Winter, wenn kaum Sonne da ist, sah es dadurch so aus, als täte die App nichts","📊 <b>Die Bilanz zeigt beide Hebel getrennt</b>: „☀️ eigene Sonne statt Netz“ und „⏰ günstigere Netzstunde“. Verglichen wird mit einem durchschnittlichen Zeitpunkt im Zeitfenster des Geräts – lief es zur teuren Stunde, steht dort auch ein <b>Minus</b>. Bei festem Tarif entfällt die Zeile, dort kostet jede Stunde gleich viel","🔧 <b>Behoben: dieselbe Sonne wurde doppelt vergeben.</b> Liefen zwei Geräte in derselben Stunde, bekam jedes den vollen Überschuss gutgeschrieben. Gemessen: <b>2,86 kWh</b> Überschuss, aber <b>4,00 kWh</b> verbucht. Jetzt teilen sie sich, was da ist. Bereits gespeicherte Läufe behalten ihre alten Werte – rückwirkend lässt sich das nicht sauber nachrechnen"]},
   {v:87,t:["☀️ <b>Die Bilanz führt jetzt mit der Sonne statt mit dem Euro</b>: Ganz oben stehen die <b>kWh aus eigener Sonne</b> – die Zahl, die am wenigsten von Annahmen abhängt. Sie hängt weder am Einspeisetarif noch an deinem Aufschlag noch am Preismodell, sondern sagt schlicht, wie viel Strom vom Netz aufs eigene Dach gewandert ist","💰 <b>Der Eurobetrag bleibt</b> – er rückt nur eine Reihe tiefer zu CO₂ und Serie. Verständlich soll er sein, aber er ist nicht mehr die Hauptaussage. <b>Gerechnet wird unverändert</b>, keine Zahl hat sich geändert"]},
@@ -3514,9 +3515,9 @@ function renderDashboard(arr){
     simTag.per.forEach(p=>{ let inner=""; if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';} dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>'; });
     resHtml='<div class="dash-res-strip"><div class="planer-deckung">'+dv+'</div>'+
       '<div class="dash-res">'+
-        '<span class="r-leg"><i style="background:var(--gruen)"></i>☀️ <b>'+simTag.sonneKwh.toFixed(1)+'</b> kWh</span>'+
-        (akkuAn?'<span class="r-leg"><i style="background:var(--netz)"></i>🔋 <b>'+simTag.akkuKwh.toFixed(1)+'</b> kWh</span>':'')+
-        '<span class="r-leg"><i style="background:var(--rot)"></i>🔌 <b>'+simTag.netzKwh.toFixed(1)+'</b> kWh</span>'+
+        '<span class="r-leg"><i style="background:var(--gruen)"></i>☀️ <b>'+dz(simTag.sonneKwh.toFixed(1))+'</b> kWh</span>'+
+        (akkuAn?'<span class="r-leg"><i style="background:var(--netz)"></i>🔋 <b>'+dz(simTag.akkuKwh.toFixed(1))+'</b> kWh</span>':'')+
+        '<span class="r-leg"><i style="background:var(--rot)"></i>🔌 <b>'+dz(simTag.netzKwh.toFixed(1))+'</b> kWh</span>'+
       '</div></div>';
   }
   $("dash-plan-card").innerHTML=
@@ -3696,9 +3697,9 @@ function renderPlaner(arr){
       st.per.forEach(p=>{ let inner=""; if(p.load>0.0001){const t=p.load;inner='<span style="height:'+(p.sun/t*100)+'%;background:var(--gruen)"></span><span style="height:'+(p.batt/t*100)+'%;background:var(--netz)"></span><span style="height:'+(p.netz/t*100)+'%;background:var(--rot)"></span>';} dv+='<div class="deckung-col'+(p.h===jetztH?" jetzt":"")+'">'+inner+'</div>'; });
       deckHtml='<div class="deckung-titel">Deckung der Geräte je Stunde</div><div class="planer-deckung">'+dv+'</div>'+
         '<div class="deckung-legende"><span><i style="background:var(--gruen)"></i>Sonne</span>'+(akkuAn?'<span><i style="background:var(--netz)"></i>Speicher</span>':'')+'<span><i style="background:var(--rot)"></i>Netz</span></div>'+
-        '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+st.sonneKwh.toFixed(1)+' kWh</b></div>'+
-        (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+st.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
-        '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+st.netzKwh.toFixed(1)+' kWh</b></div>';
+        '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+dz(st.sonneKwh.toFixed(1))+' kWh</b></div>'+
+        (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+dz(st.akkuKwh.toFixed(1))+' kWh</b></div>':'')+
+        '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+dz(st.netzKwh.toFixed(1))+' kWh</b></div>';
     }
     rest.innerHTML=deckHtml+erledigtHtml(tagKey); wireErledigt(tagKey); return;
   }
@@ -3849,13 +3850,13 @@ function renderPlaner(arr){
     }
     const haupt = ok
       ? (akkuAn?"✅ Deine Geräte laufen komplett aus Sonne &amp; Speicher":"✅ Deine Geräte laufen komplett aus Sonnenstrom")
-      : "⚠️ "+simTag.netzKwh.toFixed(1)+" kWh der Geräte aus dem Netz (~"+euro(simTag.netzCt/100)+")";
+      : "⚠️ "+dz(simTag.netzKwh.toFixed(1))+" kWh der Geräte aus dem Netz (~"+euro(simTag.netzCt/100)+")";
     $("planer-verdikt").innerHTML=
       '<div class="v-haupt '+(ok?"gut":"warn")+'">'+haupt+'</div>'+tip+
-      '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+simTag.sonneKwh.toFixed(1)+' kWh</b></div>'+
-      (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+simTag.akkuKwh.toFixed(1)+' kWh</b></div>':'')+
-      '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+simTag.netzKwh.toFixed(1)+' kWh</b></div>'+
-      (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+simTag.akkuStart.toFixed(1)+' → '+simTag.akkuEnde.toFixed(1)+' kWh</b></div>':'')+
+      '<div class="v-zeile"><span>☀️ Geräte aus Sonne</span><b>'+dz(simTag.sonneKwh.toFixed(1))+' kWh</b></div>'+
+      (akkuAn?'<div class="v-zeile"><span>🔋 Geräte aus Speicher</span><b>'+dz(simTag.akkuKwh.toFixed(1))+' kWh</b></div>':'')+
+      '<div class="v-zeile"><span>🔌 Geräte aus Netz</span><b>'+dz(simTag.netzKwh.toFixed(1))+' kWh</b></div>'+
+      (akkuAn?'<div class="v-zeile"><span>🔋 Speicher morgens → abends</span><b>'+dz(simTag.akkuStart.toFixed(1))+' → '+dz(simTag.akkuEnde.toFixed(1))+' kWh</b></div>':'')+
       (erlPlatz.length?'<div class="v-inkl">Werte inkl. der heute schon gelaufenen Geräte.</div>':'');
   }
   updateSim();
@@ -4225,7 +4226,7 @@ function renderVerlauf(){
       // gebracht hat. (Vorher stand der Block ganz unten hinter dem CSV-Export und
       // der kompletten Lauf-Liste; dorthin scrollt praktisch niemand.)
       '<div class="spenden" id="spenden-bilanz" hidden></div>'+
-      '<div class="wk-hinweis"><b>Eine Schätzung, keine Messung.</b> „Gespart" summiert <b>zwei Hebel</b>: eigener Sonnenstrom statt Netz (bewertet mit dem Netzpreis der Stunde) und – bei dynamischem Tarif – der Preisvorteil der gewählten Netzstunde gegenüber einem Durchschnittszeitpunkt im Zeitfenster des Geräts. Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler; Verbraucher, die du nicht eingetragen hast, kennt die App nicht; die <b>Einspeisevergütung ist nicht abgezogen</b>. Der Wert zeigt die Größenordnung – nicht den Kontostand. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – ab jetzt exakt.':' Werte seit Aufzeichnung.')+'</div>'+
+      '<div class="wk-hinweis"><b>Eine Schätzung, keine Messung.</b> „Gespart" summiert <b>zwei Hebel</b>: eigener Sonnenstrom statt Netz (bewertet mit dem Netzpreis der Stunde) und – bei dynamischem Tarif – der Preisvorteil der gewählten Netzstunde gegenüber einem Durchschnittszeitpunkt im Zeitfenster des Geräts. Die Sonne stammt aus der <b>Prognose</b>, nicht von einem Zähler; Verbraucher, die du nicht eingetragen hast, kennt die App nicht; die <b>Einspeisevergütung ist nicht abgezogen</b>. Der Wert zeigt die Größenordnung – nicht den Kontostand. <b>Woche</b> zählt ab Montag, <b>Monat</b> ab dem 1., <b>Jahr</b> ab dem 1. Januar – jeweils bei null beginnend.'+(hatEst?' <b>Frühere Läufe sind geschätzt</b> (Sonne aus Tageszeit/Jahreszeit, Preis pauschal ~'+SCHAETZ_PREIS_CT+' ct) – neuere Läufe rechnen mit den echten Stundendaten.':' Werte seit Aufzeichnung.')+'</div>'+
       '<details class="wk-scope-det">'+
         '<summary>ⓘ Was zählt in diese Bilanz?</summary>'+
         '<div class="sc-row"><span class="sc-ic">✅</span><span class="sc-tx"><b>Zählt:</b> Geräte, die du hier selbst einplanst · Routinen, die du bestätigst.</span></div>'+
