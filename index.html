@@ -367,18 +367,9 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 
 /* Interaktiver Tagesplaner */
 .planer-leiste{position:relative;width:100%;background:linear-gradient(180deg,rgba(59,111,212,.05),rgba(59,111,212,.02));border:1px solid var(--linie);border-radius:14px;overflow:hidden;touch-action:pan-y}
-.surplus-layer{position:absolute;inset:0}
-.surplus-bar{position:absolute;bottom:0;background:linear-gradient(180deg,rgba(245,168,12,.5),rgba(245,168,12,.16));border-radius:3px 3px 0 0}
-.batt-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.now-line{position:absolute;top:0;bottom:0;width:2px;background:var(--nacht);opacity:.28;transform:translateX(-1px)}
 .blocks-layer{position:absolute;inset:0}
-.p-block{position:absolute;height:28px;min-width:26px;display:flex;align-items:center;justify-content:center;background:var(--nacht);color:#fff;border-radius:9px;cursor:grab;overflow:hidden;box-shadow:0 4px 12px -4px rgba(20,31,44,.5);touch-action:none;user-select:none;-webkit-user-select:none;transition:transform var(--schnell),box-shadow var(--schnell)}
-.p-block .blk-ic{font-size:16px}
 .p-block.zieht{cursor:grabbing;transform:scale(1.12);box-shadow:0 10px 22px -6px rgba(20,31,44,.6);z-index:5}
-.gridline{position:absolute;left:0;right:0;height:1px;background:rgba(20,31,44,.07);pointer-events:none}
 .gridline.null{height:2px;background:rgba(20,31,44,.3)}
-.y-achse{position:absolute;inset:0;pointer-events:none;z-index:2}
-.y-achse span{position:absolute;left:4px;font-family:var(--mono);font-size:9px;font-weight:600;color:var(--grau);background:var(--karte);padding:0 3px;border-radius:4px;opacity:.9;white-space:nowrap}
 .std-achse{position:relative;height:22px;margin-top:0}
 .std-achse .ax-tik{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--grau);display:flex;flex-direction:column;align-items:center;gap:2px}
 .std-achse .ax-tik i{width:1px;height:5px;background:var(--grau);opacity:.5}
@@ -443,21 +434,12 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .p-blk.done{cursor:default;background:var(--papier);border-style:dashed;box-shadow:none;opacity:.72}
 .p-blk.done .pbacc{background:var(--gruen)} .p-blk.done .pbp{color:var(--gruen)}
 .p-blk.done .pbi{filter:grayscale(.15)}
-.preis-titel{font-size:11.5px;font-weight:600;color:var(--grau);margin:16px 0 6px}
-.planer-preis{display:flex;gap:2px;height:16px}
-.planer-preis .preis-col{flex:1 1 0;border-radius:3px}
-.planer-preis .preis-col.k-pv{background:var(--gruen)}
-.planer-preis .preis-col.k-guenstig{background:var(--gelb)}
-.planer-preis .preis-col.k-mittel{background:#C2CDD6}
-.planer-preis .preis-col.k-teuer{background:var(--rot)}
-.planer-preis .preis-col[data-jetzt]{box-shadow:0 0 0 1.5px var(--nacht)}
 /* Schieberegler + Tipp */
 .regler{background:var(--papier);border-radius:14px;padding:14px;margin:16px 0 4px;display:flex;flex-direction:column;gap:15px}
 .regler-zeile{display:flex;flex-direction:column;gap:8px}
 .regler-zeile[hidden]{display:none}
 .regler-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:600;color:var(--nacht)}
 .regler-kopf b{font-family:var(--mono);color:var(--netz);font-size:14px}
-.regler-hinweis{font-size:11px;color:var(--grau);line-height:1.4}
 .regler input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:99px;background:rgba(20,31,44,.12);outline:none;cursor:pointer}
 .regler input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--knopf);box-shadow:0 2px 6px rgba(20,31,44,.4);border:3px solid var(--karte);cursor:pointer}
 .regler input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--knopf);border:3px solid var(--karte);cursor:pointer}
@@ -494,7 +476,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .hg-ww{position:absolute;top:2px;transform:translateX(-50%);background:var(--karte);border:1.5px dashed var(--netz);color:var(--netz);border-radius:8px;font-size:9.5px;font-weight:700;padding:2px 6px;line-height:1.2;white-space:nowrap;box-shadow:0 1px 3px rgba(20,31,44,.10)}
 .hg-hzband{position:absolute;inset:0;background:repeating-linear-gradient(-45deg,rgba(232,96,76,.16) 0 6px,rgba(232,96,76,.05) 6px 12px);display:flex;align-items:center;padding-left:8px;font-size:10px;color:var(--rot);font-weight:600}
 /* Rechte Y-Achse (Preis) */
-.y-achse.y-rechts span{left:auto;right:4px}
 .chart-legende i.lg-line{height:0;border-top:2px solid var(--preis-linie);border-radius:0}
 .planer-deckung{display:flex;gap:2px;height:30px;margin-top:8px}
 .planer-deckung .deckung-col{flex:1 1 0;display:flex;flex-direction:column-reverse;background:rgba(20,31,44,.05);border-radius:3px;overflow:hidden}
@@ -524,7 +505,6 @@ footer{font-size:11px;color:var(--grau);text-align:center;padding-top:6px}
 .pl-name{font-size:13.5px;font-weight:600;color:var(--nacht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pl-zeit{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--tinte);line-height:1.35}
 .pl-cov{color:var(--grau);font-weight:600;white-space:nowrap} .pl-cov.gut{color:var(--gruen)}
-.pl-fixtag{color:var(--sonne);font-weight:700;font-family:var(--sans)}
 .pl-akt{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .pl-nudge{display:flex;gap:2px;flex-shrink:0}
 .pl-nudge button{width:25px;height:28px;border:none;border-radius:8px;background:rgba(20,31,44,.07);font-size:15px;font-weight:700;color:var(--nacht);cursor:pointer;line-height:1;transition:background var(--schnell),transform var(--schnell)}
@@ -558,10 +538,6 @@ details.erl-mehr>summary{padding:5px 2px;font-size:12px}
 .b-gelernt .bg-tx{flex:1;font-size:12.5px;color:var(--tinte);line-height:1.35}
 .b-gelernt .bg-ok{flex-shrink:0;border:none;background:var(--knopf);color:var(--knopf-fg);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer}
 .b-gelernt .bg-ok:active{transform:scale(.95)}
-.pl-deck{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;width:82px}
-.pl-meter{display:flex;width:100%;height:6px;border-radius:99px;overflow:hidden;background:rgba(20,31,44,.08)}
-.pl-meter span{display:block;height:100%}
-.pl-proz{font-size:10.5px;font-weight:600;color:var(--grau)}
 .pl-proz.gut{color:var(--gruen)}
 .deckung-titel{font-size:11.5px;font-weight:600;color:var(--grau);margin:16px 0 6px}
 
@@ -639,17 +615,12 @@ details.rgrp-info>summary::-webkit-details-marker{display:none}
 .rgrp-info-tx{font-size:11.5px;color:var(--grau);line-height:1.45;padding:8px 0 2px}
 /* Erkannte Rhythmen sind Vermutungen – gestrichelter Rand statt durchgezogener. */
 #rhythmus-liste .rh-block{border:1px dashed var(--linie);border-radius:12px;padding:10px 12px;margin-bottom:9px}
-.rh-legende-top{margin:0 0 4px;padding-bottom:13px;border-bottom:.5px solid var(--linie)}
 .rh-leg-lbl{font-size:11.5px;font-weight:700;color:var(--tinte)}
 .rh-legende span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--grau)}
 .rh-legende i{width:13px;height:13px;border-radius:50%;box-sizing:border-box;flex-shrink:0;background:var(--linie)}
 .rh-legende i.run{background:var(--gruen)}
 .rh-legende i.plan{background:transparent;border:2.5px solid var(--gruen)}
 .rh-legende i.next{background:transparent;border:2.5px solid var(--sonne)}
-.rh-uebernehmen{border:1.5px dashed #C4D0DA;background:transparent;color:var(--tinte);border-radius:11px;padding:8px 12px;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:9px;transition:border-color var(--schnell),color var(--schnell)}
-.rh-uebernehmen:hover{border-color:var(--sonne);color:var(--nacht)}
-.rh-uebernehmen:active{transform:scale(.98)}
-:root[data-theme="dark"] .rh-uebernehmen{border-color:#3A4C5E}
 .rh-leer{color:var(--grau);font-size:13px;line-height:1.5;padding:6px 2px}
 .routine-add{border:1.5px dashed #C4D0DA;border-radius:14px;padding:12px;background:transparent;font-size:13.5px;font-weight:600;color:var(--tinte);cursor:pointer;width:100%;margin-top:10px;transition:border-color var(--schnell),color var(--schnell)}
 .routine-add:hover{border-color:var(--sonne);color:var(--nacht)}
@@ -786,8 +757,6 @@ details.rgrp-info>summary::-webkit-details-marker{display:none}
 .sheet .karte{background:none;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;padding:0;margin:0}
 /* Verlaufs-Reiter */
 .vl-leer{font-size:13px;color:var(--grau);line-height:1.6;text-align:center;padding:22px 8px}
-.vl-bilanz{background:var(--gruen-hell);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--tinte);margin-bottom:16px}
-.vl-bilanz b{color:var(--gruen);font-weight:700}
 .vl-titel{font-size:12px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.04em;margin:4px 0 8px}
 /* „Deine Wirkung"-Bilanz */
 .wirkung{margin-bottom:18px}
@@ -851,12 +820,6 @@ details.wk-scope-det[open] summary::after{transform:rotate(180deg)}
 /* Barrierefreiheit (#8a): sichtbarer Fokus nur für Tastatur/Switch-Control (nicht bei Touch) */
 button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible,.tab:focus-visible,label:focus-visible{outline:3px solid var(--sonne);outline-offset:2px;border-radius:9px}
 @media (prefers-contrast: more){ :root{--grau:#4A5867} :root[data-theme="dark"]{--grau:#AEBCCA} }
-.vl-lern{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--linie)}
-.vl-lern:last-of-type{border-bottom:none;margin-bottom:8px}
-.vl-ic{font-size:19px;line-height:1;flex-shrink:0}
-.vl-lern-tx{display:flex;flex-direction:column;min-width:0}
-.vl-lern-tx b{font-size:13.5px;color:var(--nacht);font-weight:600}
-.vl-lern-tx span{font-size:11.5px;color:var(--grau)}
 .vl-tab-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px}
 .vl-tab{width:100%;border-collapse:collapse;font-size:12.5px}
 .vl-tab th{text-align:left;font-size:10.5px;font-weight:700;color:var(--grau);text-transform:uppercase;letter-spacing:.03em;padding:6px 6px;border-bottom:1.5px solid var(--linie);white-space:nowrap}
@@ -883,7 +846,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 :root[data-theme="dark"] .vs-nein{background:rgba(255,255,255,.08)}
 
 /* Wochen-Sonnen-Ausblick (#7) */
-.wa-block{margin-bottom:18px}
 .wa-titel{font-size:15px;font-weight:700;color:var(--nacht)}
 .wa-sub{font-size:11.5px;color:var(--grau);line-height:1.4;margin:3px 0 12px}
 .wa-best{display:flex;align-items:center;gap:10px;background:radial-gradient(120% 100% at 0% 0%,rgba(245,168,12,.16),rgba(245,168,12,0) 62%),var(--karte);border:1px solid var(--sonne);border-radius:13px;padding:10px 12px;margin-bottom:12px}
@@ -993,13 +955,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible,[
 :root[data-theme="dark"] .routine-add{border-color:#3A4C5E}
 :root[data-theme="dark"] .schaetzung{background:linear-gradient(135deg,#382C12,#443512);color:var(--nacht)}
 :root[data-theme="dark"] .planer-leiste{background:rgba(255,255,255,.03)}
-:root[data-theme="dark"] .p-block{background:linear-gradient(135deg,#2E4560,#22344A);box-shadow:0 4px 12px -4px rgba(0,0,0,.7)}
 :root[data-theme="dark"] .planer-deckung .deckung-col{background:rgba(255,255,255,.06)}
 :root[data-theme="dark"] .v-haupt.warn{color:#FFCF6B}
 :root[data-theme="dark"] .mc-add:hover{background:var(--sonne-hell)}
-:root[data-theme="dark"] .pl-meter{background:rgba(255,255,255,.1)}
 :root[data-theme="dark"] .pl-nudge button{background:rgba(255,255,255,.1);color:#fff}
-:root[data-theme="dark"] .gridline{background:rgba(255,255,255,.06)}
 :root[data-theme="dark"] .gridline.null{background:rgba(255,255,255,.32)}
 :root[data-theme="dark"] .regler input[type=range]{background:rgba(255,255,255,.14)}
 :root[data-theme="dark"] .switch-ui{background:rgba(255,255,255,.2)}
@@ -1875,8 +1834,9 @@ function renderSpenden(){
       '<a class="sp-btn" href="'+SPENDEN_URL+'" target="_blank" rel="noopener">☕ Über PayPal unterstützen</a>';
   });
 }
-const APP_VERSION=93;
+const APP_VERSION=94;
 const NEUES=[
+  {v:94,t:["⚡ <b>Die Startseite baut sich schneller auf.</b> Der Morgen-Vorschlag hat die Sonnenreihe von morgen für <b>jedes</b> Gerät neu zusammengesetzt – bei sechs Geräten zwölfmal dieselbe Arbeit. Jetzt einmal. Dazu sucht er den besten Zeitpunkt zweistufig statt in 64 Einzelschritten. Auf einem gedrosselten Gerät gemessen: <b>56 → 32 ms</b> je Wechsel auf „Heute“","🧹 <b>Ballast raus</b>: 41 Gestaltungsregeln für Elemente, die es längst nicht mehr gibt (Reste alter Ansichten), und eine ungenutzte Funktion. Ändert nichts am Aussehen, macht die Datei aber kleiner und künftige Änderungen sicherer"]},
   {v:93,t:["✈️ <b>Der Urlaubs-Modus hat den „auf morgen“-Rat zu Unrecht verschluckt.</b> Ist er an, pausieren Vorschläge und Routinen – <b>manuell eingeplante Geräte laufen aber weiter</b>, so war es schon immer gedacht. Nur mein neuer Hinweis schwieg trotzdem. Wer im Urlaubs-Modus den Trockner einplant, ist offensichtlich zu Hause und bekommt den Rat jetzt genauso"]},
   {v:92,t:["🧭 <b>Der Vorschlag „auf morgen legen“ steht jetzt auch im Tagesplan</b> – dort, wo die Budget-Zeile ohnehin schon sagt „… über → Netz oder <b>anderer Tag</b>“. Bisher gab es dort nur diesen Hinweis, das Angebot dazu aber nur auf der Startseite. Wer im Tagesplan nachsah, fand nichts","🔁 Beide Orte zeigen dieselbe Karte und denselben Knopf – getippt wirkt er überall gleich"]},
   {v:91,t:["🌙 <b>„Heute bringt das nichts mehr – leg es auf morgen.“</b> Bisher suchte die App den besten Zeitpunkt immer nur <b>innerhalb des heutigen Tages</b>. Stehst du abends vor der Maschine, ist da nichts Gutes mehr – sie nannte trotzdem eine Uhrzeit von heute und sparte damit null. Jetzt darf sie <b>morgen</b> vorschlagen","⚖️ Sie zeigt dazu schlicht <b>zwei Zeilen mit zwei Preisen</b> – heute Abend gegen morgen Mittag – und einen Knopf. Getippt, wandert das Gerät auf morgen und die App springt gleich hinüber","🔋 <b>Gerechnet wird mit der Speicher-Simulation</b>, nicht mit der einfachen Bilanz-Formel. Damit stimmt es automatisch für <b>festen wie dynamischen Tarif</b> und für Haushalte <b>mit wie ohne Speicher</b>: Ist der Speicher abends geladen, ist der Abend längst gelöst – dann sagt die App gar nichts. Ebenso, wenn morgen trüb wird, wenn heute selbst ein guter Platz frei ist oder wenn es um weniger als 10 Cent geht","1️⃣ Und es steht immer nur <b>ein</b> Vorschlag da – der mit dem größten Gewinn. Sind mehrere Geräte betroffen, kommt der nächste, sobald du den ersten erledigt hast. Eine Entscheidung nach der anderen statt einer Wand aus gleich aussehenden Kästen"]},
@@ -1922,7 +1882,6 @@ function berlinTeile(d){const o={};_tzFmt.formatToParts(d).forEach(p=>{if(p.type
 // Aktuelle Uhrzeit in Berlin als Bruchteil-Stunde (z. B. 9:20 -> 9.33) – für minutengenaue Status.
 const _tzHM=new Intl.DateTimeFormat("en-GB",{timeZone:TZ,hour:"2-digit",minute:"2-digit",hour12:false});
 function jetztStundeF(){let h=0,m=0;_tzHM.formatToParts(new Date()).forEach(p=>{if(p.type==="hour")h=parseInt(p.value,10);if(p.type==="minute")m=parseInt(p.value,10);});if(h===24)h=0;return h+m/60;}
-function datumKey(d){return berlinTeile(d).key;}
 function heuteStr(){return berlinTeile(new Date()).key;}
 function morgenStr(){return berlinTeile(new Date(Date.now()+86400000)).key;}
 function euro(v){return v.toFixed(2).replace(".",",")+" €";}
@@ -3505,13 +3464,8 @@ function renderDashboard(arr){
        (gemessen: 8 Geraete = 1485 px Karte, fast nur Wiederholung). Ist der erste
        weggetippt, erscheint beim naechsten Zeichnen der naechste: eine Entscheidung
        nach der anderen statt einer Wand. */
-    let mvBest=null, mvBestName=null;
-    items.forEach(it=>{
-      if(it.done||it.routine||morgenWeg.has(it.name))return;
-      const blk=platzierungen[it.pidx]; if(!blk)return;
-      let m=null; try{ m=morgenBesser(blk); }catch(_){ m=null; }
-      if(m && (!mvBest || m.spar>mvBest.spar)){ mvBest=m; mvBestName=it.name; }
-    });
+    const angebot=bestesMorgenAngebot();
+    const mvBest=angebot?angebot.mv:null, mvBestName=angebot?angebot.blk.name:null;
     items.forEach((it,idx)=>{
       const zeit = it.start>=24 ? "ohne feste Zeit" : (it.ende!=null? uhrStr(it.start)+"–"+uhrStr(it.ende)+" Uhr" : uhrStr(it.start)+" Uhr");
       const kwhStr = it.kwh!=null? " · "+dz(it.kwh.toFixed(1))+" kWh" : "";
@@ -4031,17 +3985,30 @@ function laufKosten(arr,start,dauer,kwh,von,bis){
   simuliere(arr,[b]);
   return {ct:b._gridCt||0, son:b._sun||0, batt:b._batt||0, netz:b._grid||0};
 }
-// Bester (guenstigster) Startzeitpunkt fuer einen Lauf an einem Tag, im 15-Min-Raster.
+/* Bester (guenstigster) Startzeitpunkt fuer einen Lauf an einem Tag.
+   ZWEISTUFIG: erst das Stundenraster, dann eine Stunde davor bis eine danach im
+   Viertelraster. Die Kostenkurve ueber den Tag ist glatt (Sonne und Preis aendern
+   sich stetig), das grobe Raster findet also verlaesslich dieselbe Mulde – aber
+   mit rund 24 statt 64 Simulationen je Geraet. Die Fenstergrenzen werden immer
+   mitgeprueft, damit der Rand nicht durchrutscht. */
 function guenstigsterStart(arr,dauer,kwh,von,bis,abStunde){
   const d=Math.max(0.25,Math.round(dauer*4)/4);
-  let vonQ=Math.round(Math.max(von,abStunde!=null?abStunde:von)*4);
+  const vonQ=Math.round(Math.max(von,abStunde!=null?abStunde:von)*4);
   const bisQ=Math.round(Math.min(bis,24)*4);
-  let best=null;
-  for(let q=vonQ;q+d*4<=bisQ;q++){
+  const letzterQ=bisQ-d*4;
+  if(letzterQ<vonQ)return null;
+  const pruefe=(q,best)=>{
     const st=q/4, k=laufKosten(arr,st,d,kwh,von,bis);
-    if(!best||k.ct<best.ct-0.001)best={start:st,ct:k.ct,son:k.son,batt:k.batt};
-  }
-  return best;
+    return (!best||k.ct<best.ct-0.001)?{start:st,ct:k.ct,son:k.son,batt:k.batt}:best;
+  };
+  let grob=null;
+  for(let q=vonQ;q<=letzterQ;q+=4) grob=pruefe(q,grob);
+  grob=pruefe(letzterQ,grob);                       // Rand nie auslassen
+  if(!grob)return null;
+  let fein=grob;
+  const mitteQ=Math.round(grob.start*4);
+  for(let q=Math.max(vonQ,mitteQ-4);q<=Math.min(letzterQ,mitteQ+4);q++) fein=pruefe(q,fein);
+  return fein;
 }
 // Liegen fuer einen Tag ueberhaupt Boersenpreise vor? (fuer morgen erst ab ca. 14 Uhr)
 function preiseDaFuer(tagStr){
@@ -4074,18 +4041,24 @@ function morgenKarteHtml(mv,startHeute,kwh,name){
 }
 /* Der lohnendste Verschiebe-Kandidat unter den heute geplanten Bloecken – oder null. */
 function bestesMorgenAngebot(){
+  if(tag!=="heute"||demoAktiv)return null;
+  // Die Stundenreihe von morgen EINMAL bauen, nicht je Geraet. stunden() setzt
+  // jedes Mal das komplette Hintergrund-Profil neu zusammen; bei sechs Geraeten
+  // und zwei Aufrufstellen war das zwoelfmal dieselbe Arbeit.
+  let arrM=null; try{ arrM=stunden(morgenStr()); }catch(_){ return null; }
+  if(!arrM)return null;
   let best=null;
   (platzierungen||[]).forEach(blk=>{
     if(!blk||blk.routine||blk._teil)return;
     if(morgenWeg.has(blk.name))return;
-    let m=null; try{ m=morgenBesser(blk); }catch(_){ m=null; }
+    let m=null; try{ m=morgenBesser(blk,arrM); }catch(_){ m=null; }
     if(m && (!best || m.spar>best.mv.spar)) best={mv:m,blk};
   });
   return best;
 }
 /* Lohnt es sich, diesen heute geplanten Block auf morgen zu legen?
    Gibt null zurueck, wenn nicht – dann zeigt die App nichts. */
-function morgenBesser(block){
+function morgenBesser(block,vorabM){
   if(!block||block.routine||block._teil)return null;        // Routinen haben ihren Rhythmus
   if(tag!=="heute"||demoAktiv)return null;
   const mk=morgenStr();
@@ -4100,7 +4073,7 @@ function morgenBesser(block){
      unter die Schwelle. Ein zweites Tor waere doppelt gemoppelt und obendrein
      unzuverlaessig: Der Wochenausblick laedt asynchron nach und ist beim ersten
      Zeichnen oft noch gar nicht da. */
-  const arrM=stunden(mk); if(!arrM)return null;
+  const arrM=vorabM||stunden(mk); if(!arrM)return null;
   const dauer=block.echteDauer!=null?block.echteDauer:block.dauer;
   const heute=laufKosten(aktuelleStunden,block.start,dauer,block.kwh,block.von,block.bis);
   const morgen=guenstigsterStart(arrM,dauer,block.kwh,block.von,block.bis,null);

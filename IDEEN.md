@@ -3,7 +3,7 @@
 Lebende Liste. Wird fortgeschrieben – erledigte Punkte wandern nach unten in
 „Erledigt", neue Ideen kommen oben dazu und werden neu eingeordnet.
 
-Zuletzt aktualisiert: Juli 2026 (Stand v93)
+Zuletzt aktualisiert: Juli 2026 (Stand v94)
 
 ---
 
@@ -319,6 +319,46 @@ Punkte 1–3 verlangen **keine zusätzliche Eingabe** vom Nutzer.
 ---
 
 ## Erledigt
+
+- **v94** – **Kontrolldurchgang: Geschwindigkeit, toter Code, Testabdeckung.**
+  **Gemessen** mit 1584 Läufen aus zwei Jahren (130 KB im Speicher – localStorage
+  hat Luft für Jahrzehnte) und **4-fach gedrosselter CPU**, also etwa
+  Mittelklasse-Handy:
+  Reiterwechsel „Heute" **56 ms**, alle anderen 6–16 ms. Ursache gefunden:
+  `morgenBesser()` rief `stunden(morgenStr())` je Gerät auf, und es gab **zwei**
+  Schleifen (Startseite und Tagesplan) – bei sechs Geräten zwölfmal derselbe
+  Aufbau des Hintergrund-Profils. Zusammengelegt: 56 → 42 ms.
+  Dann die Suche zweistufig gemacht (Stundenraster, dann ±1 h im Viertelraster,
+  Fenstergrenzen immer mitgeprüft): **42 → 32 ms**, rund 24 statt 64
+  Simulationen je Gerät. ⚠️ Nebenwirkung: Bei mehreren gleich teuren Zeitpunkten
+  kann ein anderer gewählt werden (im Test 9:00 statt 8:45 Uhr, beide 0 ct).
+  **Toter Code raus:** 41 CSS-Regeln für Elemente, die es nicht mehr gibt
+  (Reste alter Ansichten – `rh-uebernehmen` aus v82, `wa-block` vom entfernten
+  Wochen-Ausblick, `vl-lern`, `surplus-bar` …) und die Funktion `datumKey`.
+  3,5 KB. Von 235 Funktionen war sonst **keine** ungenutzt – fünf schienen es
+  nur, weil sie als Rückruf übergeben werden.
+  **Testlücke geschlossen:** Von 283 IDs in der App kamen 86 in Tests vor. Der
+  riskanteste ungetestete Weg war **Backup sichern und wiederherstellen** – geht
+  der kaputt, verliert man alles. Jetzt `test_backup.js` 18/18: Export enthält
+  Geräte, Meine Geräte, Routine samt Abstand und Historie; Wiederherstellung auf
+  einem **fremden Startzustand** (Berlin, 1 kWp, leer) bringt alles zurück;
+  eine fremde Datei wird abgelehnt und lässt die Daten unangetastet.
+  ⚠️ Beim Schreiben stolperte ich erneut über `addInitScript`: Es sät bei **jedem**
+  Laden neu, mein „Daten löschen"-Schritt war nach dem nächsten `goto()` sofort
+  überschrieben – die Wiederherstellung wäre gar nicht geprüft worden. Deshalb
+  jetzt eine **zweite Seite** mit eigenem Startzustand.
+
+### Offen aus dem Durchgang
+
+- **Repository ist öffentlich** (`visibility: public`). Damit sind Quelltext,
+  Notizen **und die gebauten APK-Artefakte** für jeden einsehbar. Die
+  Datenschutz-Seite enthält die private E-Mail-Adresse – auf der Webseite per
+  `noindex` verdeckt, im Repository aber offen durchsuchbar.
+  Privat schalten geht nicht ohne Weiteres: **GitHub Pages ist im kostenlosen
+  Tarif auf öffentliche Repositories beschränkt** – die Domain wäre tot.
+  Weg für den Signaturschlüssel deshalb: ein **zweites, privates** Repository
+  nur zum Erzeugen; Secrets selbst sind auch im öffentlichen Repo sicher.
+  `signaturschluessel.yml` bricht ab, solange das Repository öffentlich ist.
 
 - **v93** – **Der Urlaubs-Modus verschluckte den „auf morgen"-Rat.** Zweite
   Meldung des Betreibers aus dem Betrieb (Screenshot, 20:15 Uhr): Kasten fehlte
